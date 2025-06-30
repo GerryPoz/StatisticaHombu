@@ -1,45 +1,127 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <title>Modulo ZADANKAI HOMBU 9</title>
+  <meta charset="UTF-8">
+  <title>Inserimento Dati – HOMBU 9</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 6px;
+      text-align: center;
+    }
+    caption {
+      font-weight: bold;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    .gruppo {
+      background-color: #fff9c4;
+      font-weight: bold;
+    }
+    .categoria {
+      background-color: #e0f7fa;
+      font-weight: bold;
+    }
+    .sottocategoria {
+      background-color: #f1f8e9;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-weight: bold;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Immissione Dati ZADANKAI</h1>
-  <form id="zadankai-form">
-    <label>Anno: <input name="anno" required></label><br>
-    <label>Mese: <input name="mese" required></label><br>
 
-    <label>HOMBU:
-      <select id="hombu" required></select>
-    </label><br>
-    <label>Capitolo:
-      <select id="capitolo" required></select>
-    </label><br>
-    <label>Settore:
-      <select id="settore" required></select>
-    </label><br>
-    <label>Gruppo:
-      <select id="gruppo" name="gruppo" required></select>
-    </label><br>
+  <h1>Inserimento Dati – HOMBU 9</h1>
 
-    <label>Categoria:
-      <select name="categoria">
-        <option>Membri</option>
-        <option>Simpatizzanti</option>
-        <option>Ospiti</option>
-      </select>
-    </label><br>
+  <form id="dati-form">
+    <table>
+      <caption>Modulo interattivo – Gruppo AURORA</caption>
+      <thead>
+        <tr>
+          <th>Nome Gruppo</th>
+          <th>Categoria</th>
+          <th>Sottocategoria</th>
+          <th>U</th><th>D</th><th>GU</th><th>GD</th>
+          <th>Somma</th><th>Totale</th>
+          <th>FUT</th><th>STU</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="6" class="gruppo">AURORA</td>
+          <td rowspan="3" class="categoria">ZADANKAI</td>
+          <td class="sottocategoria">Membri</td>
+          <td><input type="number" name="zadankai_m_u" min="0"></td>
+          <td><input type="number" name="zadankai_m_d" min="0"></td>
+          <td><input type="number" name="zadankai_m_gu" min="0"></td>
+          <td><input type="number" name="zadankai_m_gd" min="0"></td>
+          <td colspan="2">auto</td>
+          <td><input type="number" name="zadankai_m_fut" min="0"></td>
+          <td><input type="number" name="zadankai_m_stu" min="0"></td>
+        </tr>
+        <tr>
+          <td class="sottocategoria">Simpatizzanti</td>
+          <td><input type="number" name="zadankai_s_u" min="0"></td>
+          <td><input type="number" name="zadankai_s_d" min="0"></td>
+          <td><input type="number" name="zadankai_s_gu" min="0"></td>
+          <td><input type="number" name="zadankai_s_gd" min="0"></td>
+          <td colspan="2">auto</td>
+          <td><input type="number" name="zadankai_s_fut" min="0"></td>
+          <td><input type="number" name="zadankai_s_stu" min="0"></td>
+        </tr>
+        <tr>
+          <td class="sottocategoria">Ospiti</td>
+          <td><input type="number" name="zadankai_o_u" min="0"></td>
+          <td><input type="number" name="zadankai_o_d" min="0"></td>
+          <td><input type="number" name="zadankai_o_gu" min="0"></td>
+          <td><input type="number" name="zadankai_o_gd" min="0"></td>
+          <td colspan="2">auto</td>
+          <td colspan="2">–</td>
+        </tr>
+        <tr>
+          <td rowspan="2" class="categoria">PRATICANTI</td>
+          <td class="sottocategoria">Membri</td>
+          <td><input type="number" name="praticanti_m_u" min="0"></td>
+          <td><input type="number" name="praticanti_m_d" min="0"></td>
+          <td><input type="number" name="praticanti_m_gu" min="0"></td>
+          <td><input type="number" name="praticanti_m_gd" min="0"></td>
+          <td colspan="2">auto</td>
+          <td colspan="2">–</td>
+        </tr>
+        <tr>
+          <td class="sottocategoria">Simpatizzanti</td>
+          <td><input type="number" name="praticanti_s_u" min="0"></td>
+          <td><input type="number" name="praticanti_s_d" min="0"></td>
+          <td><input type="number" name="praticanti_s_gu" min="0"></td>
+          <td><input type="number" name="praticanti_s_gd" min="0"></td>
+          <td colspan="2">auto</td>
+          <td colspan="2">–</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <label>Uomini: <input type="number" name="U" min="0"></label><br>
-    <label>Donne: <input type="number" name="D" min="0"></label><br>
-    <label>Giovani Uomini: <input type="number" name="GU" min="0"></label><br>
-    <label>Giovani Donne: <input type="number" name="GD" min="0"></label><br>
-    <label>FUT: <input type="number" name="FUT" min="0"></label><br>
-    <label>STU: <input type="number" name="STU" min="0"></label><br>
-    <label>Note: <textarea name="note"></textarea></label><br>
-
-    <button type="submit">Salva</button>
+    <button type="submit">Salva dati</button>
   </form>
 
   <script type="module">
@@ -50,71 +132,58 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Caricamento struttura da gruppi.json
-    fetch("gruppi.json")
-      .then(res => res.json())
-      .then(data => {
-        const hombuSel = document.getElementById("hombu");
-        const capitoloSel = document.getElementById("capitolo");
-        const settoreSel = document.getElementById("settore");
-        const gruppoSel = document.getElementById("gruppo");
-
-        for (const hombu in data) {
-          hombuSel.add(new Option(hombu, hombu));
-        }
-
-        hombuSel.addEventListener("change", () => {
-          capitoloSel.innerHTML = "<option></option>";
-          settoreSel.innerHTML = "<option></option>";
-          gruppoSel.innerHTML = "<option></option>";
-          const capitoli = data[hombuSel.value];
-          for (const cap in capitoli) {
-            capitoloSel.add(new Option(cap, cap));
-          }
-        });
-
-        capitoloSel.addEventListener("change", () => {
-          settoreSel.innerHTML = "<option></option>";
-          gruppoSel.innerHTML = "<option></option>";
-          const settori = data[hombuSel.value][capitoloSel.value];
-          for (const sett in settori) {
-            settoreSel.add(new Option(sett, sett));
-          }
-        });
-
-        settoreSel.addEventListener("change", () => {
-          gruppoSel.innerHTML = "<option></option>";
-          const gruppi = data[hombuSel.value][capitoloSel.value][settoreSel.value];
-          gruppi.forEach(g => gruppoSel.add(new Option(g, g)));
-        });
-      });
-
-    document.getElementById("zadankai-form").addEventListener("submit", (e) => {
+    document.getElementById("dati-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target));
-      const key = `${data.anno}-${data.mese}-${data.gruppo}`;
-      const categoria = data.categoria;
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
 
       const payload = {
-        hombu: data.hombu,
-        capitolo: data.capitolo,
-        settore: data.settore,
-        U: parseInt(data.U || 0),
-        D: parseInt(data.D || 0),
-        GU: parseInt(data.GU || 0),
-        GD: parseInt(data.GD || 0),
-        FUT: parseInt(data.FUT || 0),
-        STU: parseInt(data.STU || 0),
-        note: data.note || ""
+        gruppo: "AURORA",
+        zadankai: {
+          membri: {
+            U: parseInt(data.zadankai_m_u || 0),
+            D: parseInt(data.zadankai_m_d || 0),
+            GU: parseInt(data.zadankai_m_gu || 0),
+            GD: parseInt(data.zadankai_m_gd || 0),
+            FUT: parseInt(data.zadankai_m_fut || 0),
+            STU: parseInt(data.zadankai_m_stu || 0)
+          },
+          simpatizzanti: {
+            U: parseInt(data.zadankai_s_u || 0),
+            D: parseInt(data.zadankai_s_d || 0),
+            GU: parseInt(data.zadankai_s_gu || 0),
+            GD: parseInt(data.zadankai_s_gd || 0),
+            FUT: parseInt(data.zadankai_s_fut || 0),
+            STU: parseInt(data.zadankai_s_stu || 0)
+          },
+          ospiti: {
+            U: parseInt(data.zadankai_o_u || 0),
+            D: parseInt(data.zadankai_o_d || 0),
+            GU: parseInt(data.zadankai_o_gu || 0),
+            GD: parseInt(data.zadankai_o_gd || 0)
+          }
+        },
+        praticanti: {
+          membri: {
+            U: parseInt(data.praticanti_m_u || 0),
+            D: parseInt(data.praticanti_m_d || 0),
+            GU: parseInt(data.praticanti_m_gu || 0),
+            GD: parseInt(data.praticanti_m_gd || 0)
+          },
+          simpatizzanti: {
+            U: parseInt(data.praticanti_s_u || 0),
+            D: parseInt(data.praticanti_s_d || 0),
+            GU: parseInt(data.praticanti_s_gu || 0),
+            GD: parseInt(data.praticanti_s_gd || 0)
+          }
+        }
       };
 
-      set(ref(db, `zadankai/${key}/${categoria}`), payload).then(() => {
-        alert("Dati salvati con successo!");
-        e.target.reset();
-      }).catch((err) => {
-        alert("Errore nel salvataggio: " + err.message);
-      });
+      const now = new Date();
+      const key = `${now.getFullYear()}-${now.getMonth() + 1}-AURORA`;
+
+      set(ref(db, `zadankai/${key}`), payload)
+        .then(() => alert("Dati salvati con successo!"))
+        .catch(err => alert("Errore nel salvataggio: " + err.message));
     });
-  </script>
-</body>
-</html>
+  </script
