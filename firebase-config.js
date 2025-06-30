@@ -1,9 +1,10 @@
 export const firebaseConfig = {
-  apiKey: "TUO_API_KEY",
-  authDomain: "TUO_DOMINIO.firebaseapp.com",
-  databaseURL: "https://TUO_DATABASE.firebaseio.com",
-  projectId: "TUO_PROJECT_ID",
-  storageBucket: "TUO_BUCKET.appspot.com",
-  messagingSenderId: "TUO_SENDER_ID",
-  appId: "TUO_APP_ID"
+  apiKey: "AIzaSyAGoVq0-DvyqUUH4aDCfOFZP2NobclIg_o",
+  authDomain: "hombu-8630c.firebaseapp.com",
+  databaseURL: "https://hombu-8630c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hombu-8630c",
+  storageBucket: "hombu-8630c.firebasestorage.app",
+  messagingSenderId: "886418358212",
+  appId: "1:886418358212:web:fa87f614ad5665b3426e91",
+  measurementId: "G-D6W8XKCB8Z"
 };
