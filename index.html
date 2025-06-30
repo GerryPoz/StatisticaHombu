@@ -2,7 +2,6 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Modulo ZADANKAI HOMBU 9</title>
 </head>
 <body>
@@ -10,7 +9,20 @@
   <form id="zadankai-form">
     <label>Anno: <input name="anno" required></label><br>
     <label>Mese: <input name="mese" required></label><br>
-    <label>Nome Gruppo: <input name="gruppo" required></label><br>
+
+    <label>HOMBU:
+      <select id="hombu" required></select>
+    </label><br>
+    <label>Capitolo:
+      <select id="capitolo" required></select>
+    </label><br>
+    <label>Settore:
+      <select id="settore" required></select>
+    </label><br>
+    <label>Gruppo:
+      <select id="gruppo" name="gruppo" required></select>
+    </label><br>
+
     <label>Categoria:
       <select name="categoria">
         <option>Membri</option>
@@ -18,6 +30,7 @@
         <option>Ospiti</option>
       </select>
     </label><br>
+
     <label>Uomini: <input type="number" name="U" min="0"></label><br>
     <label>Donne: <input type="number" name="D" min="0"></label><br>
     <label>Giovani Uomini: <input type="number" name="GU" min="0"></label><br>
@@ -25,14 +38,9 @@
     <label>FUT: <input type="number" name="FUT" min="0"></label><br>
     <label>STU: <input type="number" name="STU" min="0"></label><br>
     <label>Note: <textarea name="note"></textarea></label><br>
+
     <button type="submit">Salva</button>
   </form>
-
-  <hr>
-    <a href="visualizza.html" style="display:inline-block; padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">
-      📊 Visualizza dati salvati
-    </a>
-
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -42,6 +50,45 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Caricamento struttura da gruppi.json
+    fetch("gruppi.json")
+      .then(res => res.json())
+      .then(data => {
+        const hombuSel = document.getElementById("hombu");
+        const capitoloSel = document.getElementById("capitolo");
+        const settoreSel = document.getElementById("settore");
+        const gruppoSel = document.getElementById("gruppo");
+
+        for (const hombu in data) {
+          hombuSel.add(new Option(hombu, hombu));
+        }
+
+        hombuSel.addEventListener("change", () => {
+          capitoloSel.innerHTML = "<option></option>";
+          settoreSel.innerHTML = "<option></option>";
+          gruppoSel.innerHTML = "<option></option>";
+          const capitoli = data[hombuSel.value];
+          for (const cap in capitoli) {
+            capitoloSel.add(new Option(cap, cap));
+          }
+        });
+
+        capitoloSel.addEventListener("change", () => {
+          settoreSel.innerHTML = "<option></option>";
+          gruppoSel.innerHTML = "<option></option>";
+          const settori = data[hombuSel.value][capitoloSel.value];
+          for (const sett in settori) {
+            settoreSel.add(new Option(sett, sett));
+          }
+        });
+
+        settoreSel.addEventListener("change", () => {
+          gruppoSel.innerHTML = "<option></option>";
+          const gruppi = data[hombuSel.value][capitoloSel.value][settoreSel.value];
+          gruppi.forEach(g => gruppoSel.add(new Option(g, g)));
+        });
+      });
+
     document.getElementById("zadankai-form").addEventListener("submit", (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target));
@@ -49,6 +96,9 @@
       const categoria = data.categoria;
 
       const payload = {
+        hombu: data.hombu,
+        capitolo: data.capitolo,
+        settore: data.settore,
         U: parseInt(data.U || 0),
         D: parseInt(data.D || 0),
         GU: parseInt(data.GU || 0),
@@ -61,8 +111,8 @@
       set(ref(db, `zadankai/${key}/${categoria}`), payload).then(() => {
         alert("Dati salvati con successo!");
         e.target.reset();
-      }).catch((error) => {
-        alert("Errore nel salvataggio: " + error.message);
+      }).catch((err) => {
+        alert("Errore nel salvataggio: " + err.message);
       });
     });
   </script>
