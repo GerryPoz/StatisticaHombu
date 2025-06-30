@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dati ZADANKAI</title>
+</head>
+<body>
+  <h1>Dati salvati – ZADANKAI HOMBU 9</h1>
+  <table border="1" id="dati">
+    <thead>
+      <tr>
+        <th>Anno</th><th>Mese</th><th>Gruppo</th><th>Categoria</th>
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>FUT</th><th>STU</th><th>Note</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const tbody = document.querySelector("#dati tbody");
+
+    get(child(ref(db), "zadankai")).then(snapshot => {
+      if (snapshot.exists()) {
+        const dati = snapshot.val();
+        for (const key in dati) {
+          const [anno, mese, gruppo] = key.split("-");
+          const categorie = dati[key];
+          for (const categoria in categorie) {
+            const r = categorie[categoria];
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${anno}</td><td>${mese}</td><td>${gruppo}</td><td>${categoria}</td>
+              <td>${r.U ?? 0}</td><td>${r.D ?? 0}</td><td>${r.GU ?? 0}</td><td>${r.GD ?? 0}</td>
+              <td>${r.FUT ?? 0}</td><td>${r.STU ?? 0}</td><td>${r.note ?? ""}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+      } else {
+        tbody.innerHTML = "<tr><td colspan='11'>Nessun dato trovato</td></tr>";
+      }
+    });
+  </script>
+</body>
+</html>
