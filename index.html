@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>HOMBU 9 – Statistica</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Benvenuto nel sistema di raccolta dati HOMBU 9</h1>
+  <p>Da qui puoi inserire i dati mensili dei gruppi o consultare quelli già registrati.</p>
+
+  <a href="inserisci.html" class="button">✍️ Inserisci dati</a>
+  <a href="visualizza.html" class="button">📊 Visualizza dati</a>
+
+  <table>
+    <caption>Struttura della tabella dati</caption>
+    <thead>
+      <tr>
+        <th rowspan="2">Nome Gruppo</th>
+        <th rowspan="2">Categoria</th>
+        <th colspan="4">Presenze</th>
+        <th rowspan="2">SOMMA</th>
+        <th rowspan="2">TOT</th>
+        <th colspan="2">MESE PRECEDENTE</th>
+        <th colspan="2">VARIAZIONI</th>
+        <th rowspan="2">FUT</th>
+        <th rowspan="2">STU</th>
+      </tr>
+      <tr>
+        <th>U</th><th>D</th><th>GU</th><th>GD</th>
+        <th>SOMMA</th><th>TOT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="3">Esempio Gruppo</td>
+        <td>Membri</td><td>3</td><td>2</td><td>1</td><td>1</td><td>7</td><td>7</td><td>6</td><td>6</td><td>+1</td><td>+1</td><td>1</td><td>0</td>
+      </tr>
+      <tr>
+        <td>Simpatizzanti</td><td>1</td><td>1</td><td>0</td><td>1</td><td>3</td><td>10</td><td>2</td><td>8</td><td>+1</td><td>+2</td><td>0</td><td>1</td>
+      </tr>
+      <tr>
+        <td>Ospiti</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>11</td><td>1</td><td>9</td><td>0</td><td>+2</td><td>0</td><td>0</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
