@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Immissione Dati ZADANKAI</title>
+  <script type="module" src="script.js"></script>
+</head>
+<body>
+  <h1>Modulo ZADANKAI HOMBU 9</h1>
+  <form id="zadankai-form">
+    <label>Anno: <input name="anno" required></label><br>
+    <label>Mese: <input name="mese" required></label><br>
+    <label>Nome Gruppo: <input name="gruppo" required></label><br>
+    <label>Categoria:
+      <select name="categoria">
+        <option>Membri</option>
+        <option>Simpatizzanti</option>
+        <option>Ospiti</option>
+      </select>
+    </label><br>
+    <label>Uomini: <input type="number" name="U" min="0"></label><br>
+    <label>Donne: <input type="number" name="D" min="0"></label><br>
+    <label>Giovani Uomini: <input type="number" name="GU" min="0"></label><br>
+    <label>Giovani Donne: <input type="number" name="GD" min="0"></label><br>
+    <label>FUT: <input type="number" name="FUT" min="0"></label><br>
+    <label>STU: <input type="number" name="STU" min="0"></label><br>
+    <label>Note: <textarea name="note"></textarea></label><br>
+    <button type="submit">Salva</button>
+  </form>
+</body>
+</html>
