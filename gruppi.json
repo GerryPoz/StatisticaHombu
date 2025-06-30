@@ -1,0 +1,20 @@
+{
+  "HOMBU 9": {
+    "Capitolo Asti": {
+      "Settore Fukyo": [
+        "AURORA", "COLLINE", "KANSAI", "SOLE", "TORRE PREZIOSA", "VITTORIA"
+      ],
+      "Settore Invictus": [
+        "ALFIERI", "CESARE PAVESE", "KOKORO", "QUARTO", "RINASCIMENTO"
+      ]
+    },
+    "Capitolo Casale/Crescentino": {
+      "Settore Casale": [
+        "DHARMA", "FENICE", "LEONI", "LAGO", "MAZZINI"
+      ],
+      "Settore Crescentino": [
+        "AIRONE", "ALBA", "CASALBORGONE", "CAVAGNOLO", "GIOTTO", "LAURIANO", "VESPUCCI"
+      ]
+    }
+  }
+}
