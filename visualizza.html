@@ -2,14 +2,20 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Dati ZADANKAI</title>
+  <title>Visualizza Dati ZADANKAI</title>
 </head>
 <body>
-  <h1>Dati salvati – ZADANKAI HOMBU 9</h1>
+  <h1>Dati ZADANKAI HOMBU 9</h1>
+
+  <label>HOMBU: <select id="filtro-hombu"><option value="">Tutti</option></select></label>
+  <label>Capitolo: <select id="filtro-capitolo"><option value="">Tutti</option></select></label>
+  <label>Settore: <select id="filtro-settore"><option value="">Tutti</option></select></label>
+
   <table border="1" id="dati">
     <thead>
       <tr>
         <th>Anno</th><th>Mese</th><th>Gruppo</th><th>Categoria</th>
+        <th>HOMBU</th><th>Capitolo</th><th>Settore</th>
         <th>U</th><th>D</th><th>GU</th><th>GD</th><th>FUT</th><th>STU</th><th>Note</th>
       </tr>
     </thead>
@@ -25,28 +31,42 @@
     const db = getDatabase(app);
 
     const tbody = document.querySelector("#dati tbody");
+    const filtroH = document.getElementById("filtro-hombu");
+    const filtroC = document.getElementById("filtro-capitolo");
+    const filtroS = document.getElementById("filtro-settore");
 
     get(child(ref(db), "zadankai")).then(snapshot => {
-      if (snapshot.exists()) {
-        const dati = snapshot.val();
-        for (const key in dati) {
-          const [anno, mese, gruppo] = key.split("-");
-          const categorie = dati[key];
-          for (const categoria in categorie) {
-            const r = categorie[categoria];
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${anno}</td><td>${mese}</td><td>${gruppo}</td><td>${categoria}</td>
-              <td>${r.U ?? 0}</td><td>${r.D ?? 0}</td><td>${r.GU ?? 0}</td><td>${r.GD ?? 0}</td>
-              <td>${r.FUT ?? 0}</td><td>${r.STU ?? 0}</td><td>${r.note ?? ""}</td>
-            `;
-            tbody.appendChild(tr);
-          }
+      if (!snapshot.exists()) return;
+
+      const dati = snapshot.val();
+      const righe = [];
+
+      for (const key in dati) {
+        const [anno, mese, gruppo] = key.split("-");
+        const categorie = dati[key];
+        for (const categoria in categorie) {
+          const r = categorie[categoria];
+          righe.push({
+            anno, mese, gruppo, categoria,
+            hombu: r.hombu, capitolo: r.capitolo, settore: r.settore,
+            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
+            FUT: r.FUT ?? 0, STU: r.STU ?? 0, note: r.note ?? ""
+          });
         }
-      } else {
-        tbody.innerHTML = "<tr><td colspan='11'>Nessun dato trovato</td></tr>";
       }
-    });
-  </script>
-</body>
-</html>
+
+      const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))].sort();
+      unici(righe, "hombu").forEach(v => filtroH.add(new Option(v, v)));
+
+      filtroH.addEventListener("change", () => {
+        filtroC.innerHTML = "<option value=''>Tutti</option>";
+        filtroS.innerHTML = "<option value=''>Tutti</option>";
+        const capitoli = righe.filter(r => r.hombu === filtroH.value || !filtroH.value);
+        unici(capitoli, "capitolo").forEach(v => filtroC.add(new Option(v, v)));
+        aggiornaTabella();
+      });
+
+      filtroC.addEventListener("change", () => {
+        filtroS.innerHTML = "<option value=''>Tutti</option>";
+        const settori = righe.filter(r =>
+          (!filtro
