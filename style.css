@@ -1,0 +1,49 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 2rem;
+  color: #333;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+.button {
+  display: inline-block;
+  margin: 1rem 1rem 2rem 0;
+  padding: 1rem 2rem;
+  background: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.button:hover {
+  background: #0056b3;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 2rem;
+  background: white;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+th {
+  background: #eee;
+}
+
+caption {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
