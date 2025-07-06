@@ -18,6 +18,13 @@
       margin-bottom: 1rem;
     }
 
+    fieldset.filtri {
+      border: 3px solid #333;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      background: #fff;
+    }
+
     label {
       display: inline-block;
       margin: 0.5rem 1rem 0.5rem 0;
@@ -63,21 +70,32 @@
       background-color: #fff3cd;
       font-weight: bold;
     }
+
+    tr.inizio-gruppo td {
+      border-top: 3px solid #333;
+    }
+
+    tr.inizio-categoria td {
+      border-top: 2px solid #666;
+    }
   </style>
 </head>
 <body>
 
   <h1>Visualizza Dati – HOMBU 9</h1>
 
-  <label>Anno:
-    <select id="filtro-anno"></select>
-  </label>
-  <label>Mese:
-    <select id="filtro-mese"></select>
-  </label>
-  <label>Capitolo:
-    <select id="filtro-capitolo"></select>
-  </label>
+  <fieldset class="filtri">
+    <legend><strong>Filtri</strong></legend>
+    <label>Anno:
+      <select id="filtro-anno"></select>
+    </label>
+    <label>Mese:
+      <select id="filtro-mese"></select>
+    </label>
+    <label>Capitolo:
+      <select id="filtro-capitolo"></select>
+    </label>
+  </fieldset>
 
   <table id="tabella-dati">
     <thead>
@@ -219,10 +237,12 @@
               const somma = r.U + r.D + r.GU + r.GD;
 
               const tr = document.createElement("tr");
-              tr.className = cat.tipo.toLowerCase();
+              tr.classList.add(cat.tipo.toLowerCase());
+              if (!gruppoStampato) tr.classList.add("inizio-gruppo");
+              if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
               if (!gruppoStampato) {
-                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
+                                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
                 gruppoStampato = true;
               }
 
@@ -236,7 +256,7 @@
                 <td>${r.U}</td>
                 <td>${r.D}</td>
                 <td>${r.GU}</td>
-                <td${r.GD}</td>
+                <td>${r.GD}</td>
                 <td>${somma}</td>
                 ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
                 <td>${r.FUT}</td>
@@ -251,7 +271,4 @@
     });
   </script>
 </body>
-
 </html>
-
-  </table>
