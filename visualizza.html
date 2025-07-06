@@ -50,6 +50,10 @@
       background: #e0f7fa;
       font-weight: bold;
     }
+
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
   </style>
 </head>
 <body>
@@ -75,9 +79,10 @@
         <th>D</th>
         <th>GU</th>
         <th>GD</th>
-        <th>SOMMA TOT</th>
-        <th>FUT</th>
-        <th>STU</th>
+        <th>Somma</th>
+        <th>Totale</th>
+        <th>Futuro</th>
+        <th>Studenti</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -110,6 +115,8 @@
           const r = sezioni.zadankai[categoria];
           righe.push({
             anno, mese, gruppo, categoria: "ZADANKAI – " + categoria,
+            tipo: "ZADANKAI",
+            sezione: categoria,
             U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
             FUT: r.FUT ?? "-", STU: r.STU ?? "-"
           });
@@ -119,6 +126,8 @@
           const r = sezioni.praticanti[categoria];
           righe.push({
             anno, mese, gruppo, categoria: "PRATICANTI – " + categoria,
+            tipo: "PRATICANTI",
+            sezione: categoria,
             U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
             FUT: "-", STU: "-"
           });
@@ -136,25 +145,47 @@
 
       function aggiornaTabella() {
         tbody.innerHTML = "";
-        righe.filter(r =>
-          (!filtroAnno.value || r.anno === filtroAnno.value) &&
-          (!filtroMese.value || r.mese === filtroMese.value) &&
-          (!filtroGruppo.value || r.gruppo === filtroGruppo.value)
-        ).forEach(r => {
-          const somma = r.U + r.D + r.GU + r.GD;
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${r.gruppo}</td>
-            <td>${r.categoria}</td>
-            <td>${r.U}</td>
-            <td>${r.D}</td>
-            <td>${r.GU}</td>
-            <td>${r.GD}</td>
-            <td>${somma}</td>
-            <td>${r.FUT}</td>
-            <td>${r.STU}</td>
-          `;
-          tbody.appendChild(tr);
+
+        const gruppiUnici = [...new Set(righe.map(r => r.gruppo))].sort();
+
+        gruppiUnici.forEach(gruppo => {
+          const righeGruppo = righe.filter(r =>
+            r.gruppo === gruppo &&
+            (!filtroAnno.value || r.anno === filtroAnno.value) &&
+            (!filtroMese.value || r.mese === filtroMese.value)
+          );
+
+          if (righeGruppo.length === 0) return;
+
+          const categorie = [
+            { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
+            { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
+          ];
+
+          categorie.forEach(cat => {
+            cat.sezioni.forEach(sezione => {
+              const r = righeGruppo.find(x => x.categoria === `${cat.tipo} – ${sezione}`);
+              if (!r) return;
+
+              const somma = r.U + r.D + r.GU + r.GD;
+              const totale = somma;
+
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${gruppo}</td>
+                <td>${cat.tipo} – ${sezione}</td>
+                <td>${r.U}</td>
+                <td>${r.D}</td>
+                <td>${r.GU}</td>
+                <td>${r.GD}</td>
+                <td>${somma}</td>
+                <td>${totale}</td>
+                <td>${r.FUT}</td>
+                <td>${r.STU}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          });
         });
       }
 
