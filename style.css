@@ -17,7 +17,7 @@ label {
   font-weight: 500;
 }
 
-select, input[type="number"] {
+select {
   font-size: 1.1rem;
   padding: 0.4rem 0.6rem;
   border: 1px solid #ccc;
@@ -27,8 +27,12 @@ select, input[type="number"] {
 }
 
 input[type="number"] {
-  width: 30px;
+  width: 2rem;
+  font-size: 0.9rem;
   text-align: center;
+  padding: 0.2rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 table {
@@ -41,7 +45,7 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 0.6rem;
+  padding: 0.4rem;
   text-align: center;
 }
 
