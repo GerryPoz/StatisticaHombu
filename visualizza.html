@@ -51,8 +51,20 @@
       font-weight: bold;
     }
 
-    tr:nth-child(even) {
-      background: #f9f9f9;
+    tr.zadankai {
+      background-color: #e8f5e9;
+    }
+
+    tr.zadankai:nth-child(even) {
+      background-color: #d0ebd2;
+    }
+
+    tr.praticanti {
+      background-color: #e3f2fd;
+    }
+
+    tr.praticanti:nth-child(even) {
+      background-color: #cfe2f3;
     }
   </style>
 </head>
@@ -181,6 +193,7 @@
               const somma = r.U + r.D + r.GU + r.GD;
 
               const tr = document.createElement("tr");
+              tr.className = cat.tipo.toLowerCase();
 
               if (!gruppoStampato) {
                 tr.innerHTML += `<td rowspan="${righeGruppo.length}">${gruppo}</td>`;
