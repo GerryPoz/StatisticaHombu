@@ -27,7 +27,7 @@ select, input[type="number"] {
 }
 
 input[type="number"] {
-  width: 3rem;
+  width: 30px;
   text-align: center;
 }
 
