@@ -124,66 +124,32 @@
     <button type="submit">Salva dati</button>
   </form>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    import { firebaseConfig } from "./firebase-config.js";
+  <script>
+  const annoCorrente = new Date().getFullYear();
+  const annoSelect = document.querySelector('select[name="anno"]');
+  annoSelect.innerHTML = `
+    <option value="${annoCorrente}" selected>${annoCorrente}</option>
+    <option value="${annoCorrente + 1}">${annoCorrente + 1}</option>
+  `;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const meseSelect = document.querySelector('select[name="mese"]');
+  const mesi = [
+    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+  ];
+  meseSelect.innerHTML = '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
 
-    document.getElementById("dati-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-
-      const payload = {
-        gruppo: "AURORA",
-        zadankai: {
-          membri: {
-            U: parseInt(data.zadankai_m_u || 0),
-            D: parseInt(data.zadankai_m_d || 0),
-            GU: parseInt(data.zadankai_m_gu || 0),
-            GD: parseInt(data.zadankai_m_gd || 0),
-            FUT: parseInt(data.zadankai_m_fut || 0),
-            STU: parseInt(data.zadankai_m_stu || 0)
-          },
-          simpatizzanti: {
-            U: parseInt(data.zadankai_s_u || 0),
-            D: parseInt(data.zadankai_s_d || 0),
-            GU: parseInt(data.zadankai_s_gu || 0),
-            GD: parseInt(data.zadankai_s_gd || 0),
-            FUT: parseInt(data.zadankai_s_fut || 0),
-            STU: parseInt(data.zadankai_s_stu || 0)
-          },
-          ospiti: {
-            U: parseInt(data.zadankai_o_u || 0),
-            D: parseInt(data.zadankai_o_d || 0),
-            GU: parseInt(data.zadankai_o_gu || 0),
-            GD: parseInt(data.zadankai_o_gd || 0)
-          }
-        },
-        praticanti: {
-          membri: {
-            U: parseInt(data.praticanti_m_u || 0),
-            D: parseInt(data.praticanti_m_d || 0),
-            GU: parseInt(data.praticanti_m_gu || 0),
-            GD: parseInt(data.praticanti_m_gd || 0)
-          },
-          simpatizzanti: {
-            U: parseInt(data.praticanti_s_u || 0),
-            D: parseInt(data.praticanti_s_d || 0),
-            GU: parseInt(data.praticanti_s_gu || 0),
-            GD: parseInt(data.praticanti_s_gd || 0)
-          }
+  const gruppoSelect = document.querySelector('select[name="gruppo"]');
+  fetch("gruppi.json")
+    .then(res => res.json())
+    .then(data => {
+      const gruppi = [];
+      for (const capitolo of Object.values(data["HOMBU 9"])) {
+        for (const settore of Object.values(capitolo)) {
+          gruppi.push(...settore);
         }
-      };
-
-      const now = new Date();
-      const key = `${now.getFullYear()}-${now.getMonth() + 1}-AURORA`;
-
-      set(ref(db, `zadankai/${key}`), payload)
-        .then(() => alert("Dati salvati con successo!"))
-        .catch(err => alert("Errore nel salvataggio: " + err.message));
+      }
+      gruppoSelect.innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
     });
-  </script
+</script>
+
