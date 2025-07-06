@@ -50,7 +50,6 @@
       background: #e0f7fa;
       font-weight: bold;
     }
-    
   </style>
 </head>
 <body>
@@ -70,8 +69,15 @@
   <table id="tabella-dati">
     <thead>
       <tr>
-        <th>Anno</th><th>Mese</th><th>Gruppo</th><th>Categoria</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>FUT</th><th>STU</th>
+        <th>Nome Gruppo</th>
+        <th>Categoria</th>
+        <th>U</th>
+        <th>D</th>
+        <th>GU</th>
+        <th>GD</th>
+        <th>SOMMA TOT</th>
+        <th>FUT</th>
+        <th>STU</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -105,7 +111,7 @@
           righe.push({
             anno, mese, gruppo, categoria: "ZADANKAI – " + categoria,
             U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-            FUT: r.FUT ?? 0, STU: r.STU ?? 0
+            FUT: r.FUT ?? "-", STU: r.STU ?? "-"
           });
         }
 
@@ -135,11 +141,18 @@
           (!filtroMese.value || r.mese === filtroMese.value) &&
           (!filtroGruppo.value || r.gruppo === filtroGruppo.value)
         ).forEach(r => {
+          const somma = r.U + r.D + r.GU + r.GD;
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${r.anno}</td><td>${r.mese}</td><td>${r.gruppo}</td><td>${r.categoria}</td>
-            <td>${r.U}</td><td>${r.D}</td><td>${r.GU}</td><td>${r.GD}</td>
-            <td>${r.FUT}</td><td>${r.STU}</td>
+            <td>${r.gruppo}</td>
+            <td>${r.categoria}</td>
+            <td>${r.U}</td>
+            <td>${r.D}</td>
+            <td>${r.GU}</td>
+            <td>${r.GD}</td>
+            <td>${somma}</td>
+            <td>${r.FUT}</td>
+            <td>${r.STU}</td>
           `;
           tbody.appendChild(tr);
         });
