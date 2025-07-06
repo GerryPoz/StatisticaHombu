@@ -12,25 +12,18 @@
       padding: 2rem;
       color: #333;
     }
-
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 1rem;
-    }
-
+    h1 { color: #2c3e50; margin-bottom: 1rem; }
     fieldset.filtri {
       border: 3px solid #333;
       padding: 1rem;
       margin-bottom: 1.5rem;
       background: #fff;
     }
-
     label {
       display: inline-block;
       margin: 0.5rem 1rem 0.5rem 0;
       font-weight: 500;
     }
-
     select {
       font-size: 1.1rem;
       padding: 0.4rem 0.6rem;
@@ -38,7 +31,6 @@
       border-radius: 4px;
       min-width: 180px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -46,43 +38,23 @@
       background: white;
       box-shadow: 0 0 4px rgba(0,0,0,0.1);
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 0.6rem;
       text-align: center;
     }
-
-    th {
-      background: #e0f7fa;
-      font-weight: bold;
-    }
-
-    tr.zadankai {
-      background-color: #e8f5e9;
-    }
-
-    tr.praticanti {
-      background-color: #e3f2fd;
-    }
-
+    th { background: #e0f7fa; font-weight: bold; }
+    tr.zadankai { background-color: #e8f5e9; }
+    tr.praticanti { background-color: #e3f2fd; }
     td.nome-gruppo {
       background-color: #fff3cd;
       font-weight: bold;
     }
-
-    tr.inizio-gruppo td {
-      border-top: 3px solid #333;
-    }
-
-    tr.inizio-categoria td {
-      border-top: 2px solid #666;
-    }
-
+    tr.inizio-gruppo td { border-top: 3px solid #333; }
+    tr.inizio-categoria td { border-top: 2px solid #666; }
     #riepilogo {
       margin-top: 2rem;
     }
-
     #riepilogo div {
       margin: 1rem 0;
       padding: 0.5rem;
@@ -93,47 +65,48 @@
 </head>
 <body>
 
-  <h1>Visualizza Dati – HOMBU 9</h1>
+<h1>Visualizza Dati – HOMBU 9</h1>
 
-  <fieldset class="filtri">
-    <legend><strong>Filtri</strong></legend>
-    <label>Anno:
-      <select id="filtro-anno"></select>
-    </label>
-    <label>Mese:
-      <select id="filtro-mese"></select>
-    </label>
-    <label>Capitolo:
-      <select id="filtro-capitolo"></select>
-    </label>
-  </fieldset>
+<fieldset class="filtri">
+  <legend><strong>Filtri</strong></legend>
+  <label>Anno:
+    <select id="filtro-anno"></select>
+  </label>
+  <label>Mese:
+    <select id="filtro-mese"></select>
+  </label>
+  <label>Capitolo:
+    <select id="filtro-capitolo"></select>
+  </label>
+</fieldset>
 
-  <table id="tabella-dati">
-    <thead>
-      <tr>
-        <th>Nome Gruppo</th>
-        <th>Categoria</th>
-        <th>Sezione</th>
-        <th>U</th>
-        <th>D</th>
-        <th>GU</th>
-        <th>GD</th>
-        <th>Somma</th>
-        <th>Totale</th>
-        <th>Somma mese prec.</th>
-        <th>Δ Somma</th>
-        <th>Totale mese prec.</th>
-        <th>Δ Totale</th>
-        <th>Futuro</th>
-        <th>Studenti</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<table id="tabella-dati">
+  <thead>
+    <tr>
+      <th>Nome Gruppo</th>
+      <th>Categoria</th>
+      <th>Sezione</th>
+      <th>U</th>
+      <th>D</th>
+      <th>GU</th>
+      <th>GD</th>
+      <th>Somma</th>
+      <th>Totale</th>
+      <th>Somma mese prec.</th>
+      <th>Δ Somma</th>
+      <th>Totale mese prec.</th>
+      <th>Δ Totale</th>
+      <th>Futuro</th>
+      <th>Studenti</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <h2>Riepilogo per Settore e Capitolo</h2>
-  <div id="riepilogo"></div>
-  <script type="module">
+<h2>Riepilogo per Settore e Capitolo</h2>
+<div id="riepilogo"></div>
+
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
   import { firebaseConfig } from "./firebase-config.js";
@@ -150,45 +123,42 @@
   let mappaCapitoli = {};
   let gruppoToSettore = {};
   let gruppoToCapitolo = {};
+  let righe = [];
 
-  fetch("gruppi.json")
-    .then(res => res.json())
-    .then(data => {
-      const struttura = data["HOMBU 9"];
-      for (const [capitolo, settori] of Object.entries(struttura)) {
-        for (const [settore, gruppi] of Object.entries(settori)) {
-          gruppi.forEach(gr => {
-            gruppoToSettore[gr] = settore;
-            gruppoToCapitolo[gr] = capitolo;
-          });
-        }
-        mappaCapitoli[capitolo] = Object.values(settori).flat();
-      }
-
-      Object.keys(mappaCapitoli).sort().forEach(capitolo => {
-        filtroCapitolo.add(new Option(capitolo, capitolo));
-      });
-
-      aggiornaTabella();
-    });
+  const mesiOrdine = [
+    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+  ];
 
   function mesePrecedente(mese, anno) {
-    const mesi = [
-      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-    ];
-    const index = mesi.indexOf(mese);
+    const index = mesiOrdine.indexOf(mese);
     if (index === -1) return { mese: null, anno: null };
     const nuovoIndex = (index - 1 + 12) % 12;
     const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
-    return { mese: mesi[nuovoIndex], anno: nuovoAnno };
+    return { mese: mesiOrdine[nuovoIndex], anno: nuovoAnno };
   }
 
-  get(child(ref(db), "zadankai")).then(snapshot => {
-    if (!snapshot.exists()) return;
+  Promise.all([
+    fetch("gruppi.json").then(res => res.json()),
+    get(child(ref(db), "zadankai"))
+  ]).then(([gruppiData, snapshot]) => {
+    const struttura = gruppiData["HOMBU 9"];
+    for (const [capitolo, settori] of Object.entries(struttura)) {
+      for (const [settore, gruppi] of Object.entries(settori)) {
+        gruppi.forEach(gr => {
+          gruppoToSettore[gr] = settore;
+          gruppoToCapitolo[gr] = capitolo;
+        });
+      }
+      mappaCapitoli[capitolo] = Object.values(settori).flat();
+    }
 
+    Object.keys(mappaCapitoli).sort().forEach(capitolo => {
+      filtroCapitolo.add(new Option(capitolo, capitolo));
+    });
+
+    if (!snapshot.exists()) return;
     const dati = snapshot.val();
-    const righe = [];
 
     for (const key in dati) {
       const [anno, mese, gruppo] = key.split("-");
@@ -213,14 +183,7 @@
       }
     }
 
-    const mesiOrdine = [
-      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-    ];
-
-    const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))];
-
-    unici(righe, "anno").sort().forEach(v => filtroAnno.add(new Option(v, v)));
+    [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
     mesiOrdine.forEach(mese => {
       if (righe.some(r => r.mese === mese)) {
         filtroMese.add(new Option(mese, mese));
