@@ -29,6 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
     });
+
+  // Blocca caratteri non numerici nei campi input[type=number]
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener("keypress", e => {
+      if (!/[0-9]/.test(e.key)) e.preventDefault();
+    });
+    input.addEventListener("paste", e => {
+      const pasted = (e.clipboardData || window.clipboardData).getData("text");
+      if (!/^\d+$/.test(pasted)) e.preventDefault();
+    });
+  });
 });
 
 // Calcolo totali Zadankai
