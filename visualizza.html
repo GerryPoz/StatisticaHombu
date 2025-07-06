@@ -264,6 +264,9 @@
 
           const tr = document.createElement("tr");
           tr.classList.add(cat.tipo.toLowerCase());
+          tr.zadankai { background-color: #e8f5e9; }
+          tr.praticanti { background-color: #e3f2fd; }
+
           if (!gruppoStampato) tr.classList.add("inizio-gruppo");
           if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
@@ -331,7 +334,14 @@ righe.forEach(r => {
   }
 });
 
-for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
+const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
+  if (a.startsWith("Settore") && b.startsWith("Capitolo")) return -1;
+  if (a.startsWith("Capitolo") && b.startsWith("Settore")) return 1;
+  return a.localeCompare(b);
+});
+
+for (const titolo of titoliOrdinati) {
+  const righeSettore = riepilogoPer[titolo];
   const tab = document.createElement("table");
   tab.style.marginTop = "2rem";
   tab.innerHTML = `
