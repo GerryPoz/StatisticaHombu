@@ -76,10 +76,7 @@
     <select id="filtro-mese"><option value="">Tutti</option></select>
   </label>
   <label>Capitolo:
-    <select id="filtro-capitolo"><option value="">Tutti</option></select>
-  </label>
-  <label>Gruppo:
-    <select id="filtro-gruppo"><option value="">Tutti</option></select>
+    <select id="filtro-capitolo"></select>
   </label>
 
   <table id="tabella-dati">
@@ -99,7 +96,9 @@
       </tr>
     </thead>
     <tbody></tbody>
-      <script type="module">
+  </table>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
     import { firebaseConfig } from "./firebase-config.js";
@@ -111,7 +110,6 @@
     const filtroAnno = document.getElementById("filtro-anno");
     const filtroMese = document.getElementById("filtro-mese");
     const filtroCapitolo = document.getElementById("filtro-capitolo");
-    const filtroGruppo = document.getElementById("filtro-gruppo");
 
     let mappaCapitoli = {};
 
@@ -128,20 +126,8 @@
           filtroCapitolo.add(new Option(capitolo, capitolo));
         });
 
-        aggiornaGruppiDaCapitolo();
+        aggiornaTabella();
       });
-
-    function aggiornaGruppiDaCapitolo() {
-      filtroGruppo.innerHTML = '<option value="">Tutti</option>';
-      const selezionato = filtroCapitolo.value;
-      const gruppi = selezionato ? mappaCapitoli[selezionato] : Object.values(mappaCapitoli).flat();
-      gruppi.sort().forEach(gr => filtroGruppo.add(new Option(gr, gr)));
-    }
-
-    filtroCapitolo.addEventListener("change", () => {
-      aggiornaGruppiDaCapitolo();
-      aggiornaTabella();
-    });
 
     get(child(ref(db), "zadankai")).then(snapshot => {
       if (!snapshot.exists()) return;
@@ -176,21 +162,21 @@
       unici(righe, "anno").forEach(v => filtroAnno.add(new Option(v, v)));
       unici(righe, "mese").forEach(v => filtroMese.add(new Option(v, v)));
 
-      [filtroAnno, filtroMese, filtroGruppo].forEach(f =>
+      [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
         f.addEventListener("change", aggiornaTabella)
       );
 
       function aggiornaTabella() {
         tbody.innerHTML = "";
 
-        const gruppiUnici = [...new Set(righe.map(r => r.gruppo))].sort();
+        const capitoloSelezionato = filtroCapitolo.value;
+        const gruppiFiltrati = mappaCapitoli[capitoloSelezionato] || [];
 
-        gruppiUnici.forEach(gruppo => {
+        gruppiFiltrati.forEach(gruppo => {
           const righeGruppo = righe.filter(r =>
             r.gruppo === gruppo &&
             (!filtroAnno.value || r.anno === filtroAnno.value) &&
-            (!filtroMese.value || r.mese === filtroMese.value) &&
-            (!filtroGruppo.value || r.gruppo === filtroGruppo.value)
+            (!filtroMese.value || r.mese === filtroMese.value)
           );
 
           if (righeGruppo.length === 0) return;
@@ -251,11 +237,10 @@
           });
         });
       }
-
-      aggiornaTabella();
     });
   </script>
 </body>
+
 </html>
 
   </table>
