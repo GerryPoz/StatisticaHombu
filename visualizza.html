@@ -78,6 +78,17 @@
     tr.inizio-categoria td {
       border-top: 2px solid #666;
     }
+
+    #riepilogo {
+      margin-top: 2rem;
+    }
+
+    #riepilogo div {
+      margin: 1rem 0;
+      padding: 0.5rem;
+      border: 2px solid #444;
+      background: #f9f9f9;
+    }
   </style>
 </head>
 <body>
@@ -120,193 +131,247 @@
     <tbody></tbody>
   </table>
 
+  <h2>Riepilogo per Settore e Capitolo</h2>
+  <div id="riepilogo"></div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    import { firebaseConfig } from "./firebase-config.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+  import { firebaseConfig } from "./firebase-config.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    const tbody = document.querySelector("#tabella-dati tbody");
-    const filtroAnno = document.getElementById("filtro-anno");
-    const filtroMese = document.getElementById("filtro-mese");
-    const filtroCapitolo = document.getElementById("filtro-capitolo");
+  const tbody = document.querySelector("#tabella-dati tbody");
+  const filtroAnno = document.getElementById("filtro-anno");
+  const filtroMese = document.getElementById("filtro-mese");
+  const filtroCapitolo = document.getElementById("filtro-capitolo");
+  const riepilogoDiv = document.getElementById("riepilogo");
 
-    let mappaCapitoli = {};
+  let mappaCapitoli = {};
+  let gruppoToSettore = {};
+  let gruppoToCapitolo = {};
 
-    fetch("gruppi.json")
-      .then(res => res.json())
-      .then(data => {
-        const struttura = data["HOMBU 9"];
-        for (const [capitolo, settori] of Object.entries(struttura)) {
-          const gruppi = Object.values(settori).flat();
-          mappaCapitoli[capitolo] = gruppi;
+  fetch("gruppi.json")
+    .then(res => res.json())
+    .then(data => {
+      const struttura = data["HOMBU 9"];
+      for (const [capitolo, settori] of Object.entries(struttura)) {
+        for (const [settore, gruppi] of Object.entries(settori)) {
+          gruppi.forEach(gr => {
+            gruppoToSettore[gr] = settore;
+            gruppoToCapitolo[gr] = capitolo;
+          });
         }
+        mappaCapitoli[capitolo] = Object.values(settori).flat();
+      }
 
-        Object.keys(mappaCapitoli).sort().forEach(capitolo => {
-          filtroCapitolo.add(new Option(capitolo, capitolo));
-        });
-
-        aggiornaTabella();
+      Object.keys(mappaCapitoli).sort().forEach(capitolo => {
+        filtroCapitolo.add(new Option(capitolo, capitolo));
       });
 
-    function mesePrecedente(mese, anno) {
-      const mesi = [
-        "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-      ];
-      const index = mesi.indexOf(mese);
-      if (index === -1) return { mese: null, anno: null };
-      const nuovoIndex = (index - 1 + 12) % 12;
-      const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
-      return { mese: mesi[nuovoIndex], anno: nuovoAnno };
+      aggiornaTabella();
+    });
+
+  function mesePrecedente(mese, anno) {
+    const mesi = [
+      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+    ];
+    const index = mesi.indexOf(mese);
+    if (index === -1) return { mese: null, anno: null };
+    const nuovoIndex = (index - 1 + 12) % 12;
+    const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
+    return { mese: mesi[nuovoIndex], anno: nuovoAnno };
+  }
+
+  get(child(ref(db), "zadankai")).then(snapshot => {
+    if (!snapshot.exists()) return;
+
+    const dati = snapshot.val();
+    const righe = [];
+
+    for (const key in dati) {
+      const [anno, mese, gruppo] = key.split("-");
+      const sezioni = dati[key];
+
+      for (const categoria in sezioni.zadankai) {
+        const r = sezioni.zadankai[categoria];
+        righe.push({
+          anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
+          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
+          FUT: r.FUT ?? "-", STU: r.STU ?? "-"
+        });
+      }
+
+      for (const categoria in sezioni.praticanti) {
+        const r = sezioni.praticanti[categoria];
+        righe.push({
+          anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
+          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
+          FUT: "-", STU: "-"
+        });
+      }
     }
 
-    get(child(ref(db), "zadankai")).then(snapshot => {
-      if (!snapshot.exists()) return;
+    const mesiOrdine = [
+      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+    ];
 
-      const dati = snapshot.val();
-      const righe = [];
+    const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))];
 
-      for (const key in dati) {
-        const [anno, mese, gruppo] = key.split("-");
-        const sezioni = dati[key];
-
-        for (const categoria in sezioni.zadankai) {
-          const r = sezioni.zadankai[categoria];
-          righe.push({
-            anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-            FUT: r.FUT ?? "-", STU: r.STU ?? "-"
-          });
-        }
-
-        for (const categoria in sezioni.praticanti) {
-          const r = sezioni.praticanti[categoria];
-          righe.push({
-            anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-            FUT: "-", STU: "-"
-          });
-        }
-      }
-
-      const mesiOrdine = [
-        "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-      ];
-
-      const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))];
-
-      unici(righe, "anno").sort().forEach(v => filtroAnno.add(new Option(v, v)));
-
-      mesiOrdine.forEach(mese => {
-        if (righe.some(r => r.mese === mese)) {
-          filtroMese.add(new Option(mese, mese));
-        }
-      });
-
-      [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
-        f.addEventListener("change", aggiornaTabella)
-      );
-
-      function aggiornaTabella() {
-        tbody.innerHTML = "";
-
-        const capitoloSelezionato = filtroCapitolo.value;
-        const gruppiFiltrati = mappaCapitoli[capitoloSelezionato] || [];
-
-        gruppiFiltrati.forEach(gruppo => {
-          const righeGruppo = righe.filter(r =>
-            r.gruppo === gruppo &&
-            (!filtroAnno.value || r.anno === filtroAnno.value) &&
-            (!filtroMese.value || r.mese === filtroMese.value)
-          );
-
-          const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-          const righePrecedenti = righe.filter(r =>
-            r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
-          );
-
-          if (righeGruppo.length === 0) return;
-
-          const categorie = [
-            { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
-            { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
-          ];
-
-          let gruppoStampato = false;
-
-            categorie.forEach(cat => {
-                        let categoriaStampata = false;
-
-            const righeCategoria = cat.sezioni.filter(s =>
-              righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
-            );
-
-            const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
-              const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-              if (!r) return acc;
-              return acc + r.U + r.D + r.GU + r.GD;
-            }, 0);
-
-            const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
-              const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-              if (!rPrec) return acc;
-              return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
-            }, 0);
-
-            const deltaTotale = totaleCategoria - totaleCategoriaPrec;
-
-            righeCategoria.forEach((sezione, index) => {
-              const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-              if (!r) return;
-
-              const somma = r.U + r.D + r.GU + r.GD;
-
-              const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-              const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
-              const deltaSomma = somma - sommaPrec;
-
-              const tr = document.createElement("tr");
-              tr.classList.add(cat.tipo.toLowerCase());
-              if (!gruppoStampato) tr.classList.add("inizio-gruppo");
-              if (!categoriaStampata) tr.classList.add("inizio-categoria");
-
-              if (!gruppoStampato) {
-                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
-                gruppoStampato = true;
-              }
-
-              if (!categoriaStampata) {
-                tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
-                categoriaStampata = true;
-              }
-
-              tr.innerHTML += `
-                <td>${sezione}</td>
-                <td>${r.U}</td>
-                <td>${r.D}</td>
-                <td>${r.GU}</td>
-                <td>${r.GD}</td>
-                <td>${somma}</td>
-                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
-                <td>${sommaPrec}</td>
-                <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
-                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
-                <td>${r.FUT}</td>
-                <td>${r.STU}</td>
-              `;
-
-              tbody.appendChild(tr);
-            });
-          });
-        });
+    unici(righe, "anno").sort().forEach(v => filtroAnno.add(new Option(v, v)));
+    mesiOrdine.forEach(mese => {
+      if (righe.some(r => r.mese === mese)) {
+        filtroMese.add(new Option(mese, mese));
       }
     });
-  </script>
+
+    [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
+      f.addEventListener("change", aggiornaTabella)
+    );
+
+    function aggiornaTabella() {
+      tbody.innerHTML = "";
+      riepilogoDiv.innerHTML = "";
+
+      const capitoloSelezionato = filtroCapitolo.value;
+      const gruppiFiltrati = mappaCapitoli[capitoloSelezionato] || [];
+
+      const riepilogo = {};
+
+      const addTo = (obj, chiave, r) => {
+        if (!obj[chiave]) obj[chiave] = { U: 0, D: 0, GU: 0, GD: 0 };
+        obj[chiave].U += r.U;
+        obj[chiave].D += r.D;
+        obj[chiave].GU += r.GU;
+        obj[chiave].GD += r.GD;
+      };
+
+      gruppiFiltrati.forEach(gruppo => {
+        const righeGruppo = righe.filter(r =>
+          r.gruppo === gruppo &&
+          (!filtroAnno.value || r.anno === filtroAnno.value) &&
+          (!filtroMese.value || r.mese === filtroMese.value)
+        );
+
+        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+        const righePrecedenti = righe.filter(r =>
+          r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
+        );
+
+        if (righeGruppo.length === 0) return;
+
+        const categorie = [
+          { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
+          { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
+        ];
+
+        let gruppoStampato = false;
+
+        categorie.forEach(cat => {
+          let categoriaStampata = false;
+
+          const righeCategoria = cat.sezioni.filter(s =>
+            righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
+          );
+
+          const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
+            const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+            if (!r) return acc;
+            return acc + r.U + r.D + r.GU + r.GD;
+          }, 0);
+
+          const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
+            const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+            if (!rPrec) return acc;
+            return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
+          }, 0);
+
+          const deltaTotale = totaleCategoria - totaleCategoriaPrec;
+
+          righeCategoria.forEach((sezione, index) => {
+            const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+            if (!r) return;
+
+            const somma = r.U + r.D + r.GU + r.GD;
+            const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+            const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+            const deltaSomma = somma - sommaPrec;
+
+            const tr = document.createElement("tr");
+            tr.classList.add(cat.tipo.toLowerCase());
+            if (!gruppoStampato) tr.classList.add("inizio-gruppo");
+            if (!categoriaStampata) tr.classList.add("inizio-categoria");
+
+            if (!gruppoStampato) {
+              tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
+              gruppoStampato = true;
+            }
+
+            if (!categoriaStampata) {
+              tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
+              categoriaStampata = true;
+            }
+
+            tr.innerHTML += `
+              <td>${sezione}</td>
+              <td>${r.U}</td>
+              <td>${r.D}</td>
+              <td>${r.GU}</td>
+              <td>${r.GD}</td>
+              <td>${somma}</td>
+              ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
+              <td>${sommaPrec}</td>
+<td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
+${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
+<td>${r.FUT}</td>
+<td>${r.STU}</td>
+`;
+
+tbody.appendChild(tr);
+});
+});
+});
+
+// Calcolo riepilogo per Settore e Capitolo
+const riepilogo = {};
+const addTo = (obj, chiave, r) => {
+  if (!obj[chiave]) obj[chiave] = { U: 0, D: 0, GU: 0, GD: 0 };
+  obj[chiave].U += r.U;
+  obj[chiave].D += r.D;
+  obj[chiave].GU += r.GU;
+  obj[chiave].GD += r.GD;
+};
+
+righe.forEach(r => {
+  if (
+    (!filtroAnno.value || r.anno === filtroAnno.value) &&
+    (!filtroMese.value || r.mese === filtroMese.value) &&
+    gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
+  ) {
+    const settore = gruppoToSettore[r.gruppo];
+    const capitolo = gruppoToCapitolo[r.gruppo];
+    addTo(riepilogo, `Settore: ${settore}`, r);
+    addTo(riepilogo, `Capitolo: ${capitolo}`, r);
+  }
+});
+
+// Mostra riepilogo
+for (const [nome, dati] of Object.entries(riepilogo)) {
+  const somma = dati.U + dati.D + dati.GU + dati.GD;
+  const box = document.createElement("div");
+  box.innerHTML = `
+    <strong>${nome}</strong><br>
+    U: ${dati.U} | D: ${dati.D} | GU: ${dati.GU} | GD: ${dati.GD} | <strong>Somma: ${somma}</strong>
+  `;
+  riepilogoDiv.appendChild(box);
+}
+}
+});
+</script>
 </body>
 </html>
 
