@@ -4,112 +4,7 @@
   <meta charset="UTF-8" />
   <title>Inserimento Dati – HOMBU 9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 2rem;
-      color: #333;
-    }
-
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      margin: 0.5rem 0;
-      font-weight: 500;
-    }
-
-    select, input[type="number"] {
-      font-size: 1.1rem;
-      padding: 0.4rem 0.6rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      min-width: 180px;
-      margin-top: 0.3rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-      background: white;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.6rem;
-      text-align: center;
-    }
-
-    th {
-      background: #e0f7fa;
-      font-weight: bold;
-    }
-
-    h2 {
-      margin-top: 2rem;
-      background: #007bff;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-    }
-
-    button {
-      margin-top: 2rem;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      font-weight: bold;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      th {
-        display: none;
-      }
-
-      td {
-        position: relative;
-        padding-left: 50%;
-        text-align: left;
-      }
-
-      td::before {
-        position: absolute;
-        left: 0.5rem;
-        width: 45%;
-        white-space: nowrap;
-        font-weight: bold;
-      }
-
-      td:nth-child(1)::before { content: "Categoria"; }
-      td:nth-child(2)::before { content: "U"; }
-      td:nth-child(3)::before { content: "D"; }
-      td:nth-child(4)::before { content: "GU"; }
-      td:nth-child(5)::before { content: "GD"; }
-      td:nth-child(6)::before { content: "Totale"; }
-      td:nth-child(7)::before { content: "FUT"; }
-      td:nth-child(8)::before { content: "STU"; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -137,30 +32,30 @@
       <tbody>
         <tr>
           <td>Membri</td>
-          <td><input type="number" name="zadankai_m_u" required></td>
-          <td><input type="number" name="zadankai_m_d" required></td>
-          <td><input type="number" name="zadankai_m_gu" required></td>
-          <td><input type="number" name="zadankai_m_gd" required></td>
+          <td><input type="number" name="zadankai_m_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
           <td><input type="number" name="zadankai_m_tot" readonly></td>
-          <td><input type="number" name="zadankai_m_fut" required></td>
-          <td><input type="number" name="zadankai_m_stu" required></td>
+          <td><input type="number" name="zadankai_m_fut" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_stu" inputmode="numeric" pattern="[0-9]*"></td>
         </tr>
         <tr>
           <td>Simpatizzanti</td>
-          <td><input type="number" name="zadankai_s_u" required></td>
-          <td><input type="number" name="zadankai_s_d" required></td>
-          <td><input type="number" name="zadankai_s_gu" required></td>
-          <td><input type="number" name="zadankai_s_gd" required></td>
+          <td><input type="number" name="zadankai_s_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
           <td><input type="number" name="zadankai_s_tot" readonly></td>
-          <td><input type="number" name="zadankai_s_fut" required></td>
-          <td><input type="number" name="zadankai_s_stu" required></td>
+          <td><input type="number" name="zadankai_s_fut" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_stu" inputmode="numeric" pattern="[0-9]*"></td>
         </tr>
         <tr>
           <td>Ospiti</td>
-          <td><input type="number" name="zadankai_o_u" required></td>
-          <td><input type="number" name="zadankai_o_d" required></td>
-          <td><input type="number" name="zadankai_o_gu" required></td>
-          <td><input type="number" name="zadankai_o_gd" required></td>
+          <td><input type="number" name="zadankai_o_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_gd" inputmode="numeric" pattern="[0-9]*"></td>
           <td><input type="number" name="zadankai_o_tot" readonly></td>
           <td colspan="2">–</td>
         </tr>
@@ -182,18 +77,18 @@
       <tbody>
         <tr>
           <td>Membri</td>
-          <td><input type="number" name="praticanti_m_u" required></td>
-          <td><input type="number" name="praticanti_m_d" required></td>
-          <td><input type="number" name="praticanti_m_gu" required></td>
-          <td><input type="number" name="praticanti_m_gd" required></td>
+          <td><input type="number" name="praticanti_m_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
           <td><input type="number" name="praticanti_m_tot" readonly></td>
         </tr>
         <tr>
           <td>Simpatizzanti</td>
-          <td><input type="number" name="praticanti_s_u" required></td>
-          <td><input type="number" name="praticanti_s_d" required></td>
-          <td><input type="number" name="praticanti_s_gu" required></td>
-          <td><input type="number" name="praticanti_s_gd" required></td>
+          <td><input type="number" name="praticanti_s_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
           <td><input type="number" name="praticanti_s_tot" readonly></td>
         </tr>
         <tr>
@@ -204,14 +99,12 @@
     </table>
 
     <button type="submit">Salva dati</button>
+    <a href="index.html" class="button-home">🏠 Torna alla Home</a>
 
-    <div id="messaggio-successo" style="display:none; margin-top: 1.5rem; padding: 1rem; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">
+    <div id="messaggio-successo">
       ✅ Dati salvati con successo! <a href="index.html" style="margin-left: 1rem; font-weight: bold;">🏠 Torna alla Home</a>
     </div>
-
   </form>
-  <p>
-  <a href="index.html" class="button-home">🏠 Torna alla Home</a>
 
   <script type="module" src="script.js"></script>
 </body>
