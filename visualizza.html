@@ -109,6 +109,10 @@
         <th>GD</th>
         <th>Somma</th>
         <th>Totale</th>
+        <th>Somma mese prec.</th>
+        <th>Δ Somma</th>
+        <th>Totale mese prec.</th>
+        <th>Δ Totale</th>
         <th>Futuro</th>
         <th>Studenti</th>
       </tr>
@@ -146,6 +150,18 @@
 
         aggiornaTabella();
       });
+
+    function mesePrecedente(mese, anno) {
+      const mesi = [
+        "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+      ];
+      const index = mesi.indexOf(mese);
+      if (index === -1) return { mese: null, anno: null };
+      const nuovoIndex = (index - 1 + 12) % 12;
+      const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
+      return { mese: mesi[nuovoIndex], anno: nuovoAnno };
+    }
 
     get(child(ref(db), "zadankai")).then(snapshot => {
       if (!snapshot.exists()) return;
@@ -208,6 +224,11 @@
             (!filtroMese.value || r.mese === filtroMese.value)
           );
 
+          const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+          const righePrecedenti = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
+          );
+
           if (righeGruppo.length === 0) return;
 
           const categorie = [
@@ -217,8 +238,8 @@
 
           let gruppoStampato = false;
 
-          categorie.forEach(cat => {
-            let categoriaStampata = false;
+            categorie.forEach(cat => {
+                        let categoriaStampata = false;
 
             const righeCategoria = cat.sezioni.filter(s =>
               righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
@@ -230,11 +251,23 @@
               return acc + r.U + r.D + r.GU + r.GD;
             }, 0);
 
+            const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
+              const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+              if (!rPrec) return acc;
+              return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
+            }, 0);
+
+            const deltaTotale = totaleCategoria - totaleCategoriaPrec;
+
             righeCategoria.forEach((sezione, index) => {
               const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
               if (!r) return;
 
               const somma = r.U + r.D + r.GU + r.GD;
+
+              const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+              const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+              const deltaSomma = somma - sommaPrec;
 
               const tr = document.createElement("tr");
               tr.classList.add(cat.tipo.toLowerCase());
@@ -242,7 +275,7 @@
               if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
               if (!gruppoStampato) {
-                                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
+                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
                 gruppoStampato = true;
               }
 
@@ -259,6 +292,10 @@
                 <td>${r.GD}</td>
                 <td>${somma}</td>
                 ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
+                <td>${sommaPrec}</td>
+                <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
+                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
                 <td>${r.FUT}</td>
                 <td>${r.STU}</td>
               `;
@@ -272,3 +309,4 @@
   </script>
 </body>
 </html>
+
