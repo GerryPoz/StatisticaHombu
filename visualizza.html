@@ -70,10 +70,10 @@
   <h1>Visualizza Dati – HOMBU 9</h1>
 
   <label>Anno:
-    <select id="filtro-anno"><option value="">Tutti</option></select>
+    <select id="filtro-anno"></select>
   </label>
   <label>Mese:
-    <select id="filtro-mese"><option value="">Tutti</option></select>
+    <select id="filtro-mese"></select>
   </label>
   <label>Capitolo:
     <select id="filtro-capitolo"></select>
@@ -158,9 +158,20 @@
         }
       }
 
-      const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))].sort();
-      unici(righe, "anno").forEach(v => filtroAnno.add(new Option(v, v)));
-      unici(righe, "mese").forEach(v => filtroMese.add(new Option(v, v)));
+      const mesiOrdine = [
+        "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+      ];
+
+      const unici = (arr, campo) => [...new Set(arr.map(r => r[campo]))];
+
+      unici(righe, "anno").sort().forEach(v => filtroAnno.add(new Option(v, v)));
+
+      mesiOrdine.forEach(mese => {
+        if (righe.some(r => r.mese === mese)) {
+          filtroMese.add(new Option(mese, mese));
+        }
+      });
 
       [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
         f.addEventListener("change", aggiornaTabella)
@@ -225,7 +236,7 @@
                 <td>${r.U}</td>
                 <td>${r.D}</td>
                 <td>${r.GU}</td>
-                <td>${r.GD}</td>
+                <td${r.GD}</td>
                 <td>${somma}</td>
                 ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
                 <td>${r.FUT}</td>
