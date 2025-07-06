@@ -13,6 +13,11 @@
       color: #333;
     }
 
+    td.nome-gruppo {
+      background-color: #fff3cd; /* giallo chiaro */
+      font-weight: bold;
+    }
+
     h1 {
       color: #2c3e50;
       margin-bottom: 1rem;
@@ -188,7 +193,7 @@
               tr.className = cat.tipo.toLowerCase();
 
               if (!gruppoStampato) {
-                tr.innerHTML += `<td rowspan="${righeGruppo.length}">${gruppo}</td>`;
+                tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
                 gruppoStampato = true;
               }
 
