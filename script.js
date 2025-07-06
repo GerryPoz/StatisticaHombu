@@ -5,29 +5,31 @@ import { firebaseConfig } from "./firebase-config.js";
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Popola menu Anno, Mese, Gruppo
-// Popola menu Anno
-const anno = new Date().getFullYear();
-document.getElementById("anno").innerHTML = `
-  <option value="${anno}" selected>${anno}</option>
-  <option value="${anno + 1}">${anno + 1}</option>
-`;
+document.addEventListener("DOMContentLoaded", () => {
+  // Popola Anno
+  const anno = new Date().getFullYear();
+  document.getElementById("anno").innerHTML = `
+    <option value="${anno}" selected>${anno}</option>
+    <option value="${anno + 1}">${anno + 1}</option>
+  `;
 
-// Popola menu Mese
-const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-document.getElementById("mese").innerHTML = '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
+  // Popola Mese
+  const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  document.getElementById("mese").innerHTML = '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
 
-// Popola menu Gruppo da gruppi.json
-fetch("gruppi.json").then(res => res.json()).then(data => {
-  const gruppi = [];
-  for (const capitolo of Object.values(data["HOMBU 9"])) {
-    for (const settore of Object.values(capitolo)) {
-      gruppi.push(...settore);
-    }
-  }
-  document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
+  // Popola Gruppo da gruppi.json
+  fetch("gruppi.json")
+    .then(res => res.json())
+    .then(data => {
+      const gruppi = [];
+      for (const capitolo of Object.values(data["HOMBU 9"])) {
+        for (const settore of Object.values(capitolo)) {
+          gruppi.push(...settore);
+        }
+      }
+      document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
+    });
 });
-
 
 // Calcolo totali Zadankai
 function calcolaTotaliZadankai() {
@@ -125,4 +127,7 @@ document.getElementById("dati-form").addEventListener("submit", (e) => {
   set(ref(db, `zadankai/${key}`), payload)
     .then(() => {
       document.getElementById("messaggio-successo").style.display = "block";
-      window.scrollTo({ top
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    })
+    .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
+});
