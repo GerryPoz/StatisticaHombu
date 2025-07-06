@@ -320,9 +320,15 @@ righe.forEach(r => {
     (!filtroMese.value || r.mese === filtroMese.value) &&
     gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
   ) {
-    const chiave = gruppoToSettore[r.gruppo]
-      ? `Settore: ${gruppoToSettore[r.gruppo]}`
-      : `Capitolo: ${gruppoToCapitolo[r.gruppo]}`;
+    const chiavi = [
+      `Settore: ${gruppoToSettore[r.gruppo]}`,
+      `Capitolo: ${gruppoToCapitolo[r.gruppo]}`
+    ];
+    chiavi.forEach(chiave => {
+      if (!riepilogoPer[chiave]) riepilogoPer[chiave] = [];
+      riepilogoPer[chiave].push(r);
+    });
+
     if (!riepilogoPer[chiave]) riepilogoPer[chiave] = [];
     riepilogoPer[chiave].push(r);
   }
