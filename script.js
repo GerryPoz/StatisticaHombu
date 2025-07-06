@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
     });
 
-  // Blocca caratteri non numerici nei campi input[type=number]
+  // Blocca caratteri non numerici, incolla e rotella del mouse
   document.querySelectorAll('input[type="number"]').forEach(input => {
     input.addEventListener("keypress", e => {
       if (!/[0-9]/.test(e.key)) e.preventDefault();
@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const pasted = (e.clipboardData || window.clipboardData).getData("text");
       if (!/^\d+$/.test(pasted)) e.preventDefault();
     });
+    input.addEventListener("wheel", e => e.target.blur());
   });
 });
 
