@@ -119,6 +119,10 @@ document.getElementById("dati-form").addEventListener("submit", (e) => {
   };
 
   set(ref(db, `zadankai/${key}`), payload)
-    .then(() => alert("✅ Dati salvati con successo!"))
-    .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
+  .then(() => {
+    document.getElementById("messaggio-successo").style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  })
+  .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
+
 });
