@@ -75,6 +75,7 @@
       <tr>
         <th>Nome Gruppo</th>
         <th>Categoria</th>
+        <th>Sezione</th>
         <th>U</th>
         <th>D</th>
         <th>GU</th>
@@ -114,9 +115,7 @@
         for (const categoria in sezioni.zadankai) {
           const r = sezioni.zadankai[categoria];
           righe.push({
-            anno, mese, gruppo, categoria: "ZADANKAI – " + categoria,
-            tipo: "ZADANKAI",
-            sezione: categoria,
+            anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
             U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
             FUT: r.FUT ?? "-", STU: r.STU ?? "-"
           });
@@ -125,9 +124,7 @@
         for (const categoria in sezioni.praticanti) {
           const r = sezioni.praticanti[categoria];
           righe.push({
-            anno, mese, gruppo, categoria: "PRATICANTI – " + categoria,
-            tipo: "PRATICANTI",
-            sezione: categoria,
+            anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
             U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
             FUT: "-", STU: "-"
           });
@@ -168,15 +165,20 @@
             let categoriaStampata = false;
 
             const righeCategoria = cat.sezioni.filter(s =>
-              righeGruppo.find(x => x.categoria === `${cat.tipo} – ${s}`)
-            ).length;
+              righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
+            );
 
-            cat.sezioni.forEach(sezione => {
-              const r = righeGruppo.find(x => x.categoria === `${cat.tipo} – ${sezione}`);
+            const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
+              const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+              if (!r) return acc;
+              return acc + r.U + r.D + r.GU + r.GD;
+            }, 0);
+
+            righeCategoria.forEach((sezione, index) => {
+              const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
               if (!r) return;
 
               const somma = r.U + r.D + r.GU + r.GD;
-              const totale = somma;
 
               const tr = document.createElement("tr");
 
@@ -186,17 +188,18 @@
               }
 
               if (!categoriaStampata) {
-                tr.innerHTML += `<td rowspan="${righeCategoria}">${cat.tipo}</td>`;
+                tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
                 categoriaStampata = true;
               }
 
               tr.innerHTML += `
+                <td>${sezione}</td>
                 <td>${r.U}</td>
                 <td>${r.D}</td>
                 <td>${r.GU}</td>
                 <td>${r.GD}</td>
                 <td>${somma}</td>
-                <td>${totale}</td>
+                ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
                 <td>${r.FUT}</td>
                 <td>${r.STU}</td>
               `;
