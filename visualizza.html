@@ -240,91 +240,125 @@ td.sep-delta-totale, th.sep-delta-totale {
     };
 
     gruppiFiltrati.forEach(gruppo => {
-      const righeGruppo = righe.filter(r =>
-        r.gruppo === gruppo &&
-        (!filtroAnno.value || r.anno === filtroAnno.value) &&
-        (!filtroMese.value || r.mese === filtroMese.value)
-      );
+  const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+  if (righeGruppo.length === 0) return;
+
+  const intestazione = document.createElement("tr");
+  intestazione.className = "inizio-gruppo";
+  const tdIntestazione = document.createElement("td");
+  tdIntestazione.colSpan = 15;
+  tdIntestazione.textContent = gruppo;
+  tdIntestazione.className = "nome-gruppo";
+  intestazione.appendChild(tdIntestazione);
+  tabella.appendChild(intestazione);
+
+  const categorie = ["ZADANKAI", "PRATICANTI"];
+  categorie.forEach(tipo => {
+    const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+    if (righeCategoria.length === 0) return;
+
+    righeCategoria.forEach((r, index) => {
+      const tr = document.createElement("tr");
+      if (index === 0) tr.classList.add("inizio-categoria");
+      tr.classList.add(tipo.toLowerCase());
+
+      const tdCategoria = document.createElement("td");
+      if (index === 0) {
+        tdCategoria.textContent = tipo;
+        tdCategoria.rowSpan = righeCategoria.length;
+      }
+      tr.appendChild(tdCategoria);
+
+      const tdSezione = document.createElement("td");
+      tdSezione.textContent = r.sezione;
+      tdSezione.className = "sep-sezione";
+      tr.appendChild(tdSezione);
+
+      ["U", "D", "GU"].forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = r[col];
+        tr.appendChild(td);
+      });
+
+      const tdGD = document.createElement("td");
+      tdGD.textContent = r.GD;
+      tdGD.className = "sep-gd";
+      tr.appendChild(tdGD);
+
+      const somma = r.U + r.D + r.GU + r.GD;
+      const tdSomma = document.createElement("td");
+      tdSomma.textContent = somma;
+      tr.appendChild(tdSomma);
+
+      if (index === 0) {
+        const totaleCategoria = righeCategoria.reduce((s, rr) => s + rr.U + rr.D + rr.GU + rr.GD, 0);
+        const tdTotale = document.createElement("td");
+        tdTotale.textContent = totaleCategoria;
+        tdTotale.rowSpan = righeCategoria.length;
+        tdTotale.className = "sep-totale";
+        tr.appendChild(tdTotale);
+      }
 
       const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-      const righePrecedenti = righe.filter(r =>
-        r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
+      const rPrec = righe.find(rr =>
+        rr.anno === annoPrec &&
+        rr.mese === mesePrec &&
+        rr.gruppo === r.gruppo &&
+        rr.tipo === r.tipo &&
+        rr.sezione === r.sezione
       );
 
-      if (righeGruppo.length === 0) return;
+      const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+      const deltaSomma = somma - sommaPrec;
 
-      const categorie = [
-        { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
-        { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
-      ];
+      const tdSommaPrec = document.createElement("td");
+      tdSommaPrec.textContent = sommaPrec;
+      tr.appendChild(tdSommaPrec);
 
-      let gruppoStampato = false;
+      const tdDeltaSomma = document.createElement("td");
+      tdDeltaSomma.textContent = deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma;
+      tdDeltaSomma.className = "sep-delta-somma";
+      tr.appendChild(tdDeltaSomma);
 
-      categorie.forEach(cat => {
-        let categoriaStampata = false;
-
-        const righeCategoria = cat.sezioni.filter(s =>
-          righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
-        );
-
-        const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
-          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!r) return acc;
-          return acc + r.U + r.D + r.GU + r.GD;
-        }, 0);
-
-        const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
-          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!rPrec) return acc;
-          return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
+      if (index === 0) {
+        const totaleCategoriaPrec = righeCategoria.reduce((s, rr) => {
+          const prec = righe.find(rp =>
+            rp.anno === annoPrec &&
+            rp.mese === mesePrec &&
+            rp.gruppo === rr.gruppo &&
+            rp.tipo === rr.tipo &&
+            rp.sezione === rr.sezione
+          );
+          return s + (prec ? prec.U + prec.D + prec.GU + prec.GD : 0);
         }, 0);
 
         const deltaTotale = totaleCategoria - totaleCategoriaPrec;
 
-        righeCategoria.forEach((sezione, index) => {
-          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!r) return;
+        const tdTotalePrec = document.createElement("td");
+        tdTotalePrec.textContent = totaleCategoriaPrec;
+        tdTotalePrec.rowSpan = righeCategoria.length;
+        tr.appendChild(tdTotalePrec);
 
-          const somma = r.U + r.D + r.GU + r.GD;
-          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
-          const deltaSomma = somma - sommaPrec;
+        const tdDeltaTotale = document.createElement("td");
+        tdDeltaTotale.textContent = deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale;
+        tdDeltaTotale.rowSpan = righeCategoria.length;
+        tdDeltaTotale.className = "sep-delta-totale";
+        tr.appendChild(tdDeltaTotale);
+      }
 
-          const tr = document.createElement("tr");
-          tr.classList.add(cat.tipo.toLowerCase());
-          if (!gruppoStampato) tr.classList.add("inizio-gruppo");
-          if (!categoriaStampata) tr.classList.add("inizio-categoria");
+      const tdFUT = document.createElement("td");
+      tdFUT.textContent = parseInt(r.FUT) || 0;
+      tr.appendChild(tdFUT);
 
-          if (!gruppoStampato) {
-            tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
-            gruppoStampato = true;
-          }
+      const tdSTU = document.createElement("td");
+      tdSTU.textContent = parseInt(r.STU) || 0;
+      tr.appendChild(tdSTU);
 
-          if (!categoriaStampata) {
-            tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
-            categoriaStampata = true;
-          }
-
-          tr.innerHTML += `
-            <td>${sezione}</td>
-            <td>${r.U}</td>
-            <td>${r.D}</td>
-            <td>${r.GU}</td>
-            <td>${r.GD}</td>
-            <td>${somma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
-            <td>${sommaPrec}</td>
-            <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
-            <td>${r.FUT}</td>
-            <td>${r.STU}</td>
-          `;
-
-          tbody.appendChild(tr);
-        });
-      });
+      tabella.appendChild(tr);
     });
+  });
+});
+
 
     righe.forEach(r => {
       if (
