@@ -372,8 +372,9 @@ titoliOrdinati.forEach(titolo => {
       const D = righeAttuali.reduce((a, r) => a + r.D, 0);
       const GU = righeAttuali.reduce((a, r) => a + r.GU, 0);
       const GD = righeAttuali.reduce((a, r) => a + r.GD, 0);
-      const FUT = righeAttuali.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
-      const STU = righeAttuali.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
+      const FUT = righeAttuali.reduce((s, r) => s + (parseInt(r.FUT) || 0), 0);
+      const STU = righeAttuali.reduce((s, r) => s + (parseInt(r.STU) || 0), 0);
+
 
       const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
       const righePrecise = righe.filter(r =>
