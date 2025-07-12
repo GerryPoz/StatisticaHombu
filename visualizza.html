@@ -71,6 +71,24 @@
       border: 2px solid #444;
       background: #f9f9f9;
     }
+
+    /* 🔳 Linee verticali spesse su celle specifiche */
+td.sep-sezione, th.sep-sezione {
+  border-right: 4px solid #333;
+}
+td.sep-gd, th.sep-gd {
+  border-right: 4px solid #666;
+}
+td.sep-totale, th.sep-totale {
+  border-right: 4px solid #444;
+}
+td.sep-delta-somma, th.sep-delta-somma {
+  border-right: 4px solid #444;
+}
+td.sep-delta-totale, th.sep-delta-totale {
+  border-right: 4px solid #444;
+}
+
   </style>
 </head>
 <body>
@@ -321,7 +339,6 @@
       }
     });
 
-    // 🎯 Nuovo riepilogo dettagliato per Settori e Capitolo
 // 🧮 Riepilogo dettagliato per Settori e Capitoli
 const riepilogoPer = {};
 
@@ -348,7 +365,7 @@ const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
   return a.localeCompare(b);
 });
 
-riepilogoDiv.innerHTML = ""; // reset
+riepilogoDiv.innerHTML = "";
 
 titoliOrdinati.forEach(titolo => {
   const righeTotali = riepilogoPer[titolo];
@@ -358,14 +375,13 @@ titoliOrdinati.forEach(titolo => {
     <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem 0;">${titolo}</caption>
     <thead>
       <tr>
-        <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-        <th>Somma</th><th>Totale</th><th>Somma mese prec.</th><th>Δ Somma</th>
-        <th>Totale mese prec.</th><th>Δ Totale</th><th>Futuro</th><th>Studenti</th>
+        <th>Categoria</th><th class="sep-sezione">Sezione</th><th>U</th><th>D</th><th>GU</th><th class="sep-gd">GD</th>
+        <th>Somma</th><th class="sep-totale">Totale</th><th>Somma mese prec.</th><th class="sep-delta-somma">Δ Somma</th>
+        <th>Totale mese prec.</th><th class="sep-delta-totale">Δ Totale</th><th>Futuro</th><th>Studenti</th>
       </tr>
     </thead>
     <tbody></tbody>
   `;
-
   const tbody = tab.querySelector("tbody");
 
   const categorie = [
@@ -384,7 +400,6 @@ titoliOrdinati.forEach(titolo => {
       const FUT = righeAttuali.reduce((s, r) => s + (parseInt(r.FUT) || 0), 0);
       const STU = righeAttuali.reduce((s, r) => s + (parseInt(r.STU) || 0), 0);
 
-
       const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
       const righePrecise = righe.filter(r =>
         r.anno === annoPrec &&
@@ -402,9 +417,7 @@ titoliOrdinati.forEach(titolo => {
       const somma0 = righePrecise.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
       const deltaSomma = somma - somma0;
 
-      return {
-        sezione, U, D, GU, GD, somma, somma0, deltaSomma, FUT, STU
-      };
+      return { sezione, U, D, GU, GD, somma, somma0, deltaSomma, FUT, STU };
     });
 
     const totale = righeCat.reduce((a, r) => a + r.somma, 0);
@@ -414,28 +427,79 @@ titoliOrdinati.forEach(titolo => {
     righeCat.forEach((riga, index) => {
       const tr = document.createElement("tr");
       tr.classList.add(cat.tipo.toLowerCase());
-      tr.innerHTML = `
-        ${index === 0 ? `<td rowspan="${righeCat.length}">${cat.tipo}</td>` : ""}
-        <td>${riga.sezione}</td>
-        <td>${riga.U}</td>
-        <td>${riga.D}</td>
-        <td>${riga.GU}</td>
-        <td>${riga.GD}</td>
-        <td>${riga.somma}</td>
-        ${index === 0 ? `<td rowspan="${righeCat.length}">${totale}</td>` : ""}
-        <td>${riga.somma0}</td>
-        <td>${riga.deltaSomma >= 0 ? "+" + riga.deltaSomma : riga.deltaSomma}</td>
-        ${index === 0 ? `<td rowspan="${righeCat.length}">${totale0}</td>` : ""}
-        ${index === 0 ? `<td rowspan="${righeCat.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
-        <td>${riga.FUT}</td>
-        <td>${riga.STU}</td>
-      `;
+
+      if (index === 0) {
+        const tdCategoria = document.createElement("td");
+        tdCategoria.rowSpan = righeCat.length;
+        tdCategoria.textContent = cat.tipo;
+        tr.appendChild(tdCategoria);
+      }
+
+      const tdSezione = document.createElement("td");
+      tdSezione.textContent = riga.sezione;
+      tdSezione.className = "sep-sezione";
+      tr.appendChild(tdSezione);
+
+      ["U", "D", "GU"].forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = riga[col];
+        tr.appendChild(td);
+      });
+
+      const tdGD = document.createElement("td");
+      tdGD.textContent = riga.GD;
+      tdGD.className = "sep-gd";
+      tr.appendChild(tdGD);
+
+      const tdSomma = document.createElement("td");
+      tdSomma.textContent = riga.somma;
+      tr.appendChild(tdSomma);
+
+      if (index === 0) {
+        const tdTotale = document.createElement("td");
+        tdTotale.textContent = totale;
+        tdTotale.rowSpan = righeCat.length;
+        tdTotale.className = "sep-totale";
+        tr.appendChild(tdTotale);
+      }
+
+      const tdSomma0 = document.createElement("td");
+      tdSomma0.textContent = riga.somma0;
+      tr.appendChild(tdSomma0);
+
+      const tdDeltaSomma = document.createElement("td");
+      tdDeltaSomma.textContent = riga.deltaSomma >= 0 ? "+" + riga.deltaSomma : riga.deltaSomma;
+      tdDeltaSomma.className = "sep-delta-somma";
+      tr.appendChild(tdDeltaSomma);
+
+      if (index === 0) {
+        const tdTotale0 = document.createElement("td");
+        tdTotale0.textContent = totale0;
+        tdTotale0.rowSpan = righeCat.length;
+        tr.appendChild(tdTotale0);
+
+        const tdDeltaTotale = document.createElement("td");
+        tdDeltaTotale.textContent = deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale;
+        tdDeltaTotale.rowSpan = righeCat.length;
+        tdDeltaTotale.className = "sep-delta-totale";
+        tr.appendChild(tdDeltaTotale);
+      }
+
+      const tdFUT = document.createElement("td");
+      tdFUT.textContent = riga.FUT;
+      tr.appendChild(tdFUT);
+
+      const tdSTU = document.createElement("td");
+      tdSTU.textContent = riga.STU;
+      tr.appendChild(tdSTU);
+
       tbody.appendChild(tr);
     });
   });
 
   riepilogoDiv.appendChild(tab);
 });
+
 
 
 
