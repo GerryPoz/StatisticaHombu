@@ -313,6 +313,7 @@
     });
 
     // 🎯 Nuovo riepilogo dettagliato per Settori e Capitolo
+// 🧮 Riepilogo dettagliato per Settori e Capitoli
 const riepilogoPer = {};
 
 righe.forEach(r => {
@@ -364,63 +365,60 @@ titoliOrdinati.forEach(titolo => {
   ];
 
   categorie.forEach(cat => {
-    cat.sezioni.forEach(sezione => {
+    const righeCat = cat.sezioni.map(sezione => {
       const righeAttuali = righeTotali.filter(r => r.tipo === cat.tipo && r.sezione === sezione);
-
-      if (righeAttuali.length === 0) return;
-
+      const somma = righeAttuali.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
       const U = righeAttuali.reduce((a, r) => a + r.U, 0);
       const D = righeAttuali.reduce((a, r) => a + r.D, 0);
       const GU = righeAttuali.reduce((a, r) => a + r.GU, 0);
       const GD = righeAttuali.reduce((a, r) => a + r.GD, 0);
-      const somma = U + D + GU + GD;
-      const totale = somma; // qui potresti sommare altri criteri se necessario
+      const FUT = righeAttuali.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
+      const STU = righeAttuali.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
 
-      const FUT = righeAttuali.map(r => r.FUT).filter(f => f !== "-").join(", ") || "-";
-      const STU = righeAttuali.map(r => r.STU).filter(s => s !== "-").join(", ") || "-";
-
-      // mese precedente
       const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-      const righePrec = righe.filter(r =>
+      const righePrecise = righe.filter(r =>
         r.anno === annoPrec &&
         r.mese === mesePrec &&
         r.tipo === cat.tipo &&
         r.sezione === sezione &&
         gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
         (
-          titolo.startsWith("Settore") ?
-          gruppoToSettore[r.gruppo] === titolo.split(": ")[1] :
-          gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1]
+          titolo.startsWith("Settore")
+            ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
+            : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1]
         )
       );
 
-      const U0 = righePrec.reduce((s, r) => s + r.U, 0);
-      const D0 = righePrec.reduce((s, r) => s + r.D, 0);
-      const GU0 = righePrec.reduce((s, r) => s + r.GU, 0);
-      const GD0 = righePrec.reduce((s, r) => s + r.GD, 0);
-      const somma0 = U0 + D0 + GU0 + GD0;
-      const totale0 = somma0; // stesso criterio
-
+      const somma0 = righePrecise.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
       const deltaSomma = somma - somma0;
-      const deltaTotale = totale - totale0;
 
+      return {
+        sezione, U, D, GU, GD, somma, somma0, deltaSomma, FUT, STU
+      };
+    });
+
+    const totale = righeCat.reduce((a, r) => a + r.somma, 0);
+    const totale0 = righeCat.reduce((a, r) => a + r.somma0, 0);
+    const deltaTotale = totale - totale0;
+
+    righeCat.forEach((riga, index) => {
       const tr = document.createElement("tr");
       tr.classList.add(cat.tipo.toLowerCase());
       tr.innerHTML = `
-        <td>${cat.tipo}</td>
-        <td>${sezione}</td>
-        <td>${U}</td>
-        <td>${D}</td>
-        <td>${GU}</td>
-        <td>${GD}</td>
-        <td>${somma}</td>
-        <td>${totale}</td>
-        <td>${somma0}</td>
-        <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-        <td>${totale0}</td>
-        <td>${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>
-        <td>${FUT}</td>
-        <td>${STU}</td>
+        ${index === 0 ? `<td rowspan="${righeCat.length}">${cat.tipo}</td>` : ""}
+        <td>${riga.sezione}</td>
+        <td>${riga.U}</td>
+        <td>${riga.D}</td>
+        <td>${riga.GU}</td>
+        <td>${riga.GD}</td>
+        <td>${riga.somma}</td>
+        ${index === 0 ? `<td rowspan="${righeCat.length}">${totale}</td>` : ""}
+        <td>${riga.somma0}</td>
+        <td>${riga.deltaSomma >= 0 ? "+" + riga.deltaSomma : riga.deltaSomma}</td>
+        ${index === 0 ? `<td rowspan="${righeCat.length}">${totale0}</td>` : ""}
+        ${index === 0 ? `<td rowspan="${righeCat.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
+        <td>${riga.FUT}</td>
+        <td>${riga.STU}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -428,6 +426,7 @@ titoliOrdinati.forEach(titolo => {
 
   riepilogoDiv.appendChild(tab);
 });
+
 
 
 
