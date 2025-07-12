@@ -364,50 +364,55 @@ for (const titolo of titoliOrdinati) {
   const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
   if (righeCat.length === 0) return;
 
-  // Totali per categoria
-  const U_tot = righeCat.reduce((s, r) => s + r.U, 0);
-  const D_tot = righeCat.reduce((s, r) => s + r.D, 0);
-  const GU_tot = righeCat.reduce((s, r) => s + r.GU, 0);
-  const GD_tot = righeCat.reduce((s, r) => s + r.GD, 0);
-  const somma_tot = U_tot + D_tot + GU_tot + GD_tot;
+  let primaSezione = true;
 
-  const FUT = righeCat.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
-  const STU = righeCat.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
+  cat.sezioni.forEach(sezione => {
+    const righeSez = righeCat.filter(r => r.sezione === sezione);
+    if (righeSez.length === 0) return;
 
-  // Calcolo mese precedente
-  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-  const righePrec = righe.filter(r =>
-    r.anno === annoPrec &&
-    r.mese === mesePrec &&
-    r.tipo === cat.tipo &&
-    gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
-    (titolo.includes("Settore")
-      ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
-      : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1])
-  );
-  const somma_prec = righePrec.reduce((s, r) => s + r.U + r.D + r.GU + r.GD, 0);
-  const delta_totale = somma_tot - somma_prec;
+    const U = righeSez.reduce((s, r) => s + r.U, 0);
+    const D = righeSez.reduce((s, r) => s + r.D, 0);
+    const GU = righeSez.reduce((s, r) => s + r.GU, 0);
+    const GD = righeSez.reduce((s, r) => s + r.GD, 0);
+    const somma = U + D + GU + GD;
 
-  // Riga principale della categoria
-  const trCat = document.createElement("tr");
-  trCat.classList.add("inizio-categoria", cat.tipo.toLowerCase());
-  trCat.innerHTML = `
-    <td><strong>${cat.tipo}</strong></td>
-    <td></td>
-    <td>${U_tot}</td>
-    <td>${D_tot}</td>
-    <td>${GU_tot}</td>
-    <td>${GD_tot}</td>
-    <td>${somma_tot}</td>
-    <td>${somma_tot}</td>
-    <td>${somma_prec}</td>
-    <td>${delta_totale >= 0 ? "+" + delta_totale : delta_totale}</td>
-    <td>${somma_prec}</td>
-    <td>${delta_totale >= 0 ? "+" + delta_totale : delta_totale}</td>
-    <td>${FUT}</td>
-    <td>${STU}</td>
-  `;
-  tbody.appendChild(trCat);
+    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+    const righeSezPrec = righe.filter(r =>
+      r.anno === annoPrec &&
+      r.mese === mesePrec &&
+      r.tipo === cat.tipo &&
+      r.sezione === sezione &&
+      gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
+      (titolo.includes("Settore")
+        ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
+        : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1])
+    );
+    const sommaPrec = righeSezPrec.reduce((s, r) => s + r.U + r.D + r.GU + r.GD, 0);
+    const deltaSomma = somma - sommaPrec;
+
+    const tr = document.createElement("tr");
+    tr.classList.add(cat.tipo.toLowerCase());
+    tr.innerHTML = `
+      <td>${primaSezione ? cat.tipo : ""}</td>
+      <td>${sezione}</td>
+      <td>${U}</td>
+      <td>${D}</td>
+      <td>${GU}</td>
+      <td>${GD}</td>
+      <td>${somma}</td>
+      <td></td>
+      <td>${sommaPrec}</td>
+      <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+      <td></td>
+      <td></td>
+      <td>-</td>
+      <td>-</td>
+    `;
+    tbody.appendChild(tr);
+    primaSezione = false;
+  });
+});
+
 
   // Righe per ogni sezione
   cat.sezioni.forEach(sezione => {
