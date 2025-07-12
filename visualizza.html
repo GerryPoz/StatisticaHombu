@@ -243,16 +243,9 @@ td.sep-delta-totale, th.sep-delta-totale {
   const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
   if (righeGruppo.length === 0) return;
 
-  const intestazione = document.createElement("tr");
-  intestazione.className = "inizio-gruppo";
-  const tdIntestazione = document.createElement("td");
-  tdIntestazione.colSpan = 15;
-  tdIntestazione.textContent = gruppo;
-  tdIntestazione.className = "nome-gruppo";
-  intestazione.appendChild(tdIntestazione);
-  tabella.appendChild(intestazione);
-
   const categorie = ["ZADANKAI", "PRATICANTI"];
+  let gruppoStampato = false;
+
   categorie.forEach(tipo => {
     const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
     if (righeCategoria.length === 0) return;
@@ -270,7 +263,6 @@ td.sep-delta-totale, th.sep-delta-totale {
       );
       return s + (prec ? prec.U + prec.D + prec.GU + prec.GD : 0);
     }, 0);
-
     const deltaTotale = totaleCategoria - totaleCategoriaPrec;
 
     righeCategoria.forEach((r, index) => {
@@ -278,34 +270,50 @@ td.sep-delta-totale, th.sep-delta-totale {
       if (index === 0) tr.classList.add("inizio-categoria");
       tr.classList.add(tipo.toLowerCase());
 
-      const tdCategoria = document.createElement("td");
+      // Nome gruppo nella prima riga
+      if (!gruppoStampato) {
+        const tdGruppo = document.createElement("td");
+        tdGruppo.textContent = gruppo;
+        tdGruppo.rowSpan = righeGruppo.length;
+        tdGruppo.className = "nome-gruppo";
+        tr.appendChild(tdGruppo);
+        gruppoStampato = true;
+      }
+
+      // Categoria (ZADANKAI / PRATICANTI)
       if (index === 0) {
+        const tdCategoria = document.createElement("td");
         tdCategoria.textContent = tipo;
         tdCategoria.rowSpan = righeCategoria.length;
+        tr.appendChild(tdCategoria);
       }
-      tr.appendChild(tdCategoria);
 
+      // Sezione
       const tdSezione = document.createElement("td");
       tdSezione.textContent = r.sezione;
       tdSezione.className = "sep-sezione";
       tr.appendChild(tdSezione);
 
+      // U, D, GU
       ["U", "D", "GU"].forEach(col => {
         const td = document.createElement("td");
         td.textContent = r[col];
         tr.appendChild(td);
       });
 
+      // GD con separatore
       const tdGD = document.createElement("td");
       tdGD.textContent = r.GD;
       tdGD.className = "sep-gd";
       tr.appendChild(tdGD);
 
+      // Somma
       const somma = r.U + r.D + r.GU + r.GD;
       const tdSomma = document.createElement("td");
       tdSomma.textContent = somma;
       tr.appendChild(tdSomma);
 
+      // Totale categoria
       if (index === 0) {
         const tdTotale = document.createElement("td");
         tdTotale.textContent = totaleCategoria;
@@ -314,6 +322,7 @@ td.sep-delta-totale, th.sep-delta-totale {
         tr.appendChild(tdTotale);
       }
 
+      // Somma mese precedente
       const rPrec = righe.find(rr =>
         rr.anno === annoPrec &&
         rr.mese === mesePrec &&
@@ -321,7 +330,6 @@ td.sep-delta-totale, th.sep-delta-totale {
         rr.tipo === r.tipo &&
         rr.sezione === r.sezione
       );
-
       const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
       const deltaSomma = somma - sommaPrec;
 
@@ -334,6 +342,7 @@ td.sep-delta-totale, th.sep-delta-totale {
       tdDeltaSomma.className = "sep-delta-somma";
       tr.appendChild(tdDeltaSomma);
 
+      // Totale mese precedente + variazione totale
       if (index === 0) {
         const tdTotalePrec = document.createElement("td");
         tdTotalePrec.textContent = totaleCategoriaPrec;
@@ -347,10 +356,12 @@ td.sep-delta-totale, th.sep-delta-totale {
         tr.appendChild(tdDeltaTotale);
       }
 
+      // Futuro
       const tdFUT = document.createElement("td");
       tdFUT.textContent = parseInt(r.FUT) || 0;
       tr.appendChild(tdFUT);
 
+      // Studenti
       const tdSTU = document.createElement("td");
       tdSTU.textContent = parseInt(r.STU) || 0;
       tr.appendChild(tdSTU);
@@ -359,6 +370,7 @@ td.sep-delta-totale, th.sep-delta-totale {
     });
   });
 });
+
 
 
     righe.forEach(r => {
