@@ -61,33 +61,26 @@
       border-top: 3px solid #666; /* stile diverso e visibile */
     }
 
-   /* 🧱 Separazione verticale visiva tra colonne */
-
-/* Colonna: Sezione (3ª) */
-td:nth-child(3), th:nth-child(3) {
-  border-right: 4px solid #444;
+    /* Rimozione dei bordi delle celle */
+th, td {
+  border: none;
+  border-bottom: 1px solid #ccc;
 }
 
-/* Colonna: GD (7ª) */
-td:nth-child(7) {
-  box-shadow: 3px 0 0 #999; /* linea verticale simulata */
+/* Stile base tabella */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-/* Colonna: Totale (9ª) */
-td:nth-child(9), th:nth-child(9) {
-  border-right: 4px solid #666;
+/* Linee di separazione verticali precise */
+td + td:nth-child(4),
+td + td:nth-child(6),
+td + td:nth-child(8),
+td + td:nth-child(10),
+td + td:nth-child(12) {
+  border-left: 2px solid #444;
 }
-
-/* Colonna: Δ Somma (11ª) */
-td:nth-child(11), th:nth-child(11) {
-  border-right: 4px solid #666;
-}
-
-/* Colonna: Δ Totale (13ª) */
-td:nth-child(13), th:nth-child(13) {
-  border-right: 4px solid #666;
-}
-
 
 
     #riepilogo {
