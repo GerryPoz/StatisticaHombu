@@ -51,8 +51,16 @@
       background-color: #fff3cd;
       font-weight: bold;
     }
-    tr.inizio-gruppo td { border-top: 3px solid #333; }
-    tr.inizio-categoria td { border-top: 2px solid #666; }
+    /* 🔳 Evidenzia l'inizio di ogni gruppo */
+      tr.inizio-gruppo td {
+      border-top: 4px solid #333; /* più spesso e scuro */
+    }
+
+    /* 🔳 Evidenzia l'inizio di ogni categoria */
+      tr.inizio-categoria td {
+      border-top: 2px dashed #666; /* stile diverso e visibile */
+    }
+
     #riepilogo {
       margin-top: 2rem;
     }
