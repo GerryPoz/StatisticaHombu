@@ -44,6 +44,7 @@
       padding: 0.6rem;
       text-align: center;
     }
+
     th { background: #e0f7fa; font-weight: bold; }
     tr.zadankai { background-color: #e8f5e9; }
     tr.praticanti { background-color: #e3f2fd; }
@@ -51,8 +52,16 @@
       background-color: #fff3cd;
       font-weight: bold;
     }
-    tr.inizio-gruppo td { border-top: 3px solid #333; }
-    tr.inizio-categoria td { border-top: 2px solid #666; }
+    /* 🔳 Evidenzia l'inizio di ogni gruppo */
+      tr.inizio-gruppo td {
+      border-top: 4px solid #333; /* più spesso e scuro */
+    }
+
+    /* 🔳 Evidenzia l'inizio di ogni categoria */
+      tr.inizio-categoria td {
+      border-top: 3px solid #666; /* stile diverso e visibile */
+    }
+    
     #riepilogo {
       margin-top: 2rem;
     }
@@ -62,6 +71,24 @@
       border: 2px solid #444;
       background: #f9f9f9;
     }
+
+    /* 🔳 Linee verticali spesse su celle specifiche */
+td.sep-sezione, th.sep-sezione {
+  border-right: 4px solid #333;
+}
+td.sep-gd, th.sep-gd {
+  border-right: 4px solid #666;
+}
+td.sep-totale, th.sep-totale {
+  border-right: 4px solid #444;
+}
+td.sep-delta-somma, th.sep-delta-somma {
+  border-right: 4px solid #444;
+}
+td.sep-delta-totale, th.sep-delta-totale {
+  border-right: 4px solid #444;
+}
+
   </style>
 </head>
 <body>
@@ -312,7 +339,7 @@
       }
     });
 
-    // Nuovo riepilogo dettagliato
+// 🧮 Riepilogo dettagliato per Settori e Capitoli
 const riepilogoPer = {};
 
 righe.forEach(r => {
@@ -338,17 +365,19 @@ const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
   return a.localeCompare(b);
 });
 
-for (const titolo of titoliOrdinati) {
-  const righeSettore = riepilogoPer[titolo];
+riepilogoDiv.innerHTML = "";
+
+titoliOrdinati.forEach(titolo => {
+  const righeTotali = riepilogoPer[titolo];
   const tab = document.createElement("table");
   tab.style.marginTop = "2rem";
   tab.innerHTML = `
     <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem 0;">${titolo}</caption>
     <thead>
       <tr>
-        <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-        <th>Somma</th><th>Totale</th><th>Somma mese prec.</th><th>Δ Somma</th>
-        <th>Totale mese prec.</th><th>Δ Totale</th><th>Futuro</th><th>Studenti</th>
+        <th>Categoria</th><th class="sep-sezione">Sezione</th><th>U</th><th>D</th><th>GU</th><th class="sep-gd">GD</th>
+        <th>Somma</th><th class="sep-totale">Totale</th><th>Somma mese prec.</th><th class="sep-delta-somma">Δ Somma</th>
+        <th>Totale mese prec.</th><th class="sep-delta-totale">Δ Totale</th><th>Futuro</th><th>Studenti</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -361,95 +390,118 @@ for (const titolo of titoliOrdinati) {
   ];
 
   categorie.forEach(cat => {
-  const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
-  if (righeCat.length === 0) return;
+    const righeCat = cat.sezioni.map(sezione => {
+      const righeAttuali = righeTotali.filter(r => r.tipo === cat.tipo && r.sezione === sezione);
+      const somma = righeAttuali.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
+      const U = righeAttuali.reduce((a, r) => a + r.U, 0);
+      const D = righeAttuali.reduce((a, r) => a + r.D, 0);
+      const GU = righeAttuali.reduce((a, r) => a + r.GU, 0);
+      const GD = righeAttuali.reduce((a, r) => a + r.GD, 0);
+      const FUT = righeAttuali.reduce((s, r) => s + (parseInt(r.FUT) || 0), 0);
+      const STU = righeAttuali.reduce((s, r) => s + (parseInt(r.STU) || 0), 0);
 
-  // Totali per categoria
-  const U_tot = righeCat.reduce((s, r) => s + r.U, 0);
-  const D_tot = righeCat.reduce((s, r) => s + r.D, 0);
-  const GU_tot = righeCat.reduce((s, r) => s + r.GU, 0);
-  const GD_tot = righeCat.reduce((s, r) => s + r.GD, 0);
-  const somma_tot = U_tot + D_tot + GU_tot + GD_tot;
+      const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+      const righePrecise = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.tipo === cat.tipo &&
+        r.sezione === sezione &&
+        gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
+        (
+          titolo.startsWith("Settore")
+            ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
+            : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1]
+        )
+      );
 
-  const FUT = righeCat.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
-  const STU = righeCat.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
+      const somma0 = righePrecise.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
+      const deltaSomma = somma - somma0;
 
-  // Calcolo mese precedente
-  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-  const righePrec = righe.filter(r =>
-    r.anno === annoPrec &&
-    r.mese === mesePrec &&
-    r.tipo === cat.tipo &&
-    gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
-    (titolo.includes("Settore")
-      ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
-      : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1])
-  );
-  const somma_prec = righePrec.reduce((s, r) => s + r.U + r.D + r.GU + r.GD, 0);
-  const delta_totale = somma_tot - somma_prec;
+      return { sezione, U, D, GU, GD, somma, somma0, deltaSomma, FUT, STU };
+    });
 
-  // Riga principale della categoria
-  const trCat = document.createElement("tr");
-  trCat.classList.add("inizio-categoria", cat.tipo.toLowerCase());
-  trCat.innerHTML = `
-    <td><strong>${cat.tipo}</strong></td>
-    <td></td>
-    <td>${U_tot}</td>
-    <td>${D_tot}</td>
-    <td>${GU_tot}</td>
-    <td>${GD_tot}</td>
-    <td>${somma_tot}</td>
-    <td>${somma_tot}</td>
-    <td>${somma_prec}</td>
-    <td>${delta_totale >= 0 ? "+" + delta_totale : delta_totale}</td>
-    <td>${somma_prec}</td>
-    <td>${delta_totale >= 0 ? "+" + delta_totale : delta_totale}</td>
-    <td>${FUT}</td>
-    <td>${STU}</td>
-  `;
-  tbody.appendChild(trCat);
+    const totale = righeCat.reduce((a, r) => a + r.somma, 0);
+    const totale0 = righeCat.reduce((a, r) => a + r.somma0, 0);
+    const deltaTotale = totale - totale0;
 
+    righeCat.forEach((riga, index) => {
+      const tr = document.createElement("tr");
+      tr.classList.add(cat.tipo.toLowerCase());
 
-  // Righe per ogni sezione
-  cat.sezioni.forEach(sezione => {
-    const righeSez = righeCat.filter(r => r.sezione === sezione);
-    if (righeSez.length === 0) return;
+      if (index === 0) {
+        const tdCategoria = document.createElement("td");
+        tdCategoria.rowSpan = righeCat.length;
+        tdCategoria.textContent = cat.tipo;
+        tr.appendChild(tdCategoria);
+      }
 
-    const U = righeSez.reduce((s, r) => s + r.U, 0);
-    const D = righeSez.reduce((s, r) => s + r.D, 0);
-    const GU = righeSez.reduce((s, r) => s + r.GU, 0);
-    const GD = righeSez.reduce((s, r) => s + r.GD, 0);
-    const somma = U + D + GU + GD;
+      const tdSezione = document.createElement("td");
+      tdSezione.textContent = riga.sezione;
+      tdSezione.className = "sep-sezione";
+      tr.appendChild(tdSezione);
 
-    const righeSezPrec = righePrec.filter(r => r.sezione === sezione);
-    const sommaPrec = righeSezPrec.reduce((s, r) => s + r.U + r.D + r.GU + r.GD, 0);
-    const deltaSomma = somma - sommaPrec;
+      ["U", "D", "GU"].forEach(col => {
+        const td = document.createElement("td");
+        td.textContent = riga[col];
+        tr.appendChild(td);
+      });
 
-    const tr = document.createElement("tr");
-    tr.classList.add(cat.tipo.toLowerCase());
-    tr.innerHTML = `
-      <td></td>
-      <td>${sezione}</td>
-      <td>${U}</td>
-      <td>${D}</td>
-      <td>${GU}</td>
-      <td>${GD}</td>
-      <td>${somma}</td>
-      <td></td>
-      <td>${sommaPrec}</td>
-      <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-      <td></td>
-      <td></td>
-      <td>-</td>
-      <td>-</td>
-    `;
-    tbody.appendChild(tr);
+      const tdGD = document.createElement("td");
+      tdGD.textContent = riga.GD;
+      tdGD.className = "sep-gd";
+      tr.appendChild(tdGD);
+
+      const tdSomma = document.createElement("td");
+      tdSomma.textContent = riga.somma;
+      tr.appendChild(tdSomma);
+
+      if (index === 0) {
+        const tdTotale = document.createElement("td");
+        tdTotale.textContent = totale;
+        tdTotale.rowSpan = righeCat.length;
+        tdTotale.className = "sep-totale";
+        tr.appendChild(tdTotale);
+      }
+
+      const tdSomma0 = document.createElement("td");
+      tdSomma0.textContent = riga.somma0;
+      tr.appendChild(tdSomma0);
+
+      const tdDeltaSomma = document.createElement("td");
+      tdDeltaSomma.textContent = riga.deltaSomma >= 0 ? "+" + riga.deltaSomma : riga.deltaSomma;
+      tdDeltaSomma.className = "sep-delta-somma";
+      tr.appendChild(tdDeltaSomma);
+
+      if (index === 0) {
+        const tdTotale0 = document.createElement("td");
+        tdTotale0.textContent = totale0;
+        tdTotale0.rowSpan = righeCat.length;
+        tr.appendChild(tdTotale0);
+
+        const tdDeltaTotale = document.createElement("td");
+        tdDeltaTotale.textContent = deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale;
+        tdDeltaTotale.rowSpan = righeCat.length;
+        tdDeltaTotale.className = "sep-delta-totale";
+        tr.appendChild(tdDeltaTotale);
+      }
+
+      const tdFUT = document.createElement("td");
+      tdFUT.textContent = riga.FUT;
+      tr.appendChild(tdFUT);
+
+      const tdSTU = document.createElement("td");
+      tdSTU.textContent = riga.STU;
+      tr.appendChild(tdSTU);
+
+      tbody.appendChild(tr);
+    });
   });
+
+  riepilogoDiv.appendChild(tab);
 });
 
 
-  riepilogoDiv.appendChild(tab);
-}
+
 
 
 
