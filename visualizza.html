@@ -444,6 +444,7 @@ titoliOrdinati.forEach(titolo => {
         const td = document.createElement("td");
         td.textContent = riga[col];
         tr.appendChild(td);
+        td.className = "sep-u-zadankai";
       });
 
       const tdGD = document.createElement("td");
