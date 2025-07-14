@@ -5,6 +5,9 @@
   <meta charset="UTF-8" />
   <title>Visualizza Dati</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -180,6 +183,15 @@
 <br>
   
 <div id="riepilogo"></div>
+
+
+  
+<h2>Andamento Annuale 2025</h2>
+<canvas id="graficoAnnuale" height="200"></canvas>
+
+
+
+  
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
@@ -405,6 +417,36 @@ righe.forEach(r => {
       riepilogoPer[chiave].push(r);
     });
   }
+
+
+  //----------------------- GRAFICO
+  const mesi2025 = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                  "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
+  const totaliAnnuali = {
+    "Settore Fukyo": [],
+    "Settore Invictus": [],
+    "Capitolo Asti": []
+  };
+  
+  mesi2025.forEach(mese => {
+    const righeMese = righe.filter(r => r.anno === "2025" && r.mese === mese);
+  
+    ["Settore Fukyo", "Settore Invictus"].forEach(settore => {
+      const tot = righeMese
+        .filter(r => gruppoToSettore[r.gruppo] === settore)
+        .reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+      totaliAnnuali[settore].push(tot);
+    });
+  
+    const totCapitolo = righeMese
+      .filter(r => gruppoToCapitolo[r.gruppo] === "Capitolo Asti")
+      .reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+    totaliAnnuali["Capitolo Asti"].push(totCapitolo);
+  });
+  //------------------------
+
+  
 });
 
 const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
