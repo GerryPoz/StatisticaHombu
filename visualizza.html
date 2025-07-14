@@ -431,7 +431,7 @@ riepilogoDiv.innerHTML = "";
       box.style.background = "#fff5f5";
       box.style.color = "#a00000";
       box.style.fontWeight = "bold";
-      box.innerHTML = `<strong>⚠️ Gruppi senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
+      box.innerHTML = `<strong>⚠️ Gruppi ancora senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
         gruppiSenzaDati.map(g => `<li>${g}</li>`).join("") +
         "</ul>";
       riepilogoDiv.appendChild(box);
