@@ -411,6 +411,8 @@ const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
 riepilogoDiv.innerHTML = "";
 
 // 🔍 Identifica i gruppi con dati per il mese selezionato
+    <br>
+    <br>
     const gruppiConDati = righe.filter(r =>
       (!filtroAnno.value || r.anno === filtroAnno.value) &&
       (!filtroMese.value || r.mese === filtroMese.value)
