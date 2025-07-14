@@ -544,11 +544,7 @@ titoliOrdinati.forEach(titolo => {
       tbody.appendChild(tr);
     });
   });
-  
-  riepilogoDiv.appendChild(tab);
-});
-
-// 🔍 Identifica i gruppi con dati per il mese selezionato
+  // 🔍 Identifica i gruppi con dati per il mese selezionato
 const gruppiConDati = righe.filter(r =>
   (!filtroAnno.value || r.anno === filtroAnno.value) &&
   (!filtroMese.value || r.mese === filtroMese.value)
@@ -570,10 +566,8 @@ if (gruppiSenzaDati.length > 0) {
     "</ul>";
   riepilogoDiv.appendChild(box);
 }
-
-
-
-
+  riepilogoDiv.appendChild(tab);
+});
 
   }
 </script>
