@@ -410,6 +410,30 @@ const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
 
 riepilogoDiv.innerHTML = "";
 
+// 🔍 Identifica i gruppi con dati per il mese selezionato
+const gruppiConDati = righe.filter(r =>
+  (!filtroAnno.value || r.anno === filtroAnno.value) &&
+  (!filtroMese.value || r.mese === filtroMese.value)
+).map(r => r.gruppo);
+
+const gruppiSenzaDati = gruppiFiltrati.filter(g => !gruppiConDati.includes(g));
+
+// 🚨 Visualizza elenco in fondo alla pagina
+if (gruppiSenzaDati.length > 0) {
+  const box = document.createElement("div");
+  box.style.marginTop = "2rem";
+  box.style.padding = "1rem";
+  box.style.border = "2px solid #cc0000";
+  box.style.background = "#fff5f5";
+  box.style.color = "#a00000";
+  box.style.fontWeight = "bold";
+  box.innerHTML = `<strong>⚠️ Gruppi senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
+    gruppiSenzaDati.map(g => `<li>${g}</li>`).join("") +
+    "</ul>";
+  riepilogoDiv.appendChild(box);
+}
+//------------------------
+    
 titoliOrdinati.forEach(titolo => {
   const righeTotali = riepilogoPer[titolo];
   const tab = document.createElement("table");
@@ -544,28 +568,6 @@ titoliOrdinati.forEach(titolo => {
       tbody.appendChild(tr);
     });
   });
-  // 🔍 Identifica i gruppi con dati per il mese selezionato
-const gruppiConDati = righe.filter(r =>
-  (!filtroAnno.value || r.anno === filtroAnno.value) &&
-  (!filtroMese.value || r.mese === filtroMese.value)
-).map(r => r.gruppo);
-
-const gruppiSenzaDati = gruppiFiltrati.filter(g => !gruppiConDati.includes(g));
-
-// 🚨 Visualizza elenco in fondo alla pagina
-if (gruppiSenzaDati.length > 0) {
-  const box = document.createElement("div");
-  box.style.marginTop = "2rem";
-  box.style.padding = "1rem";
-  box.style.border = "2px solid #cc0000";
-  box.style.background = "#fff5f5";
-  box.style.color = "#a00000";
-  box.style.fontWeight = "bold";
-  box.innerHTML = `<strong>⚠️ Gruppi senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
-    gruppiSenzaDati.map(g => `<li>${g}</li>`).join("") +
-    "</ul>";
-  riepilogoDiv.appendChild(box);
-}
   riepilogoDiv.appendChild(tab);
 });
 
