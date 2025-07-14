@@ -446,14 +446,6 @@ titoliOrdinati.forEach(titolo => {
         tr.appendChild(td);
       });
 
-      const tdU = document.createElement("td");
-      tdU.textContent = r.U;
-
-      if (r.tipo === "ZADANKAI" && r.sezione === "membri") {
-        tdU.className = "sep-u-zadankai";
-      }
-
-
       const tdGD = document.createElement("td");
       tdGD.textContent = riga.GD;
       tdGD.className = "sep-gd";
