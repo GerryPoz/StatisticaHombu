@@ -114,7 +114,3 @@ button:hover {
   border-radius: 5px;
 }
 
-td.sep-totale, th.sep-totale-dx {
-  border-right: 4px solid #333; /* colore e spessore personalizzabili */
-}
-
