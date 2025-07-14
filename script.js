@@ -43,6 +43,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// -----GRUPPI MANCANTI
+const gruppiMancantiDiv = document.getElementById("gruppi-mancanti");
+gruppiMancantiDiv.innerHTML = ""; // pulisci prima
+
+if (gruppiSenzaDati.length > 0) {
+  const box = document.createElement("div");
+  box.style.marginTop = "2rem";
+  box.style.padding = "1rem";
+  box.style.border = "2px solid #cc0000";
+  box.style.background = "#fff5f5";
+  box.style.color = "#a00000";
+  box.style.fontWeight = "bold";
+  box.innerHTML = `<strong>⚠️ Gruppi senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
+    gruppiSenzaDati.map(g => `<li>${g}</li>`).join("") +
+    "</ul>";
+  gruppiMancantiDiv.appendChild(box);
+}
+//----------------------
+
+
 // Calcolo totali Zadankai
 function calcolaTotaliZadankai() {
   const sezioni = ["m", "s", "o"];
