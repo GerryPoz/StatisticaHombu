@@ -494,8 +494,8 @@ titoliOrdinati.forEach(titolo => {
         const tdTotale0 = document.createElement("td");
         tdTotale0.textContent = totale0;
         tdTotale0.rowSpan = righeCat.length;
-        //tdTotale0.classList.add("totale0-zadankai");
         tr.appendChild(tdTotale0);
+        tdTotale0.classList.add("totale0-zadankai");
 
         const tdDeltaTotale = document.createElement("td");
         tdDeltaTotale.textContent = deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale;
