@@ -460,6 +460,7 @@ titoliOrdinati.forEach(titolo => {
         tdTotale.textContent = totale;
         tdTotale.rowSpan = righeCat.length;
         tdTotale.className = "sep-totale";
+        if (tipo === "ZADANKAI") tdTotale.classList.add("totale-zadankai");
         tr.appendChild(tdTotale);
       }
 
