@@ -29,65 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
     });
-
-
-  //------------ GRAFICO
-  const ctx = document.getElementById("graficoAnnuale").getContext("2d");
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: mesi2025,
-      datasets: [
-        {
-          label: "Settore Fukyo",
-          data: totaliAnnuali["Settore Fukyo"],
-          borderColor: "#0055aa",
-          backgroundColor: "rgba(0,85,170,0.2)",
-          tension: 0.3
-        },
-        {
-          label: "Settore Invictus",
-          data: totaliAnnuali["Settore Invictus"],
-          borderColor: "#aa3300",
-          backgroundColor: "rgba(170,51,0,0.2)",
-          tension: 0.3
-        },
-        {
-          label: "Capitolo Asti",
-          data: totaliAnnuali["Capitolo Asti"],
-          borderColor: "#228833",
-          backgroundColor: "rgba(34,136,51,0.2)",
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: "Andamento Partecipazione Annuale - 2025"
-        },
-        legend: {
-          position: "top"
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Totale Partecipanti"
-          }
-        }
-      }
-    }
-  });
-  //-------------------
-
-
-
   
   // Blocca caratteri non numerici, incolla e rotella del mouse
   document.querySelectorAll('input[type="number"]').forEach(input => {
