@@ -488,6 +488,8 @@ titoliOrdinati.forEach(titolo => {
         tdDeltaTotale.rowSpan = righeCat.length;
         tdDeltaTotale.className = "sep-delta-totale";
         tr.appendChild(tdDeltaTotale);
+        tr.classList.add("inizio-categoria");
+
       }
 
       const tdFUT = document.createElement("td");
@@ -501,8 +503,7 @@ titoliOrdinati.forEach(titolo => {
       tbody.appendChild(tr);
     });
   });
-  if (index === 0) tr.classList.add("inizio-categoria");
-
+  
   riepilogoDiv.appendChild(tab);
 });
 
