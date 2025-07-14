@@ -417,9 +417,9 @@ righe.forEach(r => {
       riepilogoPer[chiave].push(r);
     });
   }
+});
 
-
-  //----------------------- GRAFICO
+//----------------------- GRAFICO
   const mesi2025 = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
@@ -445,9 +445,6 @@ righe.forEach(r => {
     totaliAnnuali["Capitolo Asti"].push(totCapitolo);
   });
   //------------------------
-
-  
-});
 
 const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
   if (a.startsWith("Settore") && b.startsWith("Capitolo")) return -1;
