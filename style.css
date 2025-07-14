@@ -62,6 +62,17 @@ th {
   font-weight: bold;
 }
 
+td.totale-zadankai {
+  color: #b80000;
+  font-weight: bold;
+}
+
+td.totale0-zadankai {
+  color: #007b33;
+  font-weight: bold;
+}
+
+
 h2 {
   margin-top: 2rem;
   background: #007bff;
