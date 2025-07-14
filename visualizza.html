@@ -89,6 +89,17 @@
       border-right: 3px solid #444;
     }
 
+    td.totale-zadankai {
+      color: #b80000;
+      font-weight: bold;
+    }
+    
+    td.totale0-zadankai {
+      color: #007b33;
+      font-weight: bold;
+    }
+
+
     /* 🔳 Linea orizzontale spessa su menu Tabelle Settore e Capitolo */
     thead tr {
       border-bottom: 3px solid #333;
@@ -465,6 +476,7 @@ titoliOrdinati.forEach(titolo => {
         tdTotale.textContent = totale;
         tdTotale.rowSpan = righeCat.length;
         tdTotale.className = "sep-totale";
+        if (tipo === "ZADANKAI") tdTotale.classList.add("totale-zadankai");
         tr.appendChild(tdTotale);
       }
 
@@ -481,6 +493,7 @@ titoliOrdinati.forEach(titolo => {
         const tdTotale0 = document.createElement("td");
         tdTotale0.textContent = totale0;
         tdTotale0.rowSpan = righeCat.length;
+        if (tipo === "ZADANKAI") tdTotalePrec.classList.add("totale0-zadankai");
         tr.appendChild(tdTotale0);
 
         const tdDeltaTotale = document.createElement("td");
