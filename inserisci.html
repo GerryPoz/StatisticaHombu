@@ -101,16 +101,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "xxx",
-      authDomain: "xxx",
-      databaseURL: "xxx",
-      projectId: "xxx",
-      storageBucket: "xxx",
-      messagingSenderId: "xxx",
-      appId: "xxx"
-    };
+    import { firebaseConfig } from "./firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
