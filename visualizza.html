@@ -95,6 +95,12 @@
       font-weight: bold;
     }
 
+    td.totale0-zadankaiGru {
+      background-color: #ffe5e5;
+      color: #007b33;
+      font-weight: bold;
+    }
+
 
     td.totale-zadankai {
       color: #b80000;
@@ -338,10 +344,10 @@
             <td>${r.GU}</td>
             <td>${r.GD}</td>
             <td>${somma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale-zadankai">${totaleCategoria}</td>` : ""}
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale-zadankaiGru">${totaleCategoria}</td>` : ""}
             <td>${sommaPrec}</td>
             <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale0-zadankaiGru">${totaleCategoriaPrec}</td>` : ""}
             ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
             <td>${r.FUT}</td>
             <td>${r.STU}</td>
