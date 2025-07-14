@@ -62,7 +62,8 @@ th {
   font-weight: bold;
 }
 
-th.u-zadankaiGruTab {
+th.sep-u-sx,
+td.u-zadankaiGruTab {
   border-left: 4px solid #444;
 }
 
