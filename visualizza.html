@@ -444,12 +444,11 @@ titoliOrdinati.forEach(titolo => {
         const td = document.createElement("td");
         td.textContent = riga[col];
         tr.appendChild(td);
-        td.className = "sep-u-zadankai";
       });
 
       const tdGD = document.createElement("td");
       tdGD.textContent = riga.GD;
-      tdGD.className = "sep-gd";
+      tdGD.className = "sep-u-zadankai"; //"sep-gd";
       tr.appendChild(tdGD);
 
       const tdSomma = document.createElement("td");
