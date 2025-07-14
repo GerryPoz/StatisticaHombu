@@ -143,3 +143,49 @@ document.getElementById("dati-form").addEventListener("submit", (e) => {
     })
     .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
 });
+
+// 🔽 Inserisci da qui in poi il nuovo codice
+document.getElementById("salvaBtn").addEventListener("click", function () {
+  const anno = document.getElementById("anno").value;
+  const mese = document.getElementById("mese").value;
+  const gruppo = document.getElementById("gruppo").value;
+
+  const campi = [
+    "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd",
+    "zadankai_m_fut", "zadankai_m_stu",
+    "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd",
+    "zadankai_s_fut", "zadankai_s_stu",
+    "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd",
+    "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
+    "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
+  ];
+
+  const tuttiVuoti = campi.every(id => {
+    const val = document.getElementById(id)?.value.trim();
+    return val === "" || val === "0";
+  });
+
+  if (!anno || !mese || !gruppo) {
+    alert("⚠️ Seleziona anno, mese e gruppo.");
+    return;
+  }
+
+  if (tuttiVuoti) {
+    alert("⚠️ Nessun dato inserito: compila almeno una casella!");
+    return;
+  }
+
+  document.getElementById("riepilogoTesto").innerText =
+    `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
+  document.getElementById("popupConferma").style.display = "flex";
+});
+
+document.getElementById("confermaBtn").addEventListener("click", function () {
+  document.getElementById("popupConferma").style.display = "none";
+  document.getElementById("dati-form").requestSubmit();
+});
+
+document.getElementById("annullaBtn").addEventListener("click", function () {
+  document.getElementById("popupConferma").style.display = "none";
+});
+
