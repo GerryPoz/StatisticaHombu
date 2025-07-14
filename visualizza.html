@@ -89,6 +89,13 @@
       border-right: 3px solid #444;
     }
 
+    td.u-zadankaiGru {
+      color: #b80000;
+      font-weight: bold;
+      border-right: 3px solid #444;
+    }
+
+
     td.totale-zadankaiGru {
       color: #b80000;
       font-weight: bold;
@@ -342,6 +349,7 @@
           tr.innerHTML += `
             <td>${sezione}</td>
             <td>${r.U}</td>
+            <td class="${cat.tipo === 'ZADANKAI' ? 'u-zadankaiGru' : ''}">${r.U}</td>
             <td>${r.D}</td>
             <td>${r.GU}</td>
             <td>${r.GD}</td>
