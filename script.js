@@ -88,38 +88,53 @@ document.querySelectorAll('#praticanti-table input[type="number"]').forEach(inpu
 });
 
 // Salvataggio su Firebase
-document.getElementById("salvaBtn").addEventListener("click", function (e) {
+document.getElementById("dati-form").addEventListener("submit", (e) => {
   e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  const key = `${data.anno}-${data.mese}-${data.gruppo}`;
 
-  const anno = document.getElementById("anno").value;
-  const mese = document.getElementById("mese").value;
-  const gruppo = document.getElementById("gruppo").value;
-
-  const campi = [
-    "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd",
-    "zadankai_m_fut", "zadankai_m_stu",
-    "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd",
-    "zadankai_s_fut", "zadankai_s_stu",
-    "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd",
-    "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
-    "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
-  ];
-
-  const tuttiVuoti = campi.every(id => {
-    const val = document.getElementById(id)?.value.trim();
-    return val === "" || val === "0";
-  });
-
-  if (tuttiVuoti) {
-    alert("⚠️ Nessun dato inserito: compila almeno una casella!");
-    return;
-  }
-
-  document.getElementById("riepilogoTesto").innerText =
-    `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
-  document.getElementById("popupConferma").style.display = "flex";
-});
-
+  const payload = {
+    gruppo: data.gruppo,
+    zadankai: {
+      membri: {
+        U: +data.zadankai_m_u || 0,
+        D: +data.zadankai_m_d || 0,
+        GU: +data.zadankai_m_gu || 0,
+        GD: +data.zadankai_m_gd || 0,
+        FUT: +data.zadankai_m_fut || 0,
+        STU: +data.zadankai_m_stu || 0
+      },
+      simpatizzanti: {
+        U: +data.zadankai_s_u || 0,
+        D: +data.zadankai_s_d || 0,
+        GU: +data.zadankai_s_gu || 0,
+        GD: +data.zadankai_s_gd || 0,
+        FUT: +data.zadankai_s_fut || 0,
+        STU: +data.zadankai_s_stu || 0
+      },
+      ospiti: {
+        U: +data.zadankai_o_u || 0,
+        D: +data.zadankai_o_d || 0,
+        GU: +data.zadankai_o_gu || 0,
+        GD: +data.zadankai_o_gd || 0
+      }
+    },
+    praticanti: {
+      membri: {
+        U: +data.praticanti_m_u || 0,
+        D: +data.praticanti_m_d || 0,
+        GU: +data.praticanti_m_gu || 0,
+        GD: +data.praticanti_m_gd || 0
+      },
+      simpatizzanti: {
+        U: +data.praticanti_s_u || 0,
+        D: +data.praticanti_s_d || 0,
+        GU: +data.praticanti_s_gu || 0,
+        GD: +data.praticanti_s_gd || 0
+      }
+    }
+  };
 
   set(ref(db, `zadankai/${key}`), payload)
     .then(() => {
