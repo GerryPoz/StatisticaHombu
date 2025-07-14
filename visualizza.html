@@ -89,6 +89,13 @@
       border-right: 3px solid #444;
     }
 
+    td.totale-zadankaiGru {
+      background-color: #ffe5e5;
+      color: #b80000;
+      font-weight: bold;
+    }
+
+
     td.totale-zadankai {
       color: #b80000;
       font-weight: bold;
@@ -241,7 +248,8 @@
 
     aggiornaTabella();
   });
-      function aggiornaTabella() {
+    
+  function aggiornaTabella() {
     tbody.innerHTML = "";
     riepilogoDiv.innerHTML = "";
 
@@ -330,7 +338,7 @@
             <td>${r.GU}</td>
             <td>${r.GD}</td>
             <td>${somma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale-zadankai">${totaleCategoria}</td>` : ""}
             <td>${sommaPrec}</td>
             <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
             ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
