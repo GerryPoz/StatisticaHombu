@@ -92,6 +92,10 @@
     td.u-zadankaiGru {
       border-left: 3px solid #444;
     }
+    
+    td.gd-zadankaiGru {
+      border-right: 3px solid #444;
+    }
 
 
     td.totale-zadankaiGru {
@@ -349,7 +353,7 @@
             <td class="${cat.tipo === 'ZADANKAI' ? 'u-zadankaiGru' : ''}">${r.U}</td>
             <td>${r.D}</td>
             <td>${r.GU}</td>
-            <td>${r.GD}</td>
+            <td class="${cat.tipo === 'ZADANKAI' ? 'gd-zadankaiGru' : ''}">${r.GD}</td>
             <td>${somma}</td>
             ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale-zadankaiGru">${totaleCategoria}</td>` : ""}
             <td>${sommaPrec}</td>
