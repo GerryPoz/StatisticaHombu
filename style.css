@@ -114,6 +114,7 @@ button:hover {
   border-radius: 5px;
 }
 
-td.sep-u-zadankai {
-  border-right: 4px solid #000; /* o #444 per tono più morbido */
+td.sep-totale, th.sep-totale-dx {
+  border-right: 4px solid #333; /* colore e spessore personalizzabili */
 }
+
