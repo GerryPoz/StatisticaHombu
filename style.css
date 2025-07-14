@@ -62,6 +62,10 @@ th {
   font-weight: bold;
 }
 
+th.u-zadankaiGruTab {
+  border-left: 4px solid #444;
+}
+
 h2 {
   margin-top: 2rem;
   background: #007bff;
