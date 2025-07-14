@@ -476,8 +476,9 @@ titoliOrdinati.forEach(titolo => {
         tdTotale.textContent = totale;
         tdTotale.rowSpan = righeCat.length;
         tdTotale.className = "sep-totale";
-        //tdTotale.classList.add("totale-zadankai");
         tr.appendChild(tdTotale);
+        tdTotale.classList.add("totale-zadankai");
+
       }
 
       const tdSomma0 = document.createElement("td");
