@@ -55,6 +55,8 @@ th, td {
   border: 1px solid #ccc;
   padding: 0.4rem;
   text-align: center;
+  color: #b80000;
+  font-weight: bold;
 }
 
 th {
