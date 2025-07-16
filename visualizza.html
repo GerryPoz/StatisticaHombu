@@ -382,8 +382,8 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
       const D = righeSez.reduce((s, r) => s + r.D, 0);
       const GU = righeSez.reduce((s, r) => s + r.GU, 0);
       const GD = righeSez.reduce((s, r) => s + r.GD, 0);
-      const FUT = righeSez.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
-      const STU = righeSez.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
+      const FUT = righeSez.reduce((s, r) => s + (typeof r.FUT === "number" ? r.FUT : 0), 0);
+      const STU = righeSez.reduce((s, r) => s + (typeof r.STU === "number" ? r.STU : 0), 0);
       const somma = U + D + GU + GD;
 
       // mese precedente
