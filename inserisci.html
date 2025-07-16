@@ -9,8 +9,8 @@
 <body>
 
   <h1>Inserimento Dati – HOMBU 9</h1>
-
   <form id="dati-form">
+    <!-- Selezioni iniziali -->
     <label for="anno">Anno:
       <select name="anno" id="anno" required></select>
     </label>
@@ -21,6 +21,7 @@
       <select name="gruppo" id="gruppo" required></select>
     </label>
 
+    <!-- 📊 Tabella ZADANKAI -->
     <h2>ZADANKAI</h2>
     <table id="zadankai-table">
       <thead>
@@ -32,41 +33,42 @@
       <tbody>
         <tr>
           <td>Membri</td>
-          <td><input type="number" name="zadankai_m_u" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_m_d" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_m_tot" readonly></td>
-          <td><input type="number" name="zadankai_m_fut" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_m_stu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_u" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_m_d" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_m_gu" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_m_gd" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_m_tot" readonly /></td>
+          <td><input type="number" name="zadankai_m_fut" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_m_stu" inputmode="numeric" pattern="[0-9]*" /></td>
         </tr>
         <tr>
           <td>Simpatizzanti</td>
-          <td><input type="number" name="zadankai_s_u" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_s_d" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_s_tot" readonly></td>
-          <td><input type="number" name="zadankai_s_fut" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_s_stu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_u" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_s_d" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_s_gu" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_s_gd" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_s_tot" readonly /></td>
+          <td><input type="number" name="zadankai_s_fut" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_s_stu" inputmode="numeric" pattern="[0-9]*" /></td>
         </tr>
         <tr>
           <td>Ospiti</td>
-          <td><input type="number" name="zadankai_o_u" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_o_d" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_o_gu" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_o_gd" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="zadankai_o_tot" readonly></td>
+          <td><input type="number" name="zadankai_o_u" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_o_d" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_o_gu" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_o_gd" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="zadankai_o_tot" readonly /></td>
           <td colspan="2">–</td>
         </tr>
         <tr>
           <td colspan="5" style="text-align:right"><strong>TOTALE GENERALE</strong></td>
-          <td><input type="number" name="zadankai_totale_generale" readonly></td>
+          <td><input type="number" name="zadankai_totale_generale" readonly /></td>
           <td colspan="2"></td>
         </tr>
       </tbody>
     </table>
 
+    <!-- 🙏 Tabella PRATICANTI -->
     <h2>PRATICANTI</h2>
     <table id="praticanti-table">
       <thead>
@@ -77,38 +79,36 @@
       <tbody>
         <tr>
           <td>Membri</td>
-          <td><input type="number" name="praticanti_m_u" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_m_d" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_m_tot" readonly></td>
+          <td><input type="number" name="praticanti_m_u" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_m_d" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_m_gu" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_m_gd" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_m_tot" readonly /></td>
         </tr>
         <tr>
           <td>Simpatizzanti</td>
-          <td><input type="number" name="praticanti_s_u" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_s_d" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
-          <td><input type="number" name="praticanti_s_tot" readonly></td>
+          <td><input type="number" name="praticanti_s_u" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_s_d" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_s_gu" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_s_gd" inputmode="numeric" pattern="[0-9]*" /></td>
+          <td><input type="number" name="praticanti_s_tot" readonly /></td>
         </tr>
         <tr>
           <td colspan="5" style="text-align:right"><strong>TOTALE GENERALE</strong></td>
-          <td><input type="number" name="praticanti_totale_generale" readonly></td>
+          <td><input type="number" name="praticanti_totale_generale" readonly /></td>
         </tr>
       </tbody>
     </table>
-    
+
+    <!-- Pulsanti -->
     <button type="button" id="salvaBtn">💾 Salva dati</button>
-    <!-- <button type="submit">Salva dati</button> -->
     <a href="index.html" class="button-home">🏠 Torna alla Home</a>
   </form>
 
-  <div id="messaggio-successo">
-      ✅ Dati salvati con successo! <a href="index.html" style="margin-left: 1rem; font-weight: bold;">🏠 Torna alla Home</a>
-    </div>
+  <!-- Messaggio di successo -->
   <div id="messaggio-successo">✅ Dati salvati con successo!</div>
 
-  <!-- ✅ Popup -->
+  <!-- Popup conferma -->
   <div id="popupConferma">
     <div class="box">
       <h3>Conferma inserimento</h3>
@@ -118,71 +118,7 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const anno = new Date().getFullYear();
-    document.getElementById("anno").innerHTML = `
-      <option value="${anno}" selected>${anno}</option>
-      <option value="${anno + 1}">${anno + 1}</option>
-    `;
-    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-    document.getElementById("mese").innerHTML = '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
-    document.getElementById("gruppo").innerHTML = '<option value="">–</option><option>Kansai</option><option>Aurora</option>';
-
-    document.getElementById("salvaBtn").addEventListener("click", () => {
-      const anno = document.getElementById("anno").value;
-      const mese = document.getElementById("mese").value;
-      const gruppo = document.getElementById("gruppo").value;
-      const valore = document.getElementById("zadankai_m_u").value.trim();
-
-      if (!anno || !mese || !gruppo) {
-        alert("⚠️ Seleziona anno, mese e gruppo.");
-        return;
-      }
-
-      if (valore === "" || valore === "0") {
-        alert("⚠️ Nessun dato inserito.");
-        return;
-      }
-
-      document.getElementById("riepilogoTesto").innerText =
-        `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
-      document.getElementById("popupConferma").style.display = "flex";
-    });
-
-    document.getElementById("confermaBtn").addEventListener("click", () => {
-      document.getElementById("popupConferma").style.display = "none";
-
-      const anno = document.getElementById("anno").value;
-      const mese = document.getElementById("mese").value;
-      const gruppo = document.getElementById("gruppo").value;
-      const valore = +document.getElementById("zadankai_m_u").value || 0;
-
-      const key = `${anno}-${mese}-${gruppo}`;
-      const payload = {
-        gruppo,
-        zadankai: {
-          membri: { U: valore }
-        }
-      };
-
-      set(ref(db, `zadankai/${key}`), payload)
-        .then(() => {
-          document.getElementById("messaggio-successo").style.display = "block";
-          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-        })
-        .catch(err => alert("❌ Errore: " + err.message));
-    });
-
-    document.getElementById("annullaBtn").addEventListener("click", () => {
-      document.getElementById("popupConferma").style.display = "none";
-    });
-  </script>
+  <!-- Script JavaScript Firebase e logica -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
