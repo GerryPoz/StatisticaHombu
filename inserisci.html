@@ -2,15 +2,18 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Inserisci Dati HOMBU</title>
+  <title>Inserisci Dati HOMBU 9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
   <script type="module" src="script.js"></script>
   <style>
+    /* ✅ Stile popup */
     #popupConferma {
+      display: none;
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       background: rgba(0,0,0,0.5);
       z-index: 1000;
       display: flex;
@@ -19,7 +22,7 @@
     }
 
     #popupConferma .box {
-      background: #fff;
+      background: white;
       padding: 2rem;
       border-radius: 8px;
       text-align: center;
@@ -37,7 +40,7 @@
     }
 
     #confermaBtn { background: #228833; color: white; }
-    #annullaBtn { background: #990000; color: white; }
+    #annullaBtn  { background: #990000; color: white; }
 
     #messaggio-successo {
       display: none;
@@ -53,17 +56,13 @@
 <body>
 
   <h1>Inserisci Dati HOMBU</h1>
+
   <form id="dati-form">
+    <!-- Selezioni -->
     <fieldset class="filtri">
-      <label>Anno:
-        <select id="anno" name="anno"></select>
-      </label>
-      <label>Mese:
-        <select id="mese" name="mese"></select>
-      </label>
-      <label>Gruppo:
-        <select id="gruppo" name="gruppo"></select>
-      </label>
+      <label>Anno: <select id="anno" name="anno"></select></label>
+      <label>Mese: <select id="mese" name="mese"></select></label>
+      <label>Gruppo: <select id="gruppo" name="gruppo"></select></label>
     </fieldset>
 
     <!-- 🧮 Zadankai -->
@@ -141,12 +140,12 @@
       </tbody>
     </table>
 
-    <!-- 💾 Pulsanti -->
+    <!-- 💾 Pulsante -->
     <button type="button" id="salvaBtn">💾 Salva dati</button>
     <a href="index.html" class="button-home">🏠 Torna alla Home</a>
   </form>
 
-  <!-- 🎉 Messaggio -->
+  <!-- ✅ Messaggio di successo -->
   <div id="messaggio-successo">✅ Dati salvati con successo!</div>
 
   <!-- ✅ Popup conferma -->
@@ -156,9 +155,11 @@
       <h3>Conferma inserimento</h3>
       <p id="riepilogoTesto" style="margin:1rem 0; font-weight:bold;"></p>
       <button id="confermaBtn">✅ Conferma</button>
-      <button id="annullaBtn">❌ Annulla</button>
+            <button id="annullaBtn">❌ Annulla</button>
     </div>
   </div>
+
+  <!-- Collegamento allo script -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
