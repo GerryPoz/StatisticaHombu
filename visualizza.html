@@ -63,11 +63,9 @@
       background: #f9f9f9;
     }
     tr.separatore-categoria td {
-      font-weight: bold;
-      text-align: center;
-      font-size: 1rem;
-      color: #444;
+      border-top: 3px solid black;
     }
+
 
   </style>
 </head>
@@ -368,6 +366,12 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
       if (cat.tipo === "PRATICANTI" && sezione === cat.sezioni[0]) {
         const separatore = document.createElement("tr");
         separatore.classList.add("separatore-categoria");
+        const td = document.createElement("td");
+        td.colSpan = 14;
+        td.style.borderTop = "3px solid black";
+        td.style.padding = "0";
+        td.style.height = "0";
+        separatore.appendChild(td);
         tbody.appendChild(separatore);
       }//-------------------
 
