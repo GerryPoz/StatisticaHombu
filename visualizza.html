@@ -337,10 +337,6 @@ righe.forEach(r => {
   }
 });
 
-const capitoloSelezionato = filtroCapitolo.value;
-const tabelleSettori = [];
-let tabellaCapitolo = null;
-
 for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
   const tab = document.createElement("table");
   tab.style.marginTop = "2rem";
@@ -366,7 +362,7 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
   categorie.forEach(cat => {
     const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
     cat.sezioni.forEach(sezione => {
-      // Linea di separazione tra categorie
+      //---------separa le categorie
       if (cat.tipo === "PRATICANTI" && sezione === cat.sezioni[0]) {
         const separatore = document.createElement("tr");
         separatore.classList.add("separatore-categoria");
@@ -377,7 +373,7 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
         td.style.height = "0";
         separatore.appendChild(td);
         tbody.appendChild(separatore);
-      }
+      }//-------------------
 
       const righeSez = righeCat.filter(r => r.sezione === sezione);
       if (righeSez.length === 0) return;
@@ -390,6 +386,7 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
       const STU = righeSez.reduce((s, r) => s + (typeof r.STU === "number" ? r.STU : 0), 0);
       const somma = U + D + GU + GD;
 
+      // mese precedente
       const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
       const righePrec = righe.filter(r =>
         r.anno === annoPrec &&
@@ -405,6 +402,7 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
       const GU0 = righePrec.reduce((s, r) => s + r.GU, 0);
       const GD0 = righePrec.reduce((s, r) => s + r.GD, 0);
       const somma0 = U0 + D0 + GU0 + GD0;
+
       const deltaSomma = somma - somma0;
 
       const tr = document.createElement("tr");
@@ -428,19 +426,8 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
     });
   });
 
-  if (titolo === `Capitolo: ${capitoloSelezionato}`) {
-    tabellaCapitolo = tab;
-  } else {
-    tabelleSettori.push(tab);
-  }
+  riepilogoDiv.appendChild(tab);
 }
-
-// ✅ Appendi prima i settori
-tabelleSettori.forEach(tab => riepilogoDiv.appendChild(tab));
-
-// ✅ Poi il capitolo selezionato
-if (tabellaCapitolo) riepilogoDiv.appendChild(tabellaCapitolo);
-
 
   }
 </script>
