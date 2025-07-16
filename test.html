@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test Popup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+
+    button {
+      padding: 0.6rem 1rem;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+
+    #popupConferma {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #popupConferma .box {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 0 10px #333;
+    }
+
+    #popupConferma .box button {
+      margin: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    #confermaBtn { background-color: #228833; color: white; }
+    #annullaBtn  { background-color: #990000; color: white; }
+  </style>
+</head>
+<body>
+
+  <h1>Test popup conferma</h1>
+  <button id="salvaBtn">💾 Salva dati</button>
+
+  <!-- ✅ Popup conferma -->
+  <div id="popupConferma">
+    <div class="box">
+      <h3>Confermi l'invio?</h3>
+      <p id="riepilogoTesto">📅 Luglio 2025<br>👥 Gruppo: Kansai</p>
+      <button id="confermaBtn">✅ Conferma</button>
+      <button id="annullaBtn">❌ Annulla</button>
+    </div>
+  </div>
+
+  <script>
+    // Mostra popup al click
+    document.getElementById("salvaBtn").addEventListener("click", () => {
+      document.getElementById("popupConferma").style.display = "flex";
+    });
+
+    // Conferma invio
+    document.getElementById("confermaBtn").addEventListener("click", () => {
+      alert("Dati confermati!");
+      document.getElementById("popupConferma").style.display = "none";
+    });
+
+    // Annulla invio
+    document.getElementById("annullaBtn").addEventListener("click", () => {
+      document.getElementById("popupConferma").style.display = "none";
+    });
+  </script>
+</body>
+</html>
