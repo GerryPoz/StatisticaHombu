@@ -62,6 +62,13 @@
       border: 2px solid #444;
       background: #f9f9f9;
     }
+    tr.separatore-categoria td {
+      font-weight: bold;
+      text-align: center;
+      font-size: 1rem;
+      color: #444;
+    }
+
   </style>
 </head>
 <body>
@@ -357,6 +364,20 @@ for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
   categorie.forEach(cat => {
     const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
     cat.sezioni.forEach(sezione => {
+      //---------separa le categorie
+      if (cat.tipo === "PRATICANTI" && sezione === cat.sezioni[0]) {
+        const separatore = document.createElement("tr");
+        separatore.classList.add("separatore-categoria");
+        const td = document.createElement("td");
+        td.colSpan = 14;
+        td.style.borderTop = "3px solid #333";
+        td.style.padding = "0.3rem";
+        td.style.background = "#f0f0f0";
+        td.textContent = "— PRATICANTI —";
+        separatore.appendChild(td);
+        tbody.appendChild(separatore);
+      }//-------------------
+
       const righeSez = righeCat.filter(r => r.sezione === sezione);
       if (righeSez.length === 0) return;
 
