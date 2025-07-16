@@ -66,105 +66,104 @@
 </head>
 <body>
 
-  <h1>Inserisci Dati HOMBU</h1>
+  <h1>Inserimento Dati – HOMBU 9</h1>
+
   <form id="dati-form">
-    <label>Anno:
-      <select id="anno" name="anno"></select>
+    <label for="anno">Anno:
+      <select name="anno" id="anno" required></select>
     </label>
-    <label>Mese:
-      <select id="mese" name="mese"></select>
+    <label for="mese">Mese:
+      <select name="mese" id="mese" required></select>
     </label>
-    <label>Gruppo:
-      <select id="gruppo" name="gruppo"></select>
+    <label for="gruppo">Gruppo:
+      <select name="gruppo" id="gruppo" required></select>
     </label>
 
-    <!-- ✅ TABELLONE ZADANKAI -->
     <h2>ZADANKAI</h2>
-    <table id="zadankai-table" border="1" cellpadding="5">
-      <tr>
-        <th>Sezione</th>
-        <th>U</th>
-        <th>D</th>
-        <th>GU</th>
-        <th>GD</th>
-        <th>FUT</th>
-        <th>STU</th>
-        <th>Totale</th>
-      </tr>
-      <tr>
-        <td>Membri</td>
-        <td><input type="number" name="zadankai_m_u" id="zadankai_m_u" /></td>
-        <td><input type="number" name="zadankai_m_d" id="zadankai_m_d" /></td>
-        <td><input type="number" name="zadankai_m_gu" id="zadankai_m_gu" /></td>
-        <td><input type="number" name="zadankai_m_gd" id="zadankai_m_gd" /></td>
-        <td><input type="number" name="zadankai_m_fut" id="zadankai_m_fut" /></td>
-        <td><input type="number" name="zadankai_m_stu" id="zadankai_m_stu" /></td>
-        <td><input type="number" name="zadankai_m_tot" readonly /></td>
-      </tr>
-      <tr>
-        <td>Simpatizzanti</td>
-        <td><input type="number" name="zadankai_s_u" id="zadankai_s_u" /></td>
-        <td><input type="number" name="zadankai_s_d" id="zadankai_s_d" /></td>
-        <td><input type="number" name="zadankai_s_gu" id="zadankai_s_gu" /></td>
-        <td><input type="number" name="zadankai_s_gd" id="zadankai_s_gd" /></td>
-        <td><input type="number" name="zadankai_s_fut" id="zadankai_s_fut" /></td>
-        <td><input type="number" name="zadankai_s_stu" id="zadankai_s_stu" /></td>
-        <td><input type="number" name="zadankai_s_tot" readonly /></td>
-      </tr>
-      <tr>
-        <td>Ospiti</td>
-        <td><input type="number" name="zadankai_o_u" id="zadankai_o_u" /></td>
-        <td><input type="number" name="zadankai_o_d" id="zadankai_o_d" /></td>
-        <td><input type="number" name="zadankai_o_gu" id="zadankai_o_gu" /></td>
-        <td><input type="number" name="zadankai_o_gd" id="zadankai_o_gd" /></td>
-        <td colspan="2">—</td>
-        <td><input type="number" name="zadankai_o_tot" readonly /></td>
-      </tr>
-      <tr>
-        <td><strong>TOTALE GENERALE</strong></td>
-        <td colspan="6"></td>
-        <td><input type="number" name="zadankai_totale_generale" readonly /></td>
-      </tr>
+    <table id="zadankai-table">
+      <thead>
+        <tr>
+          <th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+          <th>TOTALE</th><th>FUT</th><th>STU</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Membri</td>
+          <td><input type="number" name="zadankai_m_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_tot" readonly></td>
+          <td><input type="number" name="zadankai_m_fut" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_m_stu" inputmode="numeric" pattern="[0-9]*"></td>
+        </tr>
+        <tr>
+          <td>Simpatizzanti</td>
+          <td><input type="number" name="zadankai_s_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_tot" readonly></td>
+          <td><input type="number" name="zadankai_s_fut" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_s_stu" inputmode="numeric" pattern="[0-9]*"></td>
+        </tr>
+        <tr>
+          <td>Ospiti</td>
+          <td><input type="number" name="zadankai_o_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_gd" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="zadankai_o_tot" readonly></td>
+          <td colspan="2">–</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right"><strong>TOTALE GENERALE</strong></td>
+          <td><input type="number" name="zadankai_totale_generale" readonly></td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>PRATICANTI</h2>
+    <table id="praticanti-table">
+      <thead>
+        <tr>
+          <th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOTALE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Membri</td>
+          <td><input type="number" name="praticanti_m_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_gd" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_m_tot" readonly></td>
+        </tr>
+        <tr>
+          <td>Simpatizzanti</td>
+          <td><input type="number" name="praticanti_s_u" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_d" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_gu" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_gd" inputmode="numeric" pattern="[0-9]*"></td>
+          <td><input type="number" name="praticanti_s_tot" readonly></td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right"><strong>TOTALE GENERALE</strong></td>
+          <td><input type="number" name="praticanti_totale_generale" readonly></td>
+        </tr>
+      </tbody>
     </table>
     
-    <!-- ✅ TABELLONE PRATICANTI -->
-    <h2>PRATICANTI</h2>
-    <table id="praticanti-table" border="1" cellpadding="5">
-      <tr>
-        <th>Sezione</th>
-        <th>U</th>
-        <th>D</th>
-        <th>GU</th>
-        <th>GD</th>
-        <th>Totale</th>
-      </tr>
-      <tr>
-        <td>Membri</td>
-        <td><input type="number" name="praticanti_m_u" id="praticanti_m_u" /></td>
-        <td><input type="number" name="praticanti_m_d" id="praticanti_m_d" /></td>
-        <td><input type="number" name="praticanti_m_gu" id="praticanti_m_gu" /></td>
-        <td><input type="number" name="praticanti_m_gd" id="praticanti_m_gd" /></td>
-        <td><input type="number" name="praticanti_m_tot" readonly /></td>
-      </tr>
-      <tr>
-        <td>Simpatizzanti</td>
-        <td><input type="number" name="praticanti_s_u" id="praticanti_s_u" /></td>
-        <td><input type="number" name="praticanti_s_d" id="praticanti_s_d" /></td>
-        <td><input type="number" name="praticanti_s_gu" id="praticanti_s_gu" /></td>
-        <td><input type="number" name="praticanti_s_gd" id="praticanti_s_gd" /></td>
-        <td><input type="number" name="praticanti_s_tot" readonly /></td>
-      </tr>
-      <tr>
-        <td><strong>TOTALE GENERALE</strong></td>
-        <td colspan="4"></td>
-        <td><input type="number" name="praticanti_totale_generale" readonly /></td>
-      </tr>
-    </table>
-
-
     <button type="button" id="salvaBtn">💾 Salva dati</button>
+    <!-- <button type="submit">Salva dati</button> -->
+    <a href="index.html" class="button-home">🏠 Torna alla Home</a>
   </form>
 
+  <div id="messaggio-successo">
+      ✅ Dati salvati con successo! <a href="index.html" style="margin-left: 1rem; font-weight: bold;">🏠 Torna alla Home</a>
+    </div>
   <div id="messaggio-successo">✅ Dati salvati con successo!</div>
 
   <!-- ✅ Popup -->
