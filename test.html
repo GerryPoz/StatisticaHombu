@@ -14,18 +14,27 @@
       padding: 0.6rem 1rem;
       font-weight: bold;
       margin: 1rem 0;
+      cursor: pointer;
     }
 
+    /* ✅ Popup nascosto di default */
     #popupConferma {
       display: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.5);
       z-index: 1000;
-      display: flex;
       justify-content: center;
       align-items: center;
+    }
+
+    /* ✅ Classe visibile con effetto */
+    #popupConferma.visibile {
+      display: flex;
+      opacity: 1;
     }
 
     #popupConferma .box {
@@ -50,7 +59,7 @@
 </head>
 <body>
 
-  <h1>Test popup conferma</h1>
+  <h1>Test popup conferma 1</h1>
   <button id="salvaBtn">💾 Salva dati</button>
 
   <!-- ✅ Popup conferma -->
@@ -64,20 +73,25 @@
   </div>
 
   <script>
+    const popup = document.getElementById("popupConferma");
+    const salvaBtn = document.getElementById("salvaBtn");
+    const confermaBtn = document.getElementById("confermaBtn");
+    const annullaBtn = document.getElementById("annullaBtn");
+
     // Mostra popup al click
-    document.getElementById("salvaBtn").addEventListener("click", () => {
-      document.getElementById("popupConferma").style.display = "flex";
+    salvaBtn.addEventListener("click", () => {
+      popup.classList.add("visibile");
     });
 
     // Conferma invio
-    document.getElementById("confermaBtn").addEventListener("click", () => {
-      alert("Dati confermati!");
-      document.getElementById("popupConferma").style.display = "none";
+    confermaBtn.addEventListener("click", () => {
+      alert("✅ Dati confermati!");
+      popup.classList.remove("visibile");
     });
 
     // Annulla invio
-    document.getElementById("annullaBtn").addEventListener("click", () => {
-      document.getElementById("popupConferma").style.display = "none";
+    annullaBtn.addEventListener("click", () => {
+      popup.classList.remove("visibile");
     });
   </script>
 </body>
