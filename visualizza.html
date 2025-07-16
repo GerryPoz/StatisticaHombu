@@ -1,587 +1,192 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Visualizza Dati</title>
+  <title>Inserisci Dati HOMBU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="script.js"></script>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
+      font-family: sans-serif;
       padding: 2rem;
-      color: #333;
     }
-    h1 { color: #2c3e50; margin-bottom: 1rem; }
-    fieldset.filtri {
-      border: 3px solid #333;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      background: #fff;
-    }
-    label {
-      display: inline-block;
-      margin: 0.5rem 1rem 0.5rem 0;
-      font-weight: 500;
-    }
-    select {
-      font-size: 1.1rem;
-      padding: 0.4rem 0.6rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      min-width: 180px;
-    }
+
     table {
-      width: 100%;
       border-collapse: collapse;
-      margin-top: 2rem;
-      background: white;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      width: 100%;
+      margin-bottom: 1rem;
     }
+
     th, td {
       border: 1px solid #ccc;
-      padding: 0.6rem;
+      padding: 0.4rem;
       text-align: center;
     }
 
-    th { background: #e0f7fa; font-weight: bold; }
-    tr.zadankai { background-color: #e8f5e9; }
-    tr.praticanti { background-color: #e3f2fd; }
-    td.nome-gruppo {
-      background-color: #fff3cd;
+    button {
+      padding: 0.6rem 1rem;
       font-weight: bold;
-    }
-    /* 🔳 Evidenzia l'inizio di ogni gruppo */
-      tr.inizio-gruppo td {
-      border-top: 4px solid #333; /* più spesso e scuro */
-    }
-
-    /* 🔳 Evidenzia l'inizio di ogni categoria */
-      tr.inizio-categoria td {
-      border-top: 3px solid #666; /* stile diverso e visibile */
-    }
-    
-    #riepilogo {
-      margin-top: 2rem;
-    }
-    #riepilogo div {
       margin: 1rem 0;
-      padding: 0.5rem;
-      border: 2px solid #444;
-      background: #f9f9f9;
+      cursor: pointer;
     }
 
-    /* 🔳 Linee verticali spesse su celle specifiche Tabelle Settore e Capitolo */
-    td.sep-sezione, th.sep-sezione {
-      border-right: 2px solid #333;
-    }
-    td.sep-gd, th.sep-gd {
-      border-right: 2px solid #666;
-    }
-    td.sep-totale, th.sep-totale {
-      border-right: 2px solid #444;
-    }
-    td.sep-delta-somma, th.sep-delta-somma {
-      border-right: 2px solid #444;
-    }
-    td.sep-delta-totale, th.sep-delta-totale {
-      border-right: 2px solid #444;
+    #messaggio-successo {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+      border-radius: 6px;
     }
 
-    td.u-zadankaiGru {
-      border-left: 2px solid #444;
-    }
-    
-    td.gd-zadankaiGru {
-      border-right: 2px solid #444;
-    }
-
-    /* 🔳 Linee verticali spesse su celle specifiche Tabella Gruppi */
-    td.totale-zadankaiGru {
-      color: #b80000;
-      font-weight: bold;
-      font-size: 1.2rem;
-      border-right: 2px solid #444;
+    /* ✅ Popup */
+    #popupConferma {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
     }
 
-    td.totale0-zadankaiGru {
-      color: #007b33;
-      font-weight: bold;
-      font-size: 1.2rem;
-      border-left: 2px solid #444;
+    #popupConferma.visibile {
+      display: flex;
+      opacity: 1;
     }
 
-
-    td.totale-zadankai {
-      color: #b80000;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-    
-    td.totale0-zadankai {
-      color: #007b33;
-      font-weight: bold;
-      font-size: 1.2rem;
+    #popupConferma .box {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 320px;
+      box-shadow: 0 0 10px #333;
     }
 
-
-    /* 🔳 Linea orizzontale spessa su menu Tabelle Settore e Capitolo */
-    thead tr {
-      border-bottom: 3px solid #333;
+    #popupConferma .box button {
+      margin: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
     }
 
+    #confermaBtn { background-color: #228833; color: white; }
+    #annullaBtn  { background-color: #990000; color: white; }
   </style>
 </head>
 <body>
 
-<h1>Visualizza Dati</h1>
+  <h1>Inserisci Dati HOMBU</h1>
+
+  <form id="dati-form">
+    <!-- Selezioni -->
+    <fieldset>
+      <label>Anno: <select id="anno" name="anno"></select></label>
+      <label>Mese: <select id="mese" name="mese"></select></label>
+      <label>Gruppo: <select id="gruppo" name="gruppo"></select></label>
+    </fieldset>
+
+    <!-- Zadankai -->
+    <h2>ZADANKAI</h2>
+    <table id="zadankai-table">
+      <thead>
+        <tr><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>FUT</th><th>STU</th><th>Totale</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Membri</td>
+          <td><input type="number" name="zadankai_m_u" id="zadankai_m_u" /></td>
+          <td><input type="number" name="zadankai_m_d" id="zadankai_m_d" /></td>
+          <td><input type="number" name="zadankai_m_gu" id="zadankai_m_gu" /></td>
+          <td><input type="number" name="zadankai_m_gd" id="zadankai_m_gd" /></td>
+          <td><input type="number" name="zadankai_m_fut" id="zadankai_m_fut" /></td>
+          <td><input type="number" name="zadankai_m_stu" id="zadankai_m_stu" /></td>
+          <td><input type="number" name="zadankai_m_tot" readonly /></td>
+        </tr>
+        <tr>
+          <td>Simpatizzanti</td>
+          <td><input type="number" name="zadankai_s_u" id="zadankai_s_u" /></td>
+          <td><input type="number" name="zadankai_s_d" id="zadankai_s_d" /></td>
+          <td><input type="number" name="zadankai_s_gu" id="zadankai_s_gu" /></td>
+          <td><input type="number" name="zadankai_s_gd" id="zadankai_s_gd" /></td>
+          <td><input type="number" name="zadankai_s_fut" id="zadankai_s_fut" /></td>
+          <td><input type="number" name="zadankai_s_stu" id="zadankai_s_stu" /></td>
+          <td><input type="number" name="zadankai_s_tot" readonly /></td>
+        </tr>
+        <tr>
+          <td>Ospiti</td>
+          <td><input type="number" name="zadankai_o_u" id="zadankai_o_u" /></td>
+          <td><input type="number" name="zadankai_o_d" id="zadankai_o_d" /></td>
+          <td><input type="number" name="zadankai_o_gu" id="zadankai_o_gu" /></td>
+          <td><input type="number" name="zadankai_o_gd" id="zadankai_o_gd" /></td>
+          <td colspan="2">–</td>
+          <td><input type="number" name="zadankai_o_tot" readonly /></td>
+        </tr>
+        <tr>
+          <td><strong>TOTALE GENERALE</strong></td>
+          <td colspan="6"></td>
+          <td><input type="number" name="zadankai_totale_generale" readonly /></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Praticanti -->
+    <h2>PRATICANTI</h2>
+    <table id="praticanti-table">
+      <thead>
+        <tr><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Totale</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Membri</td>
+          <td><input type="number" name="praticanti_m_u" id="praticanti_m_u" /></td>
+          <td><input type="number" name="praticanti_m_d" id="praticanti_m_d" /></td>
+          <td><input type="number" name="praticanti_m_gu" id="praticanti_m_gu" /></td>
+          <td><input type="number" name="praticanti_m_gd" id="praticanti_m_gd" /></td>
+          <td><input type="number" name="praticanti_m_tot" readonly /></td>
+        </tr>
+        <tr>
+          <td>Simpatizzanti</td>
+          <td><input type="number" name="praticanti_s_u" id="praticanti_s_u" /></td>
+          <td><input type="number" name="praticanti_s_d" id="praticanti_s_d" /></td>
+          <td><input type="number" name="praticanti_s_gu" id="praticanti_s_gu" /></td>
+          <td><input type="number" name="praticanti_s_gd" id="praticanti_s_gd" /></td>
+          <td><input type="number" name="praticanti_s_tot" readonly /></td>
+        </tr>
+        <tr>
+          <td><strong>TOTALE GENERALE</strong></td>
+          <td colspan="4"></td>
+          <td><input type="number" name="praticanti_totale_generale" readonly /></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Salvataggio -->
+    <button type="button" id="salvaBtn">💾 Salva dati</button>
+    <a href="index.html">🏠 Torna alla Home</a>
+  </form>
+
+  <div id="messaggio-successo">✅ Dati salvati con successo!</div>
+    <!-- ✅ Popup conferma -->
+  <div id="popupConferma" style="display:none; opacity:0; transition:opacity 0.4s ease;
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div class="box">
+      <h3>Conferma inserimento</h3>
+      <p id="riepilogoTesto" style="margin:1rem 0; font-weight:bold;"></p>
+      <button id="confermaBtn">✅ Conferma</button>
+      <button id="annullaBtn">❌ Annulla</button>
+    </div>
+  </div>
 
-<fieldset class="filtri">
-  <legend><strong>Filtri</strong></legend>
-  <label>Anno:
-    <select id="filtro-anno"></select>
-  </label>
-  <label>Mese:
-    <select id="filtro-mese"></select>
-  </label>
-  <label>Capitolo:
-    <select id="filtro-capitolo"></select>
-  </label>
-</fieldset>
-
-<table id="tabella-dati">
-  <thead>
-    <tr>
-      <th>Nome Gruppo</th>
-      <th>Categoria</th>
-      <th>Sezione</th>
-      <th>U</th>
-      <th>D</th>
-      <th>GU</th>
-      <th>GD</th>
-      <th>Somma</th>
-      <th>Totale</th>
-      <th>Somma mese prec.</th>
-      <th>Var. Somma</th>
-      <th>Totale mese prec.</th>
-      <th>Var. Totale</th>
-      <th>Futuro</th>
-      <th>Studenti</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<br>
-<br>
-<hr style="margin-top: 3rem; border: none; border-top: 3px solid #999;">
-<h2>Riepilogo per Settore e Capitolo</h2>
-<br>
-  
-<div id="riepilogo"></div>
-
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-  import { firebaseConfig } from "./firebase-config.js";
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  const tbody = document.querySelector("#tabella-dati tbody");
-  const filtroAnno = document.getElementById("filtro-anno");
-  const filtroMese = document.getElementById("filtro-mese");
-  const filtroCapitolo = document.getElementById("filtro-capitolo");
-  const riepilogoDiv = document.getElementById("riepilogo");
-
-  let mappaCapitoli = {};
-  let gruppoToSettore = {};
-  let gruppoToCapitolo = {};
-  let righe = [];
-
-  const mesiOrdine = [
-    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-  ];
-
-  function mesePrecedente(mese, anno) {
-    const index = mesiOrdine.indexOf(mese);
-    if (index === -1) return { mese: null, anno: null };
-    const nuovoIndex = (index - 1 + 12) % 12;
-    const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
-    return { mese: mesiOrdine[nuovoIndex], anno: nuovoAnno };
-  }
-
-  Promise.all([
-    fetch("gruppi.json").then(res => res.json()),
-    get(child(ref(db), "zadankai"))
-  ]).then(([gruppiData, snapshot]) => {
-    const struttura = gruppiData["HOMBU 9"];
-    for (const [capitolo, settori] of Object.entries(struttura)) {
-      for (const [settore, gruppi] of Object.entries(settori)) {
-        gruppi.forEach(gr => {
-          gruppoToSettore[gr] = settore;
-          gruppoToCapitolo[gr] = capitolo;
-        });
-      }
-      mappaCapitoli[capitolo] = Object.values(settori).flat();
-    }
-
-    Object.keys(mappaCapitoli).sort().forEach(capitolo => {
-      filtroCapitolo.add(new Option(capitolo, capitolo));
-    });
-
-    if (!snapshot.exists()) return;
-    const dati = snapshot.val();
-
-    for (const key in dati) {
-      const [anno, mese, gruppo] = key.split("-");
-      const sezioni = dati[key];
-
-      for (const categoria in sezioni.zadankai) {
-        const r = sezioni.zadankai[categoria];
-        righe.push({
-          anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-          FUT: r.FUT ?? "-", STU: r.STU ?? "-"
-        });
-      }
-
-      for (const categoria in sezioni.praticanti) {
-        const r = sezioni.praticanti[categoria];
-        righe.push({
-          anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-          FUT: "-", STU: "-"
-        });
-      }
-    }
-
-    [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
-    mesiOrdine.forEach(mese => {
-      if (righe.some(r => r.mese === mese)) {
-        filtroMese.add(new Option(mese, mese));
-      }
-    });
-
-    [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
-      f.addEventListener("change", aggiornaTabella)
-    );
-
-    aggiornaTabella();
-  });
-    
-  function aggiornaTabella() {
-    tbody.innerHTML = "";
-    riepilogoDiv.innerHTML = "";
-
-    const capitoloSelezionato = filtroCapitolo.value;
-    const gruppiFiltrati = mappaCapitoli[capitoloSelezionato] || [];
-
-    const riepilogo = {};
-    const addTo = (obj, chiave, r) => {
-      if (!obj[chiave]) obj[chiave] = { U: 0, D: 0, GU: 0, GD: 0 };
-      obj[chiave].U += r.U;
-      obj[chiave].D += r.D;
-      obj[chiave].GU += r.GU;
-      obj[chiave].GD += r.GD;
-    };
-
-    gruppiFiltrati.forEach(gruppo => {
-      const righeGruppo = righe.filter(r =>
-        r.gruppo === gruppo &&
-        (!filtroAnno.value || r.anno === filtroAnno.value) &&
-        (!filtroMese.value || r.mese === filtroMese.value)
-      );
-
-      const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-      const righePrecedenti = righe.filter(r =>
-        r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
-      );
-
-      if (righeGruppo.length === 0) return;
-
-      const categorie = [
-        { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
-        { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
-      ];
-
-      let gruppoStampato = false;
-
-      categorie.forEach(cat => {
-        let categoriaStampata = false;
-
-        const righeCategoria = cat.sezioni.filter(s =>
-          righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
-        );
-
-        const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
-          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!r) return acc;
-          return acc + r.U + r.D + r.GU + r.GD;
-        }, 0);
-
-        const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
-          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!rPrec) return acc;
-          return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
-        }, 0);
-
-        const deltaTotale = totaleCategoria - totaleCategoriaPrec;
-
-        righeCategoria.forEach((sezione, index) => {
-          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          if (!r) return;
-
-          const somma = r.U + r.D + r.GU + r.GD;
-          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-          const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
-          const deltaSomma = somma - sommaPrec;
-
-          const tr = document.createElement("tr");
-          tr.classList.add(cat.tipo.toLowerCase());
-          if (!gruppoStampato) tr.classList.add("inizio-gruppo");
-          if (!categoriaStampata) tr.classList.add("inizio-categoria");
-
-          if (!gruppoStampato) {
-            tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
-            gruppoStampato = true;
-          }
-
-          if (!categoriaStampata) {
-            tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
-            categoriaStampata = true;
-          }
-
-          tr.innerHTML += `
-            <td>${sezione}</td>
-            <td class="u-zadankaiGru">${r.U}</td>
-            <td>${r.D}</td>
-            <td>${r.GU}</td>
-            <td class="gd-zadankaiGru">${r.GD}</td>
-            <td>${somma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale-zadankaiGru">${totaleCategoria}</td>` : ""}
-            <td>${sommaPrec}</td>
-            <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="totale0-zadankaiGru">${totaleCategoriaPrec}</td>` : ""}
-            ${index === 0 ? `<td rowspan="${righeCategoria.length}" class="gd-zadankaiGru">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
-            <td>${r.FUT}</td>
-            <td>${r.STU}</td>
-          `;
-
-          tbody.appendChild(tr);
-        });
-      });
-    });
-
-    righe.forEach(r => {
-      if (
-        (!filtroAnno.value || r.anno === filtroAnno.value) &&
-        (!filtroMese.value || r.mese === filtroMese.value) &&
-        gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
-      ) {
-        const settore = gruppoToSettore[r.gruppo];
-        const capitolo = gruppoToCapitolo[r.gruppo];
-        addTo(riepilogo, `Settore: ${settore}`, r);
-        addTo(riepilogo, `Capitolo: ${capitolo}`, r);
-      }
-    });
-
-// 🧮 Riepilogo dettagliato per Settori e Capitoli
-const riepilogoPer = {};
-
-righe.forEach(r => {
-  if (
-    (!filtroAnno.value || r.anno === filtroAnno.value) &&
-    (!filtroMese.value || r.mese === filtroMese.value) &&
-    gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
-  ) {
-    const chiavi = [
-      `Settore: ${gruppoToSettore[r.gruppo]}`,
-      `Capitolo: ${gruppoToCapitolo[r.gruppo]}`
-    ];
-    chiavi.forEach(chiave => {
-      if (!riepilogoPer[chiave]) riepilogoPer[chiave] = [];
-      riepilogoPer[chiave].push(r);
-    });
-  }
-});
-
-const titoliOrdinati = Object.keys(riepilogoPer).sort((a, b) => {
-  if (a.startsWith("Settore") && b.startsWith("Capitolo")) return -1;
-  if (a.startsWith("Capitolo") && b.startsWith("Settore")) return 1;
-  return a.localeCompare(b);
-});
-
-riepilogoDiv.innerHTML = "";
-
-// 🔍 Identifica i gruppi con dati per il mese selezionato
-    const gruppiConDati = righe.filter(r =>
-      (!filtroAnno.value || r.anno === filtroAnno.value) &&
-      (!filtroMese.value || r.mese === filtroMese.value)
-    ).map(r => r.gruppo);
-    
-    const gruppiSenzaDati = gruppiFiltrati.filter(g => !gruppiConDati.includes(g));
-    
-    // 🚨 Visualizza elenco in fondo alla pagina
-    if (gruppiSenzaDati.length > 0) {
-      const box = document.createElement("div");
-      box.style.marginTop = "2rem";
-      box.style.padding = "1rem";
-      box.style.border = "2px solid #cc0000";
-      box.style.background = "#fff5f5";
-      box.style.color = "#a00000";
-      box.style.fontWeight = "bold";
-      box.innerHTML = `<strong>⚠️ Gruppi ancora senza dati per ${filtroMese.value} ${filtroAnno.value}:</strong><ul>` +
-        gruppiSenzaDati.map(g => `<li>${g}</li>`).join("") +
-        "</ul>";
-      riepilogoDiv.appendChild(box);
-    }
-    //------------------------
-
-titoliOrdinati.forEach(titolo => {
-  const righeTotali = riepilogoPer[titolo];
-  const tab = document.createElement("table");
-  tab.style.marginTop = "2rem";
-  tab.innerHTML = `
-    <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem 0;">${titolo}</caption>
-    <thead>
-      <tr>
-        <th>Categoria</th><th class="sep-sezione">Sezione</th><th>U</th><th>D</th><th>GU</th><th class="sep-gd">GD</th>
-        <th>Somma</th><th class="sep-totale">Totale</th><th>Somma mese prec.</th><th class="sep-delta-somma">Δ Somma</th>
-        <th>Totale mese prec.</th><th class="sep-delta-totale">Δ Totale</th><th>Futuro</th><th>Studenti</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-  const tbody = tab.querySelector("tbody");
-
-  const categorie = [
-    { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
-    { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
-  ];
-
-  categorie.forEach(cat => {
-    const righeCat = cat.sezioni.map(sezione => {
-      const righeAttuali = righeTotali.filter(r => r.tipo === cat.tipo && r.sezione === sezione);
-      const somma = righeAttuali.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
-      const U = righeAttuali.reduce((a, r) => a + r.U, 0);
-      const D = righeAttuali.reduce((a, r) => a + r.D, 0);
-      const GU = righeAttuali.reduce((a, r) => a + r.GU, 0);
-      const GD = righeAttuali.reduce((a, r) => a + r.GD, 0);
-      const FUT = righeAttuali.reduce((s, r) => s + (parseInt(r.FUT) || 0), 0);
-      const STU = righeAttuali.reduce((s, r) => s + (parseInt(r.STU) || 0), 0);
-
-      const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-      const righePrecise = righe.filter(r =>
-        r.anno === annoPrec &&
-        r.mese === mesePrec &&
-        r.tipo === cat.tipo &&
-        r.sezione === sezione &&
-        gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
-        (
-          titolo.startsWith("Settore")
-            ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
-            : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1]
-        )
-      );
-
-      const somma0 = righePrecise.reduce((a, r) => a + r.U + r.D + r.GU + r.GD, 0);
-      const deltaSomma = somma - somma0;
-
-      return { sezione, U, D, GU, GD, somma, somma0, deltaSomma, FUT, STU };
-    });
-
-    const totale = righeCat.reduce((a, r) => a + r.somma, 0);
-    const totale0 = righeCat.reduce((a, r) => a + r.somma0, 0);
-    const deltaTotale = totale - totale0;
-
-    righeCat.forEach((riga, index) => {
-      const tr = document.createElement("tr");
-      tr.classList.add(cat.tipo.toLowerCase());
-
-      if (index === 0) {
-        const tdCategoria = document.createElement("td");
-        tdCategoria.rowSpan = righeCat.length;
-        tdCategoria.textContent = cat.tipo;
-        tr.appendChild(tdCategoria);
-      }
-
-      const tdSezione = document.createElement("td");
-      tdSezione.textContent = riga.sezione;
-      tdSezione.className = "sep-sezione";
-      tr.appendChild(tdSezione);
-
-      ["U", "D", "GU"].forEach(col => {
-        const td = document.createElement("td");
-        td.textContent = riga[col];
-        tr.appendChild(td);
-      });
-
-      const tdGD = document.createElement("td");
-      tdGD.textContent = riga.GD;
-      tdGD.className = "sep-gd";
-      tr.appendChild(tdGD);
-
-      const tdSomma = document.createElement("td");
-      tdSomma.textContent = riga.somma;
-      tr.appendChild(tdSomma);
-
-      if (index === 0) {
-        const tdTotale = document.createElement("td");
-        tdTotale.textContent = totale;
-        tdTotale.rowSpan = righeCat.length;
-        tdTotale.className = "sep-totale";
-        tr.appendChild(tdTotale);
-        tdTotale.classList.add("totale-zadankai");
-
-      }
-
-      const tdSomma0 = document.createElement("td");
-      tdSomma0.textContent = riga.somma0;
-      tr.appendChild(tdSomma0);
-
-      const tdDeltaSomma = document.createElement("td");
-      tdDeltaSomma.textContent = riga.deltaSomma >= 0 ? "+" + riga.deltaSomma : riga.deltaSomma;
-      tdDeltaSomma.className = "sep-delta-somma";
-      tr.appendChild(tdDeltaSomma);
-
-      if (index === 0) {
-        const tdTotale0 = document.createElement("td");
-        tdTotale0.textContent = totale0;
-        tdTotale0.rowSpan = righeCat.length;
-        tr.appendChild(tdTotale0);
-        tdTotale0.classList.add("totale0-zadankai");
-
-        const tdDeltaTotale = document.createElement("td");
-        tdDeltaTotale.textContent = deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale;
-        tdDeltaTotale.rowSpan = righeCat.length;
-        tdDeltaTotale.className = "sep-delta-totale";
-        tr.appendChild(tdDeltaTotale);
-        tr.classList.add("inizio-categoria");
-
-      }
-
-      const tdFUT = document.createElement("td");
-      tdFUT.textContent = riga.FUT;
-      tr.appendChild(tdFUT);
-
-      const tdSTU = document.createElement("td");
-      tdSTU.textContent = riga.STU;
-      tr.appendChild(tdSTU);
-
-      tbody.appendChild(tr);
-    });
-  });
-  riepilogoDiv.appendChild(tab);
-});
-
-  }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
+  <script type="module" src="script.js"></script>
 </body>
 </html>
+
