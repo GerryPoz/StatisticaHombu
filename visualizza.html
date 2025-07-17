@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Visualizza Dati – HOMBU</title>
+  <title>Visualizza Dati – HOMBU 9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -44,33 +45,60 @@
       text-align: center;
     }
     th { background: #e0f7fa; font-weight: bold; }
-    tr.separatore-categoria td {
-      border-top: 2px solid black;
-      padding: 0;
-      height: 0;
+    tr.zadankai { background-color: #e8f5e9; }
+    tr.praticanti { background-color: #e3f2fd; }
+    td.nome-gruppo {
+      background-color: #fff3cd;
+      font-weight: bold;
     }
+    tr.inizio-gruppo td { border-top: 3px solid #333; }
+    tr.inizio-categoria td { border-top: 2px solid #666; }
     #riepilogo {
       margin-top: 2rem;
+    }
+    #riepilogo div {
+      margin: 1rem 0;
+      padding: 0.5rem;
+      border: 2px solid #444;
+      background: #f9f9f9;
     }
   </style>
 </head>
 <body>
 
-<h1>Visualizza Dati – HOMBU</h1>
+<h1>Visualizza Dati – HOMBU 9</h1>
 
 <fieldset class="filtri">
   <legend><strong>Filtri</strong></legend>
-  <label>Anno: <select id="filtro-anno"></select></label>
-  <label>Mese: <select id="filtro-mese"></select></label>
-  <label>Capitolo: <select id="filtro-capitolo"></select></label>
+  <label>Anno:
+    <select id="filtro-anno"></select>
+  </label>
+  <label>Mese:
+    <select id="filtro-mese"></select>
+  </label>
+  <label>Capitolo:
+    <select id="filtro-capitolo"></select>
+  </label>
 </fieldset>
 
 <table id="tabella-dati">
   <thead>
     <tr>
-      <th>Nome Gruppo</th><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-      <th>Somma</th><th>Totale</th><th>Somma mese prec.</th><th>Δ Somma</th>
-      <th>Totale mese prec.</th><th>Δ Totale</th><th>Futuro</th><th>Studenti</th>
+      <th>Nome Gruppo</th>
+      <th>Categoria</th>
+      <th>Sezione</th>
+      <th>U</th>
+      <th>D</th>
+      <th>GU</th>
+      <th>GD</th>
+      <th>Somma</th>
+      <th>Totale</th>
+      <th>Somma mese prec.</th>
+      <th>Δ Somma</th>
+      <th>Totale mese prec.</th>
+      <th>Δ Totale</th>
+      <th>Futuro</th>
+      <th>Studenti</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -78,8 +106,7 @@
 
 <h2>Riepilogo per Settore e Capitolo</h2>
 <div id="riepilogo"></div>
-
-<script type="module">
+  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
   import { firebaseConfig } from "./firebase-config.js";
@@ -142,7 +169,7 @@
         righe.push({
           anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
           U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-          FUT: r.FUT ?? 0, STU: r.STU ?? 0
+          FUT: r.FUT ?? "-", STU: r.STU ?? "-"
         });
       }
 
@@ -151,7 +178,7 @@
         righe.push({
           anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
           U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-          FUT: 0, STU: 0
+          FUT: "-", STU: "-"
         });
       }
     }
@@ -169,223 +196,222 @@
 
     aggiornaTabella();
   });
-
-  function aggiornaTabella() {
+      function aggiornaTabella() {
     tbody.innerHTML = "";
     riepilogoDiv.innerHTML = "";
 
     const capitoloSelezionato = filtroCapitolo.value;
     const gruppiFiltrati = mappaCapitoli[capitoloSelezionato] || [];
 
+    const riepilogo = {};
+    const addTo = (obj, chiave, r) => {
+      if (!obj[chiave]) obj[chiave] = { U: 0, D: 0, GU: 0, GD: 0 };
+      obj[chiave].U += r.U;
+      obj[chiave].D += r.D;
+      obj[chiave].GU += r.GU;
+      obj[chiave].GD += r.GD;
+    };
+
     gruppiFiltrati.forEach(gruppo => {
-  const righeGruppo = righe.filter(r =>
-    r.gruppo === gruppo &&
-    (!filtroAnno.value || r.anno === filtroAnno.value) &&
-    (!filtroMese.value || r.mese === filtroMese.value)
-  );
-
-  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-  const righePrecedenti = righe.filter(r =>
-    r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
-  );
-
-  if (righeGruppo.length === 0) return;
-
-  const categorie = [
-    { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
-    { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
-  ];
-
-  let gruppoStampato = false;
-
-  categorie.forEach(cat => {
-    let categoriaStampata = false;
-
-    const righeCategoria = cat.sezioni.filter(s =>
-      righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
-    );
-
-    const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
-      const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-      if (!r) return acc;
-      return acc + r.U + r.D + r.GU + r.GD;
-    }, 0);
-
-    const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
-      const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-      if (!rPrec) return acc;
-      return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
-    }, 0);
-
-    const deltaTotale = totaleCategoria - totaleCategoriaPrec;
-
-    righeCategoria.forEach((sezione, index) => {
-      const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-      if (!r) return;
-
-      const somma = r.U + r.D + r.GU + r.GD;
-      const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
-      const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
-      const deltaSomma = somma - sommaPrec;
-
-      const tr = document.createElement("tr");
-      tr.classList.add(cat.tipo.toLowerCase());
-      if (!gruppoStampato) tr.classList.add("inizio-gruppo");
-      if (!categoriaStampata) tr.classList.add("inizio-categoria");
-
-      if (!gruppoStampato) {
-        tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
-        gruppoStampato = true;
-      }
-
-      if (!categoriaStampata) {
-        tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
-        categoriaStampata = true;
-      }
-
-      tr.innerHTML += `
-        <td>${sezione}</td>
-        <td>${r.U}</td>
-        <td>${r.D}</td>
-        <td>${r.GU}</td>
-        <td>${r.GD}</td>
-        <td>${somma}</td>
-        ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
-        <td>${sommaPrec}</td>
-        <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-        ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
-        ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
-        <td>${r.FUT}</td>
-        <td>${r.STU}</td>
-      `;
-
-      tbody.appendChild(tr);
-    });
-  });
-});
-
-    const riepilogoPer = {};
-    righe.forEach(r => {
-      if (
+      const righeGruppo = righe.filter(r =>
+        r.gruppo === gruppo &&
         (!filtroAnno.value || r.anno === filtroAnno.value) &&
-        (!filtroMese.value || r.mese === filtroMese.value) &&
-        gruppoToCapitolo[r.gruppo] === capitoloSelezionato
-      ) {
-        const chiavi = [
-          `Settore: ${gruppoToSettore[r.gruppo]}`,
-          `Capitolo: ${gruppoToCapitolo[r.gruppo]}`
-        ];
-        chiavi.forEach(chiave => {
-          if (!riepilogoPer[chiave]) riepilogoPer[chiave] = [];
-          riepilogoPer[chiave].push(r);
-        });
-      }
-    });
+        (!filtroMese.value || r.mese === filtroMese.value)
+      );
 
-    const tabelleSettori = [];
-    let tabellaCapitolo = null;
+      const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+      const righePrecedenti = righe.filter(r =>
+        r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo
+      );
 
-    for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
-      const tab = document.createElement("table");
-      tab.style.marginTop = "2rem";
-      tab.innerHTML = `
-        <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem 0;">${titolo}</caption>
-        <thead>
-          <tr>
-            <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-            <th>Somma</th><th>Totale</th><th>Somma mese prec.</th><th>Δ Somma</th>
-            <th>Totale mese prec.</th><th>Δ Totale</th><th>Futuro</th><th>Studenti</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      `;
-
-      const tbody = tab.querySelector("tbody");
+      if (righeGruppo.length === 0) return;
 
       const categorie = [
         { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
         { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
       ];
 
+      let gruppoStampato = false;
+
       categorie.forEach(cat => {
-        const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
-        cat.sezioni.forEach(sezione => {
-          // Linea di separazione tra categorie
-          if (cat.tipo === "PRATICANTI" && sezione === cat.sezioni[0]) {
-            const separatore = document.createElement("tr");
-            separatore.classList.add("separatore-categoria");
-            const td = document.createElement("td");
-            td.colSpan = 14;
-            td.style.borderTop = "2px solid black";
-            td.style.padding = "0";
-            td.style.height = "0";
-            separatore.appendChild(td);
-            tbody.appendChild(separatore);
-          }
+        let categoriaStampata = false;
 
-          const righeSez = righeCat.filter(r => r.sezione === sezione);
-          if (righeSez.length === 0) return;
+        const righeCategoria = cat.sezioni.filter(s =>
+          righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === s)
+        );
 
-          const U = righeSez.reduce((s, r) => s + r.U, 0);
-          const D = righeSez.reduce((s, r) => s + r.D, 0);
-          const GU = righeSez.reduce((s, r) => s + r.GU, 0);
-          const GD = righeSez.reduce((s, r) => s + r.GD, 0);
-          const FUT = righeSez.reduce((s, r) => s + (typeof r.FUT === "number" ? r.FUT : 0), 0);
-          const STU = righeSez.reduce((s, r) => s + (typeof r.STU === "number" ? r.STU : 0), 0);
-          const somma = U + D + GU + GD;
+        const totaleCategoria = righeCategoria.reduce((acc, sezione) => {
+          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+          if (!r) return acc;
+          return acc + r.U + r.D + r.GU + r.GD;
+        }, 0);
 
-          const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
-          const righePrec = righe.filter(r =>
-            r.anno === annoPrec &&
-            r.mese === mesePrec &&
-            r.tipo === cat.tipo &&
-            r.sezione === sezione &&
-            gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
-            (titolo.includes("Settore")
-              ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1]
-              : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1])
-          );
+        const totaleCategoriaPrec = righeCategoria.reduce((acc, sezione) => {
+          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+          if (!rPrec) return acc;
+          return acc + rPrec.U + rPrec.D + rPrec.GU + rPrec.GD;
+        }, 0);
 
-          const U0 = righePrec.reduce((s, r) => s + r.U, 0);
-          const D0 = righePrec.reduce((s, r) => s + r.D, 0);
-          const GU0 = righePrec.reduce((s, r) => s + r.GU, 0);
-          const GD0 = righePrec.reduce((s, r) => s + r.GD, 0);
-          const somma0 = U0 + D0 + GU0 + GD0;
-          const deltaSomma = somma - somma0;
+        const deltaTotale = totaleCategoria - totaleCategoriaPrec;
+
+        righeCategoria.forEach((sezione, index) => {
+          const r = righeGruppo.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+          if (!r) return;
+
+          const somma = r.U + r.D + r.GU + r.GD;
+          const rPrec = righePrecedenti.find(x => x.tipo === cat.tipo && x.sezione === sezione);
+          const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+          const deltaSomma = somma - sommaPrec;
 
           const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${cat.tipo}</td>
+          tr.classList.add(cat.tipo.toLowerCase());
+          if (!gruppoStampato) tr.classList.add("inizio-gruppo");
+          if (!categoriaStampata) tr.classList.add("inizio-categoria");
+
+          if (!gruppoStampato) {
+            tr.innerHTML += `<td class="nome-gruppo" rowspan="${righeGruppo.length}">${gruppo}</td>`;
+            gruppoStampato = true;
+          }
+
+          if (!categoriaStampata) {
+            tr.innerHTML += `<td rowspan="${righeCategoria.length}">${cat.tipo}</td>`;
+            categoriaStampata = true;
+          }
+
+          tr.innerHTML += `
             <td>${sezione}</td>
-            <td>${U}</td>
-            <td>${D}</td>
-            <td>${GU}</td>
-            <td>${GD}</td>
+            <td>${r.U}</td>
+            <td>${r.D}</td>
+            <td>${r.GU}</td>
+            <td>${r.GD}</td>
             <td>${somma}</td>
-            <td>${somma}</td>
-            <td>${somma0}</td>
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoria}</td>` : ""}
+            <td>${sommaPrec}</td>
             <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-            <td>${somma0}</td>
-            <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-            <td>${FUT}</td>
-            <td>${STU}</td>
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${totaleCategoriaPrec}</td>` : ""}
+            ${index === 0 ? `<td rowspan="${righeCategoria.length}">${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>` : ""}
+            <td>${r.FUT}</td>
+            <td>${r.STU}</td>
           `;
+
           tbody.appendChild(tr);
         });
       });
+    });
 
-      if (titolo === `Capitolo: ${capitoloSelezionato}`) {
-        tabellaCapitolo = tab;
-      } else {
-        tabelleSettori.push(tab);
+    righe.forEach(r => {
+      if (
+        (!filtroAnno.value || r.anno === filtroAnno.value) &&
+        (!filtroMese.value || r.mese === filtroMese.value) &&
+        gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
+      ) {
+        const settore = gruppoToSettore[r.gruppo];
+        const capitolo = gruppoToCapitolo[r.gruppo];
+        addTo(riepilogo, `Settore: ${settore}`, r);
+        addTo(riepilogo, `Capitolo: ${capitolo}`, r);
       }
-    }
+    });
 
-    // Appendi prima i settori
-    tabelleSettori.forEach(tab => riepilogoDiv.appendChild(tab));
+    // Nuovo riepilogo dettagliato
+const riepilogoPer = {};
 
-    // Poi il capitolo selezionato
-    if (tabellaCapitolo) riepilogoDiv.appendChild(tabellaCapitolo);
+righe.forEach(r => {
+  if (
+    (!filtroAnno.value || r.anno === filtroAnno.value) &&
+    (!filtroMese.value || r.mese === filtroMese.value) &&
+    gruppoToCapitolo[r.gruppo] === filtroCapitolo.value
+  ) {
+    const chiavi = [
+      `Settore: ${gruppoToSettore[r.gruppo]}`,
+      `Capitolo: ${gruppoToCapitolo[r.gruppo]}`
+    ];
+    chiavi.forEach(chiave => {
+      if (!riepilogoPer[chiave]) riepilogoPer[chiave] = [];
+      riepilogoPer[chiave].push(r);
+    });
+  }
+});
+
+for (const [titolo, righeSettore] of Object.entries(riepilogoPer)) {
+  const tab = document.createElement("table");
+  tab.style.marginTop = "2rem";
+  tab.innerHTML = `
+    <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem 0;">${titolo}</caption>
+    <thead>
+      <tr>
+        <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+        <th>Somma</th><th>Totale</th><th>Somma mese prec.</th><th>Δ Somma</th>
+        <th>Totale mese prec.</th><th>Δ Totale</th><th>Futuro</th><th>Studenti</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = tab.querySelector("tbody");
+
+  const categorie = [
+    { tipo: "ZADANKAI", sezioni: ["membri", "simpatizzanti", "ospiti"] },
+    { tipo: "PRATICANTI", sezioni: ["membri", "simpatizzanti"] }
+  ];
+
+  categorie.forEach(cat => {
+    const righeCat = righeSettore.filter(r => r.tipo === cat.tipo);
+    cat.sezioni.forEach(sezione => {
+      const righeSez = righeCat.filter(r => r.sezione === sezione);
+      if (righeSez.length === 0) return;
+
+      const U = righeSez.reduce((s, r) => s + r.U, 0);
+      const D = righeSez.reduce((s, r) => s + r.D, 0);
+      const GU = righeSez.reduce((s, r) => s + r.GU, 0);
+      const GD = righeSez.reduce((s, r) => s + r.GD, 0);
+      const FUT = righeSez.map(r => r.FUT).filter(x => x !== "-").join(", ") || "-";
+      const STU = righeSez.map(r => r.STU).filter(x => x !== "-").join(", ") || "-";
+      const somma = U + D + GU + GD;
+
+      // mese precedente
+      const { mese: mesePrec, anno: annoPrec } = mesePrecedente(filtroMese.value, filtroAnno.value);
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.tipo === cat.tipo &&
+        r.sezione === sezione &&
+        gruppoToCapitolo[r.gruppo] === filtroCapitolo.value &&
+        (titolo.includes("Settore") ? gruppoToSettore[r.gruppo] === titolo.split(": ")[1] : gruppoToCapitolo[r.gruppo] === titolo.split(": ")[1])
+      );
+
+      const U0 = righePrec.reduce((s, r) => s + r.U, 0);
+      const D0 = righePrec.reduce((s, r) => s + r.D, 0);
+      const GU0 = righePrec.reduce((s, r) => s + r.GU, 0);
+      const GD0 = righePrec.reduce((s, r) => s + r.GD, 0);
+      const somma0 = U0 + D0 + GU0 + GD0;
+
+      const deltaSomma = somma - somma0;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${cat.tipo}</td>
+        <td>${sezione}</td>
+        <td>${U}</td>
+        <td>${D}</td>
+        <td>${GU}</td>
+        <td>${GD}</td>
+        <td>${somma}</td>
+        <td>${somma}</td>
+        <td>${somma0}</td>
+        <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+        <td>${somma0}</td>
+        <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+        <td>${FUT}</td>
+        <td>${STU}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+
+  riepilogoDiv.appendChild(tab);
+}
+
   }
 </script>
 </body>
+</html>
