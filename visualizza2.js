@@ -87,12 +87,18 @@ function aggiornaTabella() {
       (!anno || r.anno === anno) &&
       (!mese || r.mese === mese)
     );
-
-    righeGruppo.forEach(r => {
+  
+    if (righeGruppo.length === 0) return;
+  
+    righeGruppo.forEach((r, index) => {
       const somma = r.U + r.D + r.GU + r.GD;
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.gruppo}</td>
+  
+      if (index === 0) {
+        tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
+      }
+  
+      tr.innerHTML += `
         <td>${r.tipo}</td>
         <td>${r.sezione}</td>
         <td>${r.U}</td>
@@ -107,4 +113,5 @@ function aggiornaTabella() {
       tbody.appendChild(tr);
     });
   });
+
 }
