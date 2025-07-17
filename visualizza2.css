@@ -67,7 +67,7 @@ td.categoria {
   background-color: #e0f7fa;
   font-weight: bold;
   border-top: 2px solid #666;
-  border-right: 3px solid #333;
+  border-right: 2px solid #333;
 }
 
 tr.inizio-gruppo td {
@@ -79,9 +79,9 @@ tr.inizio-categoria td {
 }
 
 /* Bordo destro più spesso per colonne specifiche */
-td:nth-child(6), /* GD */
-td:nth-child(8), /* Totale */
-td:nth-child(10), /* Totale mese prec. */
-td:nth-child(12)  /* Δ Totale */ {
-  border-right: 3px solid #333;
+td:nth-child(7), /* GD */
+td:nth-child(9), /* Totale */
+td:nth-child(11), /* Totale mese prec. */
+td:nth-child(13)  /* Δ Totale */ {
+  border-right: 2px solid #333;
 }
