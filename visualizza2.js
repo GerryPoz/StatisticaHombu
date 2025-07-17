@@ -140,21 +140,39 @@ function aggiornaTabella() {
           categoriaStampata = true;
         }
 
-        tr.innerHTML += `
-          <td>${r.sezione}</td>
-          <td>${r.U}</td>
-          <td>${r.D}</td>
-          <td>${r.GU}</td>
-          <td>${r.GD}</td>
-          <td>${somma}</td>
-          <td>${somma}</td>
-          <td>${sommaPrec}</td>
-          <td>${totalePrec}</td>
-          <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
-          <td>${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>
-          <td>${r.FUT}</td>
-          <td>${r.STU}</td>
-        `;
+        const celle = [
+          r.sezione,
+          r.U,
+          r.D,
+          r.GU,
+          r.GD,
+          somma,
+          somma,
+          sommaPrec,
+          totalePrec,
+          deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma,
+          deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale,
+          r.FUT,
+          r.STU
+        ];
+        
+        celle.forEach((val, i) => {
+          const td = document.createElement("td");
+          td.textContent = val;
+        
+          // Bordo sinistro spesso per colonna U (seconda cella in questo array)
+          if (i === 1) {
+            td.style.borderLeft = "3px solid #333";
+          }
+        
+          // Bordo destro spesso per GD, Totale, Totale mese prec., Δ Totale
+          //if ([3, 5, 8, 10].includes(i)) {
+            //td.style.borderRight = "3px solid #333";
+          //}
+        
+          tr.appendChild(td);
+        });
+
         tbody.appendChild(tr);
       });
     });
