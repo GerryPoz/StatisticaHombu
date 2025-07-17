@@ -158,7 +158,14 @@ function aggiornaTabella() {
         
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-          td.textContent = val;
+          // Variazione Somma (index 9) e Variazione Totale (index 10)
+          if (i === 9 || i === 10) {
+            td.textContent = val;
+            td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
+          } else {
+            td.textContent = val;
+          }
+
         
           // Bordo sinistro spesso per colonna U (seconda cella in questo array)
           //if (i === 1) {
