@@ -49,9 +49,12 @@ th {
   background: #e0f7fa;
 }
 
-td.nome-gruppo {
-  background-color: #fff3cd;
-  font-weight: bold;
+tr.zadankai td {
+  background-color: #e8f5e9; /* verde chiaro */
+}
+
+tr.praticanti td {
+  background-color: #e3f2fd; /* azzurro chiaro */
 }
 
 td.nome-gruppo {
