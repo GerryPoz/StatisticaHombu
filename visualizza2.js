@@ -81,6 +81,7 @@ function aggiornaTabella() {
 
   const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
 
+  //----------------Crea le tabelle dei gruppi
   gruppi.forEach(gruppo => {
     const righeGruppo = righe.filter(r =>
       r.gruppo === gruppo &&
@@ -90,28 +91,48 @@ function aggiornaTabella() {
   
     if (righeGruppo.length === 0) return;
   
-    righeGruppo.forEach((r, index) => {
-      const somma = r.U + r.D + r.GU + r.GD;
-      const tr = document.createElement("tr");
+    const categorie = ["ZADANKAI", "PRATICANTI"];
+    let gruppoStampato = false;
   
-      if (index === 0) {
-        tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
-      }
+    categorie.forEach(categoria => {
+      const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
+      if (righeCategoria.length === 0) return;
   
-      tr.innerHTML += `
-        <td>${r.tipo}</td>
-        <td>${r.sezione}</td>
-        <td>${r.U}</td>
-        <td>${r.D}</td>
-        <td>${r.GU}</td>
-        <td>${r.GD}</td>
-        <td>${somma}</td>
-        <td>${somma}</td>
-        <td>${r.FUT}</td>
-        <td>${r.STU}</td>
-      `;
-      tbody.appendChild(tr);
+      let categoriaStampata = false;
+  
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const tr = document.createElement("tr");
+  
+        tr.classList.add("riga-gruppo");
+        if (!gruppoStampato) tr.classList.add("inizio-gruppo");
+        if (!categoriaStampata) tr.classList.add("inizio-categoria");
+  
+        if (!gruppoStampato) {
+          tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
+          gruppoStampato = true;
+        }
+  
+        if (!categoriaStampata) {
+          tr.innerHTML += `<td rowspan="${righeCategoria.length}" class="categoria">${categoria}</td>`;
+          categoriaStampata = true;
+        }
+  
+        tr.innerHTML += `
+          <td>${r.sezione}</td>
+          <td>${r.U}</td>
+          <td>${r.D}</td>
+          <td>${r.GU}</td>
+          <td>${r.GD}</td>
+          <td>${somma}</td>
+          <td>${somma}</td>
+          <td>${r.FUT}</td>
+          <td>${r.STU}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     });
   });
+  //----------------------------------------------
 
 }
