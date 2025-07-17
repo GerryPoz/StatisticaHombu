@@ -103,7 +103,9 @@ function aggiornaTabella() {
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
         const tr = document.createElement("tr");
-  
+
+        tr.classList.add(categoria.toLowerCase()); // aggiunge "zadankai" o "praticanti"
+
         tr.classList.add("riga-gruppo");
         if (!gruppoStampato) tr.classList.add("inizio-gruppo");
         if (!categoriaStampata) tr.classList.add("inizio-categoria");
