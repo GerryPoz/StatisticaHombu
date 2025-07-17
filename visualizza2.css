@@ -48,3 +48,8 @@ th, td {
 th {
   background: #e0f7fa;
 }
+
+td.nome-gruppo {
+  background-color: #fff3cd;
+  font-weight: bold;
+}
