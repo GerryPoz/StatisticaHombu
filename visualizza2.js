@@ -161,14 +161,14 @@ function aggiornaTabella() {
           td.textContent = val;
         
           // Bordo sinistro spesso per colonna U (seconda cella in questo array)
-          if (i === 1) {
-            td.style.borderLeft = "3px solid #333";
-          }
+          //if (i === 1) {
+          //  td.style.borderLeft = "3px solid #333";
+          //}
         
           // Bordo destro spesso per GD, Totale, Totale mese prec., Δ Totale
-          //if ([3, 5, 8, 10].includes(i)) {
-            //td.style.borderRight = "3px solid #333";
-          //}
+          if ([1, 5, 7, 9, 11].includes(i)) {
+            td.style.borderLeft = "2px solid #333";
+          }
         
           tr.appendChild(td);
         });
