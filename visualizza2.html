@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visualizza Dati – HOMBU 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="visualizza2.css" />
+  <script type="module" src="visualizza2.js"></script>
+</head>
+<body>
+
+  <h1>Visualizza Dati – HOMBU 2</h1>
+
+  <fieldset class="filtri">
+    <legend><strong>Filtri</strong></legend>
+    <label>Anno: <select id="filtro-anno"></select></label>
+    <label>Mese: <select id="filtro-mese"></select></label>
+    <label>Capitolo: <select id="filtro-capitolo"></select></label>
+  </fieldset>
+
+  <table id="tabella-dati">
+    <thead>
+      <tr>
+        <th>Nome Gruppo</th><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+        <th>Somma</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</body>
+</html>
