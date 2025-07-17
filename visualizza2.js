@@ -15,6 +15,14 @@ const mesiOrdine = [
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
 ];
 
+function mesePrecedente(mese, anno) {
+  const index = mesiOrdine.indexOf(mese);
+  if (index === -1) return { mese: null, anno: null };
+  const nuovoIndex = (index - 1 + 12) % 12;
+  const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
+  return { mese: mesiOrdine[nuovoIndex], anno: nuovoAnno };
+}
+
 let gruppoToCapitolo = {};
 let righe = [];
 
@@ -81,45 +89,57 @@ function aggiornaTabella() {
 
   const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
 
-  //----------------Crea le tabelle dei gruppi
   gruppi.forEach(gruppo => {
     const righeGruppo = righe.filter(r =>
       r.gruppo === gruppo &&
       (!anno || r.anno === anno) &&
       (!mese || r.mese === mese)
     );
-  
+
     if (righeGruppo.length === 0) return;
-  
+
     const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
-  
+
     categorie.forEach(categoria => {
       const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
       if (righeCategoria.length === 0) return;
-  
+
       let categoriaStampata = false;
-  
+
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
+
+        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
+        const righePrec = righe.filter(x =>
+          x.anno === annoPrec &&
+          x.mese === mesePrec &&
+          x.gruppo === r.gruppo &&
+          x.tipo === r.tipo &&
+          x.sezione === r.sezione
+        );
+
+        const rPrec = righePrec[0];
+        const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+        const totalePrec = sommaPrec;
+        const deltaSomma = somma - sommaPrec;
+        const deltaTotale = somma - totalePrec;
+
         const tr = document.createElement("tr");
-
-        tr.classList.add(categoria.toLowerCase()); // aggiunge "zadankai" o "praticanti"
-
-        tr.classList.add("riga-gruppo");
+        tr.classList.add(categoria.toLowerCase());
         if (!gruppoStampato) tr.classList.add("inizio-gruppo");
         if (!categoriaStampata) tr.classList.add("inizio-categoria");
-  
+
         if (!gruppoStampato) {
           tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
           gruppoStampato = true;
         }
-  
+
         if (!categoriaStampata) {
           tr.innerHTML += `<td rowspan="${righeCategoria.length}" class="categoria">${categoria}</td>`;
           categoriaStampata = true;
         }
-  
+
         tr.innerHTML += `
           <td>${r.sezione}</td>
           <td>${r.U}</td>
@@ -128,6 +148,10 @@ function aggiornaTabella() {
           <td>${r.GD}</td>
           <td>${somma}</td>
           <td>${somma}</td>
+          <td>${sommaPrec}</td>
+          <td>${totalePrec}</td>
+          <td>${deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma}</td>
+          <td>${deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale}</td>
           <td>${r.FUT}</td>
           <td>${r.STU}</td>
         `;
@@ -135,6 +159,4 @@ function aggiornaTabella() {
       });
     });
   });
-  //----------------------------------------------
-
 }
