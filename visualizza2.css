@@ -53,3 +53,24 @@ td.nome-gruppo {
   background-color: #fff3cd;
   font-weight: bold;
 }
+
+td.nome-gruppo {
+  background-color: #fff3cd;
+  font-weight: bold;
+  border-top: 3px solid #333;
+}
+
+td.categoria {
+  background-color: #e0f7fa;
+  font-weight: bold;
+  border-top: 2px solid #666;
+}
+
+tr.inizio-gruppo td {
+  border-top: 3px solid #333;
+}
+
+tr.inizio-categoria td {
+  border-top: 2px solid #666;
+}
+
