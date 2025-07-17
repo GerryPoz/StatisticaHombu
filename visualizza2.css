@@ -1,0 +1,50 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f9f9f9;
+  margin: 0;
+  padding: 2rem;
+  color: #333;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+fieldset.filtri {
+  border: 2px solid #444;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: #fff;
+}
+
+label {
+  display: inline-block;
+  margin: 0.5rem 1rem 0.5rem 0;
+  font-weight: 500;
+}
+
+select {
+  font-size: 1rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 160px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.6rem;
+  text-align: center;
+}
+
+th {
+  background: #e0f7fa;
+}
