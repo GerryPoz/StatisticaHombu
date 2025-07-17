@@ -67,6 +67,7 @@ td.categoria {
   background-color: #e0f7fa;
   font-weight: bold;
   border-top: 2px solid #666;
+  border-right: 3px solid #333;
 }
 
 tr.inizio-gruppo td {
@@ -78,10 +79,6 @@ tr.inizio-categoria td {
 }
 
 /* Bordo destro più spesso per colonne specifiche */
-td.categoria {
-  border-right: 3px solid #333;
-}
-
 td:nth-child(6), /* GD */
 td:nth-child(8), /* Totale */
 td:nth-child(10), /* Totale mese prec. */
