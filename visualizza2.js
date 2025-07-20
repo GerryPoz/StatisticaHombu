@@ -191,6 +191,8 @@ function aggiornaTabella() {
           tdTotale.style.borderLeft = "3px solid #333";
           tdTotale.style.borderRight = "3px solid #333";
           tr.appendChild(tdTotale);
+
+        tbody.appendChild(tr);
       });
     });
   });
