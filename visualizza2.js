@@ -67,10 +67,8 @@ Promise.all([
   }
 
   [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
-
-  const mesiPresenti = [...new Set(righe.map(r => r.mese))];
   mesiOrdine.forEach(mese => {
-    if (mesiPresenti.includes(mese)) {
+    if (righe.some(r => r.mese === mese)) {
       filtroMese.add(new Option(mese, mese));
     }
   });
@@ -89,43 +87,31 @@ function aggiornaTabella() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
 
-  const gruppiValidi = Object.entries(gruppoToCapitolo)
-    .filter(([gruppo, cap]) => cap === capitolo)
-    .map(([gruppo]) => gruppo);
-
-  const righeFiltrate = righe.filter(r =>
-    r.anno === anno &&
-    r.mese === mese &&
-    gruppiValidi.includes(r.gruppo)
-  );
-
-  const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
+  const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
 
   gruppi.forEach(gruppo => {
-    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
-    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
+    const righeGruppo = righe.filter(r =>
+      r.gruppo === gruppo &&
+      (!anno || r.anno === anno) &&
+      (!mese || r.mese === mese)
+    );
+
+    if (righeGruppo.length === 0) return;
+
+    const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
 
-    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
-      const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+    categorie.forEach(categoria => {
+      const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
       if (righeCategoria.length === 0) return;
 
-      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-      const righePrecCat = righe.filter(r =>
-        r.anno === annoPrec &&
-        r.mese === mesePrec &&
-        r.gruppo === gruppo &&
-        r.tipo === tipo
-      );
-      const totalePrecCat = righePrecCat.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-      const deltaTotCat = totaleCategoria - totalePrecCat;
-
       let categoriaStampata = false;
-      let totaleStampato = false;
 
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
-        const rPrec = righe.find(x =>
+
+        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
+        const righePrec = righe.filter(x =>
           x.anno === annoPrec &&
           x.mese === mesePrec &&
           x.gruppo === r.gruppo &&
@@ -133,62 +119,65 @@ function aggiornaTabella() {
           x.sezione === r.sezione
         );
 
+        const rPrec = righePrec[0];
         const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+        const totalePrec = sommaPrec;
         const deltaSomma = somma - sommaPrec;
+        const deltaTotale = somma - totalePrec;
 
         const tr = document.createElement("tr");
+        tr.classList.add(categoria.toLowerCase());
+        if (!gruppoStampato) tr.classList.add("inizio-gruppo");
+        if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
         if (!gruppoStampato) {
-          const tdGruppo = document.createElement("td");
-          tdGruppo.textContent = gruppo;
-          tdGruppo.rowSpan = righeGruppo.length;
-          tr.appendChild(tdGruppo);
+          tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
           gruppoStampato = true;
         }
 
         if (!categoriaStampata) {
-          const tdCategoria = document.createElement("td");
-          tdCategoria.textContent = tipo;
-          tdCategoria.rowSpan = righeCategoria.length;
-          tr.appendChild(tdCategoria);
+          tr.innerHTML += `<td rowspan="${righeCategoria.length}" class="categoria">${categoria}</td>`;
           categoriaStampata = true;
         }
 
         const celle = [
-          r.sezione, r.U, r.D, r.GU, r.GD,
-          somma, sommaPrec,
+          r.sezione,
+          r.U,
+          r.D,
+          r.GU,
+          r.GD,
+          somma,
+          somma,
+          sommaPrec,
+          totalePrec,
           deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma,
-          r.FUT, r.STU
+          deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale,
+          r.FUT,
+          r.STU
         ];
-
+        
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-          td.textContent = val;
-
-          if (i === 1) td.style.borderLeft = "3px solid #333";
-          if ([4, 5, 6, 7].includes(i)) td.style.borderRight = "3px solid #333";
-          if (i === 7) td.style.color = val.startsWith("+") ? "green" : "red";
-
-          tr.appendChild(td);
-
-          if (!totaleStampato && i === 5) {
-            const tdTotCat = document.createElement("td");
-            tdTotCat.rowSpan = righeCategoria.length;
-            tdTotCat.innerHTML = `
-              <div><strong>${totaleCategoria}</strong></div>
-              <div style="font-size:0.9em;">Prec: ${totalePrecCat}</div>
-              <div style="color:${deltaTotCat >= 0 ? 'green' : 'red'};
-                          font-weight:bold;">
-                Δ Tot: ${deltaTotCat >= 0 ? "+" : ""}${deltaTotCat}
-              </div>
-            `;
-            tdTotCat.style.backgroundColor = "#fff3cd";
-            tdTotCat.style.borderLeft = "3px solid #333";
-            tdTotCat.style.borderRight = "3px solid #333";
-            tdTotCat.style.textAlign = "center";
-            tr.appendChild(tdTotCat);
-            totaleStampato = true;
+          // Variazione Somma (index 9) e Variazione Totale (index 10)
+          if (i === 9 || i === 10) {
+            td.textContent = val;
+            td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
+          } else {
+            td.textContent = val;
           }
+
+        
+          // Bordo sinistro spesso per colonna U (seconda cella in questo array)
+          //if (i === 1) {
+          //  td.style.borderLeft = "3px solid #333";
+          //}
+        
+          // Bordo destro spesso per GD, Totale, Totale mese prec., Δ Totale
+          if ([1, 5, 7, 9, 11].includes(i)) {
+            td.style.borderLeft = "2px solid #333";
+          }
+        
+          tr.appendChild(td);
         });
 
         tbody.appendChild(tr);
