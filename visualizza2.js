@@ -90,7 +90,6 @@ function aggiornaTabella() {
   const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
 
   gruppi.forEach(gruppo => {
-    const totaleGruppo = righeGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
     const righeGruppo = righe.filter(r =>
       r.gruppo === gruppo &&
       (!anno || r.anno === anno) &&
@@ -98,6 +97,16 @@ function aggiornaTabella() {
     );
 
     if (righeGruppo.length === 0) return;
+
+    const totaleGruppo = righeGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
+    const righePrecGruppo = righe.filter(r =>
+      r.anno === annoPrec &&
+      r.mese === mesePrec &&
+      r.gruppo === gruppo
+    );
+    const totalePrecGruppo = righePrecGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const deltaTotaleGruppo = totaleGruppo - totalePrecGruppo;
 
     const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
@@ -111,7 +120,6 @@ function aggiornaTabella() {
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
 
-        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
         const righePrec = righe.filter(x =>
           x.anno === annoPrec &&
           x.mese === mesePrec &&
@@ -132,12 +140,36 @@ function aggiornaTabella() {
         if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
         if (!gruppoStampato) {
-          tr.innerHTML += `<td rowspan="${righeGruppo.length}" class="nome-gruppo">${gruppo}</td>`;
+          const tdGruppo = document.createElement("td");
+          tdGruppo.textContent = gruppo;
+          tdGruppo.rowSpan = righeGruppo.length;
+          tdGruppo.classList.add("nome-gruppo");
+          tr.appendChild(tdGruppo);
           gruppoStampato = true;
+
+          const tdTotale = document.createElement("td");
+          tdTotale.rowSpan = righeGruppo.length;
+          tdTotale.innerHTML = `
+            <div><strong>${totaleGruppo}</strong></div>
+            <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
+            <div style="color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};">
+              ${deltaTotaleGruppo >= 0 ? "+" : ""}${deltaTotaleGruppo}
+            </div>
+          `;
+          tdTotale.style.backgroundColor = "#fff3cd";
+          tdTotale.style.borderLeft = "3px solid #333";
+          tdTotale.style.borderRight = "3px solid #333";
+          tdTotale.style.textAlign = "center";
+          tr.appendChild(tdTotale);
         }
 
         if (!categoriaStampata) {
-          tr.innerHTML += `<td rowspan="${righeCategoria.length}" class="categoria">${categoria}</td>`;
+          const tdCategoria = document.createElement("td");
+          tdCategoria.textContent = categoria;
+          tdCategoria.rowSpan = righeCategoria.length;
+          tdCategoria.classList.add("categoria");
+          tdCategoria.style.borderRight = "3px solid #333";
+          tr.appendChild(tdCategoria);
           categoriaStampata = true;
         }
 
@@ -148,7 +180,6 @@ function aggiornaTabella() {
           r.GU,
           r.GD,
           somma,
-          somma,
           sommaPrec,
           totalePrec,
           deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma,
@@ -156,44 +187,28 @@ function aggiornaTabella() {
           r.FUT,
           r.STU
         ];
-        
+
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-          // Variazione Somma / Totale colorate
-          if (i === 9 || i === 10) {
+
+          // Variazioni colorate
+          if (i === 8 || i === 9) {
             td.textContent = val;
             td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
           } else {
             td.textContent = val;
           }
 
-        
-          // Bordo sinistro spesso per colonna U (seconda cella in questo array)
-          //if (i === 1) {
-          //  td.style.borderLeft = "3px solid #333";
-          //}
-        
-          // Bordo destro spesso per GD, Totale, Totale mese prec., Δ Totale
-          if ([1, 5, 7, 9, 11].includes(i)) {
-            td.style.borderLeft = "2px solid #333";
-          }
-        
+          // Bordi visivi
+          if (i === 1) td.style.borderLeft = "3px solid #333"; // Colonna U
+          if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333"; // GD, Totale, Totale mese prec., Δ Totale
+
           tr.appendChild(td);
         });
-
-        // ✅ Aggiungi cella Totale aggregato con rowspan
-        if (!gruppoStampato) {
-          const tdTotale = document.createElement("td");
-          tdTotale.textContent = totaleGruppo;
-          tdTotale.rowSpan = righeGruppo.length;
-          tdTotale.style.fontWeight = "bold";
-          tdTotale.style.backgroundColor = "#fff3cd";
-          tdTotale.style.borderLeft = "3px solid #333";
-          tdTotale.style.borderRight = "3px solid #333";
-          tr.appendChild(tdTotale);
 
         tbody.appendChild(tr);
       });
     });
   });
 }
+
