@@ -67,8 +67,10 @@ Promise.all([
   }
 
   [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
+
+  const mesiPresenti = [...new Set(righe.map(r => r.mese))];
   mesiOrdine.forEach(mese => {
-    if (righe.some(r => r.mese === mese)) {
+    if (mesiPresenti.includes(mese)) {
       filtroMese.add(new Option(mese, mese));
     }
   });
@@ -87,42 +89,43 @@ function aggiornaTabella() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
 
-  // Filtra tutti i gruppi del capitolo selezionato
   const gruppiValidi = Object.entries(gruppoToCapitolo)
     .filter(([gruppo, cap]) => cap === capitolo)
     .map(([gruppo]) => gruppo);
 
-  // Filtra tutte le righe che corrispondono ad anno, mese e gruppo
   const righeFiltrate = righe.filter(r =>
     r.anno === anno &&
     r.mese === mese &&
     gruppiValidi.includes(r.gruppo)
   );
 
-  if (righeFiltrate.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="15">Nessun dato disponibile per ${mese} ${anno} nel capitolo "${capitolo}".</td></tr>`;
-    return;
-  }
-
-  // ✅ Ricostruisci la tabella usando solo righe valide
   const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
   gruppi.forEach(gruppo => {
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
-    const categorie = ["ZADANKAI", "PRATICANTI"];
+    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
     let gruppoStampato = false;
 
-    categorie.forEach(categoria => {
-      const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
       if (righeCategoria.length === 0) return;
 
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const righePrecCat = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === tipo
+      );
+      const totalePrecCat = righePrecCat.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const deltaTotCat = totaleCategoria - totalePrecCat;
+
       let categoriaStampata = false;
+      let totaleStampato = false;
 
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
-
-        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(r.mese, r.anno);
-        const prec = righe.find(x =>
+        const rPrec = righe.find(x =>
           x.anno === annoPrec &&
           x.mese === mesePrec &&
           x.gruppo === r.gruppo &&
@@ -130,45 +133,62 @@ function aggiornaTabella() {
           x.sezione === r.sezione
         );
 
-        const sommaPrec = prec ? prec.U + prec.D + prec.GU + prec.GD : 0;
-        const delta = somma - sommaPrec;
+        const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
+        const deltaSomma = somma - sommaPrec;
 
         const tr = document.createElement("tr");
 
         if (!gruppoStampato) {
-          const td = document.createElement("td");
-          td.textContent = gruppo;
-          td.rowSpan = righeGruppo.length;
-          tr.appendChild(td);
+          const tdGruppo = document.createElement("td");
+          tdGruppo.textContent = gruppo;
+          tdGruppo.rowSpan = righeGruppo.length;
+          tr.appendChild(tdGruppo);
           gruppoStampato = true;
         }
 
         if (!categoriaStampata) {
-          const td = document.createElement("td");
-          td.textContent = categoria;
-          td.rowSpan = righeCategoria.length;
-          tr.appendChild(td);
+          const tdCategoria = document.createElement("td");
+          tdCategoria.textContent = tipo;
+          tdCategoria.rowSpan = righeCategoria.length;
+          tr.appendChild(tdCategoria);
           categoriaStampata = true;
         }
 
         const celle = [
-          r.sezione,
-          r.U,
-          r.D,
-          r.GU,
-          r.GD,
-          somma,
-          sommaPrec,
-          delta >= 0 ? "+" + delta : delta,
-          r.FUT,
-          r.STU
+          r.sezione, r.U, r.D, r.GU, r.GD,
+          somma, sommaPrec,
+          deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma,
+          r.FUT, r.STU
         ];
 
         celle.forEach((val, i) => {
           const td = document.createElement("td");
           td.textContent = val;
+
+          if (i === 1) td.style.borderLeft = "3px solid #333";
+          if ([4, 5, 6, 7].includes(i)) td.style.borderRight = "3px solid #333";
           if (i === 7) td.style.color = val.startsWith("+") ? "green" : "red";
+
           tr.appendChild(td);
+
+          if (!totaleStampato && i === 5) {
+            const tdTotCat = document.createElement("td");
+            tdTotCat.rowSpan = righeCategoria.length;
+            tdTotCat.innerHTML = `
+              <div><strong>${totaleCategoria}</strong></div>
+              <div style="font-size:0.9em;">Prec: ${totalePrecCat}</div>
+              <div style="color:${deltaTotCat >= 0 ? 'green' : 'red'};
+                          font-weight:bold;">
+                Δ Tot: ${deltaTotCat >= 0 ? "+" : ""}${deltaTotCat}
+              </div>
+            `;
+            tdTotCat.style.backgroundColor = "#fff3cd";
+            tdTotCat.style.borderLeft = "3px solid #333";
+            tdTotCat.style.borderRight = "3px solid #333";
+            tdTotCat.style.textAlign = "center";
+            tr.appendChild(tdTotCat);
+            totaleStampato = true;
+          }
         });
 
         tbody.appendChild(tr);
@@ -176,4 +196,3 @@ function aggiornaTabella() {
     });
   });
 }
-
