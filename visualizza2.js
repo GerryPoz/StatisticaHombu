@@ -99,6 +99,7 @@ function aggiornaTabella() {
     if (righeGruppo.length === 0) return;
 
     const totaleGruppo = righeGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+
     const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
     const righePrecGruppo = righe.filter(r =>
       r.anno === annoPrec &&
@@ -141,7 +142,6 @@ function aggiornaTabella() {
         if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
         if (!gruppoStampato) {
-          // ✅ Nome gruppo
           const tdGruppo = document.createElement("td");
           tdGruppo.textContent = gruppo;
           tdGruppo.rowSpan = righeGruppo.length;
@@ -149,9 +149,8 @@ function aggiornaTabella() {
           tr.appendChild(tdGruppo);
           gruppoStampato = true;
         }
-        
+
         if (!categoriaStampata) {
-          // ✅ Categoria (ZADANKAI / PRATICANTI)
           const tdCategoria = document.createElement("td");
           tdCategoria.textContent = categoria;
           tdCategoria.rowSpan = righeCategoria.length;
@@ -160,26 +159,6 @@ function aggiornaTabella() {
           tr.appendChild(tdCategoria);
           categoriaStampata = true;
         }
-        
-        // ✅ Totale gruppo, dopo tutte le intestazioni
-        if (!totaleStampato) {
-          const tdTotale = document.createElement("td");
-          tdTotale.rowSpan = righeGruppo.length;
-          tdTotale.innerHTML = `
-            <div><strong>${totaleGruppo}</strong></div>
-            <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
-            <div style="color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};">
-              ${deltaTotaleGruppo >= 0 ? "+" : ""}${deltaTotaleGruppo}
-            </div>
-          `;
-          tdTotale.style.backgroundColor = "#fff3cd";
-          tdTotale.style.borderLeft = "3px solid #333";
-          tdTotale.style.borderRight = "3px solid #333";
-          tdTotale.style.textAlign = "center";
-          tr.appendChild(tdTotale);
-          totaleStampato = true;
-        }
-
 
         const celle = [
           r.sezione,
@@ -207,16 +186,36 @@ function aggiornaTabella() {
             td.textContent = val;
           }
 
-          // Bordi visivi
-          if (i === 1) td.style.borderLeft = "3px solid #333"; // Colonna U
+          // Bordi
+          if (i === 1) td.style.borderLeft = "3px solid #333"; // U
           if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333"; // GD, Totale, Totale mese prec., Δ Totale
 
           tr.appendChild(td);
         });
+
+        if (!totaleStampato) {
+          const tdTotale = document.createElement("td");
+          tdTotale.rowSpan = righeGruppo.length;
+          tdTotale.innerHTML = `
+            <div><strong>${totaleGruppo}</strong></div>
+            <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
+                          <div style="
+                font-size: 0.9em;
+                font-weight: bold;
+              ">
+              Δ Tot: ${deltaTotaleGruppo >= 0 ? '+' : ''}${deltaTotaleGruppo}
+              </div>
+          `;
+          tdTotale.style.backgroundColor = "#fff3cd";
+          tdTotale.style.borderLeft = "3px solid #333";
+          tdTotale.style.borderRight = "3px solid #333";
+          tdTotale.style.textAlign = "center";
+          tr.appendChild(tdTotale);
+          totaleStampato = true;
+        }
 
         tbody.appendChild(tr);
       });
     });
   });
 }
-
