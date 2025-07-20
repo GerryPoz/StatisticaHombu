@@ -90,6 +90,7 @@ function aggiornaTabella() {
   const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
 
   gruppi.forEach(gruppo => {
+    const totaleGruppo = righeGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
     const righeGruppo = righe.filter(r =>
       r.gruppo === gruppo &&
       (!anno || r.anno === anno) &&
@@ -158,7 +159,7 @@ function aggiornaTabella() {
         
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-          // Variazione Somma (index 9) e Variazione Totale (index 10)
+          // Variazione Somma / Totale colorate
           if (i === 9 || i === 10) {
             td.textContent = val;
             td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
@@ -180,7 +181,16 @@ function aggiornaTabella() {
           tr.appendChild(td);
         });
 
-        tbody.appendChild(tr);
+        // ✅ Aggiungi cella Totale aggregato con rowspan
+        if (!gruppoStampato) {
+          const tdTotale = document.createElement("td");
+          tdTotale.textContent = totaleGruppo;
+          tdTotale.rowSpan = righeGruppo.length;
+          tdTotale.style.fontWeight = "bold";
+          tdTotale.style.backgroundColor = "#fff3cd";
+          tdTotale.style.borderLeft = "3px solid #333";
+          tdTotale.style.borderRight = "3px solid #333";
+          tr.appendChild(tdTotale);
       });
     });
   });
