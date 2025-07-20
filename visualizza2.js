@@ -193,18 +193,18 @@ function aggiornaTabella() {
           tr.appendChild(td);
         });
 
-        if (!totaleStampato) {
+        if (!totaleStampato && i === 5) {
           const tdTotale = document.createElement("td");
           tdTotale.rowSpan = righeGruppo.length;
           tdTotale.innerHTML = `
             <div><strong>${totaleGruppo}</strong></div>
             <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
-                          <div style="
-                font-size: 0.9em;
-                font-weight: bold;
-              ">
+            <div style="
+              font-size: 0.9em;
+              font-weight: bold;
+              color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};">
               Δ Tot: ${deltaTotaleGruppo >= 0 ? '+' : ''}${deltaTotaleGruppo}
-              </div>
+            </div>
           `;
           tdTotale.style.backgroundColor = "#fff3cd";
           tdTotale.style.borderLeft = "3px solid #333";
@@ -213,6 +213,7 @@ function aggiornaTabella() {
           tr.appendChild(tdTotale);
           totaleStampato = true;
         }
+
 
         tbody.appendChild(tr);
       });
