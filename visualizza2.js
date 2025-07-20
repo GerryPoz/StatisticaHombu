@@ -14,6 +14,13 @@ const mesiOrdine = [
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
 ];
 
+function mesePrecedente(mese, anno) {
+  const index = mesiOrdine.indexOf(mese);
+  const nuovoIndex = (index - 1 + 12) % 12;
+  const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
+  return { mese: mesiOrdine[nuovoIndex], anno: nuovoAnno };
+}
+
 let righe = [];
 
 get(child(ref(db), "zadankai")).then(snapshot => {
@@ -43,7 +50,6 @@ get(child(ref(db), "zadankai")).then(snapshot => {
     }
   }
 
-  // Popola filtro anno/mese
   [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
 
   const mesiPresenti = [...new Set(righe.map(r => r.mese))];
@@ -63,27 +69,83 @@ function aggiornaTabella() {
 
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
+  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
 
   const righeFiltrate = righe.filter(r => r.anno === anno && r.mese === mese);
-  if (righeFiltrate.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12">Nessun dato per ${mese} ${anno}</td></tr>`;
-    return;
-  }
+  const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
-  righeFiltrate.forEach(r => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.gruppo}</td>
-      <td>${r.tipo}</td>
-      <td>${r.sezione}</td>
-      <td>${r.U}</td>
-      <td>${r.D}</td>
-      <td>${r.GU}</td>
-      <td>${r.GD}</td>
-      <td>${r.U + r.D + r.GU + r.GD}</td>
-      <td>${r.FUT}</td>
-      <td>${r.STU}</td>
-    `;
-    tbody.appendChild(tr);
+  gruppi.forEach(gruppo => {
+    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+      if (righeCategoria.length === 0) return;
+
+      const totaleCategoria = righeCategoria.reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec && r.mese === mesePrec &&
+        r.gruppo === gruppo && r.tipo === tipo
+      );
+      const totalePrec = righePrec.reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleCategoria - totalePrec;
+
+      let categoriaStampata = false;
+      let totaleStampato = false;
+
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const tr = document.createElement("tr");
+
+        if (index === 0) {
+          const tdGruppo = document.createElement("td");
+          tdGruppo.textContent = gruppo;
+          tdGruppo.rowSpan = righeCategoria.length;
+          tdGruppo.style.fontWeight = "bold";
+          tr.appendChild(tdGruppo);
+        }
+
+        if (!categoriaStampata) {
+          const tdTipo = document.createElement("td");
+          tdTipo.textContent = tipo;
+          tdTipo.rowSpan = righeCategoria.length;
+          tdTipo.style.borderRight = "3px solid #333";
+          tr.appendChild(tdTipo);
+          categoriaStampata = true;
+        }
+
+        const celle = [
+          r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU
+        ];
+
+        celle.forEach((val, i) => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          if (i === 1) td.style.borderLeft = "3px solid #333";
+          if (i === 4) td.style.borderRight = "3px solid #333";
+          tr.appendChild(td);
+        });
+
+        if (!totaleStampato) {
+          const tdTot = document.createElement("td");
+          tdTot.rowSpan = righeCategoria.length;
+          tdTot.innerHTML = `
+            <div><strong>${totaleCategoria}</strong></div>
+            <div style="font-size: 0.9em;">Prec: ${totalePrec}</div>
+            <div style="color:${delta >= 0 ? 'green' : 'red'};">
+              ${delta >= 0 ? "+" : ""}${delta}
+            </div>
+          `;
+          tdTot.style.backgroundColor = "#fff3cd";
+          tdTot.style.borderLeft = "3px solid #333";
+          tdTot.style.borderRight = "3px solid #333";
+          tdTot.style.textAlign = "center";
+          tr.appendChild(tdTot);
+          totaleStampato = true;
+        }
+
+        tbody.appendChild(tr);
+      });
+    });
   });
 }
