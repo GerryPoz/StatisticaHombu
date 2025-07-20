@@ -87,19 +87,28 @@ function aggiornaTabella() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
 
-  const gruppi = Object.keys(gruppoToCapitolo).filter(g => gruppoToCapitolo[g] === capitolo);
+  // Filtra tutti i gruppi del capitolo selezionato
+  const gruppiValidi = Object.entries(gruppoToCapitolo)
+    .filter(([gruppo, cap]) => cap === capitolo)
+    .map(([gruppo]) => gruppo);
+
+  // Filtra tutte le righe che corrispondono ad anno, mese e gruppo
+  const righeFiltrate = righe.filter(r =>
+    r.anno === anno &&
+    r.mese === mese &&
+    gruppiValidi.includes(r.gruppo)
+  );
+
+  if (righeFiltrate.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="15">Nessun dato disponibile per ${mese} ${anno} nel capitolo "${capitolo}".</td></tr>`;
+    return;
+  }
+
+  // ✅ Ricostruisci la tabella usando solo righe valide
+  const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
   gruppi.forEach(gruppo => {
-    const righeGruppo = righe.filter(r =>
-      r.gruppo === gruppo &&
-      (!anno || r.anno === anno) &&
-      (!mese || r.mese === mese)
-    );
-
-    if (righeGruppo.length === 0) return;
-
-    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
-
+    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
 
@@ -107,23 +116,13 @@ function aggiornaTabella() {
       const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
       if (righeCategoria.length === 0) return;
 
-      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-      const righePrecCategoria = righe.filter(r =>
-        r.anno === annoPrec &&
-        r.mese === mesePrec &&
-        r.gruppo === gruppo &&
-        r.tipo === categoria
-      );
-      const totalePrecCategoria = righePrecCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-      const deltaTotaleCategoria = totaleCategoria - totalePrecCategoria;
-
       let categoriaStampata = false;
-      let totaleCategoriaStampato = false;
 
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
 
-        const righePrec = righe.filter(x =>
+        const { mese: mesePrec, anno: annoPrec } = mesePrecedente(r.mese, r.anno);
+        const prec = righe.find(x =>
           x.anno === annoPrec &&
           x.mese === mesePrec &&
           x.gruppo === r.gruppo &&
@@ -131,33 +130,24 @@ function aggiornaTabella() {
           x.sezione === r.sezione
         );
 
-        const rPrec = righePrec[0];
-        const sommaPrec = rPrec ? rPrec.U + rPrec.D + rPrec.GU + rPrec.GD : 0;
-        const totalePrec = sommaPrec;
-        const deltaSomma = somma - sommaPrec;
-        const deltaTotale = somma - totalePrec;
+        const sommaPrec = prec ? prec.U + prec.D + prec.GU + prec.GD : 0;
+        const delta = somma - sommaPrec;
 
         const tr = document.createElement("tr");
-        tr.classList.add(categoria.toLowerCase());
-        if (!gruppoStampato) tr.classList.add("inizio-gruppo");
-        if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
         if (!gruppoStampato) {
-          const tdGruppo = document.createElement("td");
-          tdGruppo.textContent = gruppo;
-          tdGruppo.rowSpan = righeGruppo.length;
-          tdGruppo.classList.add("nome-gruppo");
-          tr.appendChild(tdGruppo);
+          const td = document.createElement("td");
+          td.textContent = gruppo;
+          td.rowSpan = righeGruppo.length;
+          tr.appendChild(td);
           gruppoStampato = true;
         }
 
         if (!categoriaStampata) {
-          const tdCategoria = document.createElement("td");
-          tdCategoria.textContent = categoria;
-          tdCategoria.rowSpan = righeCategoria.length;
-          tdCategoria.classList.add("categoria");
-          tdCategoria.style.borderRight = "3px solid #333";
-          tr.appendChild(tdCategoria);
+          const td = document.createElement("td");
+          td.textContent = categoria;
+          td.rowSpan = righeCategoria.length;
+          tr.appendChild(td);
           categoriaStampata = true;
         }
 
@@ -169,49 +159,16 @@ function aggiornaTabella() {
           r.GD,
           somma,
           sommaPrec,
-          totalePrec,
-          deltaSomma >= 0 ? "+" + deltaSomma : deltaSomma,
-          deltaTotale >= 0 ? "+" + deltaTotale : deltaTotale,
+          delta >= 0 ? "+" + delta : delta,
           r.FUT,
           r.STU
         ];
 
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-
-          if (i === 8 || i === 9) {
-            td.textContent = val;
-            td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
-          } else {
-            td.textContent = val;
-          }
-
-          if (i === 1) td.style.borderLeft = "3px solid #333";
-          if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333";
-
+          td.textContent = val;
+          if (i === 7) td.style.color = val.startsWith("+") ? "green" : "red";
           tr.appendChild(td);
-
-          // Inserisci Totale categoria nella colonna giusta (dopo i === 5)
-          if (!totaleCategoriaStampato && i === 5) {
-            const tdTotCat = document.createElement("td");
-            tdTotCat.rowSpan = righeCategoria.length;
-            tdTotCat.innerHTML = `
-              <div><strong>${totaleCategoria}</strong></div>
-              <div style="font-size: 0.9em;">Prec: ${totalePrecCategoria}</div>
-              <div style="
-                font-size: 0.9em;
-                font-weight: bold;
-                color: ${deltaTotaleCategoria >= 0 ? 'green' : 'red'};">
-                Δ Tot: ${deltaTotaleCategoria >= 0 ? "+" : ""}${deltaTotaleCategoria}
-              </div>
-            `;
-                        tdTotCat.style.backgroundColor = "#fff3cd";
-            tdTotCat.style.borderLeft = "3px solid #333";
-            tdTotCat.style.borderRight = "3px solid #333";
-            tdTotCat.style.textAlign = "center";
-            tr.appendChild(tdTotCat);
-            totaleCategoriaStampato = true;
-          }
         });
 
         tbody.appendChild(tr);
@@ -219,3 +176,4 @@ function aggiornaTabella() {
     });
   });
 }
+
