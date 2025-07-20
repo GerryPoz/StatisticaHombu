@@ -1,46 +1,44 @@
+// 🔹 Import Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
+// 🔹 Inizializza Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// 🔹 Riferimenti DOM
 const filtroAnno = document.getElementById("filtro-anno");
 const filtroMese = document.getElementById("filtro-mese");
 const filtroCapitolo = document.getElementById("filtro-capitolo");
 const tbody = document.querySelector("#tabella-dati tbody");
 
-const mesiOrdine = [
-  "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-  "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-];
+const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
 function mesePrecedente(mese, anno) {
-  const index = mesiOrdine.indexOf(mese);
-  const nuovoIndex = (index - 1 + 12) % 12;
-  const nuovoAnno = index === 0 ? String(Number(anno) - 1) : anno;
-  return { mese: mesiOrdine[nuovoIndex], anno: nuovoAnno };
+  const idx = mesiOrdine.indexOf(mese);
+  const nuovoIdx = (idx - 1 + 12) % 12;
+  const nuovoAnno = idx === 0 ? String(Number(anno) - 1) : anno;
+  return { mese: mesiOrdine[nuovoIdx], anno: nuovoAnno };
 }
 
-let gruppoToCapitolo = {};
 let righe = [];
+let gruppoToCapitolo = {};
 
+// 🔹 Carica dati da gruppi.json e Firebase
 Promise.all([
   fetch("gruppi.json").then(res => res.json()),
   get(child(ref(db), "zadankai"))
 ]).then(([gruppiData, snapshot]) => {
-  // Costruzione mappa Gruppo → Capitolo
   const struttura = gruppiData["HOMBU 9"];
   for (const [capitolo, settori] of Object.entries(struttura)) {
     for (const gruppi of Object.values(settori)) {
-      gruppi.forEach(gr => {
-        gruppoToCapitolo[gr] = capitolo;
-      });
+      gruppi.forEach(gr => gruppoToCapitolo[gr] = capitolo);
     }
     filtroCapitolo.add(new Option(capitolo, capitolo));
   }
 
-  // Lettura dati Firebase
   if (!snapshot.exists()) return;
   const dati = snapshot.val();
 
@@ -50,50 +48,34 @@ Promise.all([
 
     for (const categoria in sezioni.zadankai) {
       const r = sezioni.zadankai[categoria];
-      righe.push({
-        anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-        FUT: r.FUT ?? 0, STU: r.STU ?? 0
-      });
+      righe.push({ anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
+        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, FUT: r.FUT ?? 0, STU: r.STU ?? 0 });
     }
 
     for (const categoria in sezioni.praticanti) {
       const r = sezioni.praticanti[categoria];
-      righe.push({
-        anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0,
-        FUT: 0, STU: 0
-      });
+      righe.push({ anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
+        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, FUT: 0, STU: 0 });
     }
   }
 
-  // Popolamento filtri
   [...new Set(righe.map(r => r.anno))].sort().forEach(v => filtroAnno.add(new Option(v, v)));
   const mesiPresenti = [...new Set(righe.map(r => r.mese))];
-  mesiOrdine.forEach(m => {
-    if (mesiPresenti.includes(m)) {
-      filtroMese.add(new Option(m, m));
-    }
-  });
+  mesiOrdine.forEach(m => { if (mesiPresenti.includes(m)) filtroMese.add(new Option(m, m)); });
 
-  [filtroAnno, filtroMese, filtroCapitolo].forEach(f =>
-    f.addEventListener("change", aggiornaTabella)
-  );
-
+  [filtroAnno, filtroMese, filtroCapitolo].forEach(f => f.addEventListener("change", aggiornaTabella));
   aggiornaTabella();
 });
 
 function aggiornaTabella() {
   tbody.innerHTML = "";
-
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
   const capitolo = filtroCapitolo.value;
   const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
 
   const righeFiltrate = righe.filter(r =>
-    r.anno === anno &&
-    r.mese === mese &&
+    r.anno === anno && r.mese === mese &&
     gruppoToCapitolo[r.gruppo] === capitolo
   );
 
@@ -106,18 +88,15 @@ function aggiornaTabella() {
       const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
       if (righeCategoria.length === 0) return;
 
-      const totaleCategoria = righeCategoria.reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
       const righePrec = righe.filter(r =>
-        r.anno === annoPrec &&
-        r.mese === mesePrec &&
-        r.gruppo === gruppo &&
-        r.tipo === tipo
+        r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo && r.tipo === tipo
       );
-      const totalePrec = righePrec.reduce((sum, r) => sum + r.U + r.D + r.GU + r.GD, 0);
+      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
       const delta = totaleCategoria - totalePrec;
 
-      let gruppoStampato = false;
       let categoriaStampata = false;
+      let gruppoStampato = false;
       let totaleStampato = false;
 
       righeCategoria.forEach((r, index) => {
@@ -143,7 +122,6 @@ function aggiornaTabella() {
         }
 
         const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
-
         celle.forEach((val, i) => {
           const td = document.createElement("td");
           td.textContent = val;
@@ -158,10 +136,9 @@ function aggiornaTabella() {
           tdTot.innerHTML = `
             <div><strong>${totaleCategoria}</strong></div>
             <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
-            <div style="color:${delta >= 0 ? 'green' : 'red'};">
-              ${delta >= 0 ? "+" : ""}${delta}
-            </div>
-          `;
+            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            </div>`;
           tdTot.style.backgroundColor = "#fff3cd";
           tdTot.style.borderLeft = "3px solid #333";
           tdTot.style.borderRight = "3px solid #333";
