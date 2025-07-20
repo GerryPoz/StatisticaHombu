@@ -175,9 +175,11 @@ function aggiornaTabella() {
           r.STU
         ];
 
+        // ... tutto il codice precedente resta invariato ...
+
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-
+        
           // Variazioni colorate
           if (i === 8 || i === 9) {
             td.textContent = val;
@@ -185,37 +187,39 @@ function aggiornaTabella() {
           } else {
             td.textContent = val;
           }
-
-          // Bordi
+        
+          // Bordi visivi
           if (i === 1) td.style.borderLeft = "3px solid #333"; // U
           if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333"; // GD, Totale, Totale mese prec., Δ Totale
-
+        
           tr.appendChild(td);
+        
+          // ✅ Inserisci il totale aggregato subito dopo la cella Totale (i === 5)
+          if (!totaleStampato && i === 5) {
+            const tdTotale = document.createElement("td");
+            tdTotale.rowSpan = righeGruppo.length;
+            tdTotale.innerHTML = `
+              <div><strong>${totaleGruppo}</strong></div>
+              <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
+              <div style="
+                font-size: 0.9em;
+                font-weight: bold;
+                color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};
+              ">
+                Δ Tot: ${deltaTotaleGruppo >= 0 ? "+" : ""}${deltaTotaleGruppo}
+              </div>
+            `;
+            tdTotale.style.backgroundColor = "#fff3cd";
+            tdTotale.style.borderLeft = "3px solid #333";
+            tdTotale.style.borderRight = "3px solid #333";
+            tdTotale.style.textAlign = "center";
+            tr.appendChild(tdTotale);
+            totaleStampato = true;
+          }
         });
-
-        if (!totaleStampato && i === 5) {
-          const tdTotale = document.createElement("td");
-          tdTotale.rowSpan = righeGruppo.length;
-          tdTotale.innerHTML = `
-            <div><strong>${totaleGruppo}</strong></div>
-            <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
-            <div style="
-              font-size: 0.9em;
-              font-weight: bold;
-              color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};">
-              Δ Tot: ${deltaTotaleGruppo >= 0 ? '+' : ''}${deltaTotaleGruppo}
-            </div>
-          `;
-          tdTotale.style.backgroundColor = "#fff3cd";
-          tdTotale.style.borderLeft = "3px solid #333";
-          tdTotale.style.borderRight = "3px solid #333";
-          tdTotale.style.textAlign = "center";
-          tr.appendChild(tdTotale);
-          totaleStampato = true;
-        }
-
-
+        
         tbody.appendChild(tr);
+
       });
     });
   });
