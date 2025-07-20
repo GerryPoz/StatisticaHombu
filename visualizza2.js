@@ -110,6 +110,7 @@ function aggiornaTabella() {
 
     const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
+    let totaleStampato = false;
 
     categorie.forEach(categoria => {
       const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
@@ -140,13 +141,28 @@ function aggiornaTabella() {
         if (!categoriaStampata) tr.classList.add("inizio-categoria");
 
         if (!gruppoStampato) {
+          // ✅ Nome gruppo
           const tdGruppo = document.createElement("td");
           tdGruppo.textContent = gruppo;
           tdGruppo.rowSpan = righeGruppo.length;
           tdGruppo.classList.add("nome-gruppo");
           tr.appendChild(tdGruppo);
           gruppoStampato = true;
-
+        }
+        
+        if (!categoriaStampata) {
+          // ✅ Categoria (ZADANKAI / PRATICANTI)
+          const tdCategoria = document.createElement("td");
+          tdCategoria.textContent = categoria;
+          tdCategoria.rowSpan = righeCategoria.length;
+          tdCategoria.classList.add("categoria");
+          tdCategoria.style.borderRight = "3px solid #333";
+          tr.appendChild(tdCategoria);
+          categoriaStampata = true;
+        }
+        
+        // ✅ Totale gruppo, dopo tutte le intestazioni
+        if (!totaleStampato) {
           const tdTotale = document.createElement("td");
           tdTotale.rowSpan = righeGruppo.length;
           tdTotale.innerHTML = `
@@ -161,17 +177,9 @@ function aggiornaTabella() {
           tdTotale.style.borderRight = "3px solid #333";
           tdTotale.style.textAlign = "center";
           tr.appendChild(tdTotale);
+          totaleStampato = true;
         }
 
-        if (!categoriaStampata) {
-          const tdCategoria = document.createElement("td");
-          tdCategoria.textContent = categoria;
-          tdCategoria.rowSpan = righeCategoria.length;
-          tdCategoria.classList.add("categoria");
-          tdCategoria.style.borderRight = "3px solid #333";
-          tr.appendChild(tdCategoria);
-          categoriaStampata = true;
-        }
 
         const celle = [
           r.sezione,
