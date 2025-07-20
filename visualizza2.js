@@ -98,26 +98,27 @@ function aggiornaTabella() {
 
     if (righeGruppo.length === 0) return;
 
-    const totaleGruppo = righeGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-
     const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
-    const righePrecGruppo = righe.filter(r =>
-      r.anno === annoPrec &&
-      r.mese === mesePrec &&
-      r.gruppo === gruppo
-    );
-    const totalePrecGruppo = righePrecGruppo.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-    const deltaTotaleGruppo = totaleGruppo - totalePrecGruppo;
 
     const categorie = ["ZADANKAI", "PRATICANTI"];
     let gruppoStampato = false;
-    let totaleStampato = false;
 
     categorie.forEach(categoria => {
       const righeCategoria = righeGruppo.filter(r => r.tipo === categoria);
       if (righeCategoria.length === 0) return;
 
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const righePrecCategoria = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === categoria
+      );
+      const totalePrecCategoria = righePrecCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const deltaTotaleCategoria = totaleCategoria - totalePrecCategoria;
+
       let categoriaStampata = false;
+      let totaleCategoriaStampato = false;
 
       righeCategoria.forEach((r, index) => {
         const somma = r.U + r.D + r.GU + r.GD;
@@ -175,51 +176,45 @@ function aggiornaTabella() {
           r.STU
         ];
 
-        // ... tutto il codice precedente resta invariato ...
-
         celle.forEach((val, i) => {
           const td = document.createElement("td");
-        
-          // Variazioni colorate
+
           if (i === 8 || i === 9) {
             td.textContent = val;
             td.style.color = val.startsWith("+") ? "green" : val.startsWith("-") ? "red" : "#333";
           } else {
             td.textContent = val;
           }
-        
-          // Bordi visivi
-          if (i === 1) td.style.borderLeft = "3px solid #333"; // U
-          if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333"; // GD, Totale, Totale mese prec., Δ Totale
-        
+
+          if (i === 1) td.style.borderLeft = "3px solid #333";
+          if ([4, 5, 7, 9].includes(i)) td.style.borderRight = "3px solid #333";
+
           tr.appendChild(td);
-        
-          // ✅ Inserisci il totale aggregato subito dopo la cella Totale (i === 5)
-          if (!totaleStampato && i === 5) {
-            const tdTotale = document.createElement("td");
-            tdTotale.rowSpan = righeGruppo.length;
-            tdTotale.innerHTML = `
-              <div><strong>${totaleGruppo}</strong></div>
-              <div style="font-size: 0.9em;">Prec: ${totalePrecGruppo}</div>
+
+          // Inserisci Totale categoria nella colonna giusta (dopo i === 5)
+          if (!totaleCategoriaStampato && i === 5) {
+            const tdTotCat = document.createElement("td");
+            tdTotCat.rowSpan = righeCategoria.length;
+            tdTotCat.innerHTML = `
+              <div><strong>${totaleCategoria}</strong></div>
+              <div style="font-size: 0.9em;">Prec: ${totalePrecCategoria}</div>
               <div style="
                 font-size: 0.9em;
                 font-weight: bold;
-                color: ${deltaTotaleGruppo >= 0 ? 'green' : 'red'};
-              ">
-                Δ Tot: ${deltaTotaleGruppo >= 0 ? "+" : ""}${deltaTotaleGruppo}
+                color: ${deltaTotaleCategoria >= 0 ? 'green' : 'red'};">
+                Δ Tot: ${deltaTotaleCategoria >= 0 ? "+" : ""}${deltaTotaleCategoria}
               </div>
             `;
-            tdTotale.style.backgroundColor = "#fff3cd";
-            tdTotale.style.borderLeft = "3px solid #333";
-            tdTotale.style.borderRight = "3px solid #333";
-            tdTotale.style.textAlign = "center";
-            tr.appendChild(tdTotale);
-            totaleStampato = true;
+                        tdTotCat.style.backgroundColor = "#fff3cd";
+            tdTotCat.style.borderLeft = "3px solid #333";
+            tdTotCat.style.borderRight = "3px solid #333";
+            tdTotCat.style.textAlign = "center";
+            tr.appendChild(tdTotCat);
+            totaleCategoriaStampato = true;
           }
         });
-        
-        tbody.appendChild(tr);
 
+        tbody.appendChild(tr);
       });
     });
   });
