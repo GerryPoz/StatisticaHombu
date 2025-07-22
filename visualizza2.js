@@ -75,7 +75,8 @@ function aggiornaTabella() {
   const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
 
   const righeFiltrate = righe.filter(r =>
-    r.anno === anno && r.mese === mese &&
+    r.anno === anno &&
+    r.mese === mese &&
     gruppoToCapitolo[r.gruppo] === capitolo
   );
 
@@ -83,72 +84,80 @@ function aggiornaTabella() {
 
   gruppi.forEach(gruppo => {
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+    const righeOrdinate = righeGruppo.sort((a, b) => a.tipo.localeCompare(b.tipo));
 
-    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
-      const righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
-      if (righeCategoria.length === 0) return;
+    let tipoStampati = {};
+    let totaleStampati = {};
+    let gruppoStampato = false;
 
-      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-      const righePrec = righe.filter(r =>
-        r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo && r.tipo === tipo
+    righeOrdinate.forEach((r, index) => {
+      const somma = r.U + r.D + r.GU + r.GD;
+      const righeCategoria = righeOrdinate.filter(x => x.tipo === r.tipo);
+      const totaleCategoria = righeCategoria.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
+
+      const righePrec = righe.filter(x =>
+        x.anno === mesePrec &&
+        x.mese === annoPrec &&
+        x.gruppo === gruppo &&
+        x.tipo === r.tipo
       );
-      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const totalePrec = righePrec.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
       const delta = totaleCategoria - totalePrec;
 
-      let categoriaStampata = false;
-      let gruppoStampato = false;
-      let totaleStampato = false;
+      const tr = document.createElement("tr");
 
-      righeCategoria.forEach((r, index) => {
-        const somma = r.U + r.D + r.GU + r.GD;
-        const tr = document.createElement("tr");
+      // ✅ Stampa cella gruppo una sola volta per tutto il blocco
+      if (!gruppoStampato) {
+        const tdGruppo = document.createElement("td");
+        tdGruppo.textContent = gruppo;
+        tdGruppo.rowSpan = righeOrdinate.length;
+        tdGruppo.style.fontWeight = "bold";
+        tdGruppo.style.backgroundColor = "#e9ecef";
+        tr.appendChild(tdGruppo);
+        gruppoStampato = true;
+      }
 
-        if (!gruppoStampato) {
-          const tdGruppo = document.createElement("td");
-          tdGruppo.textContent = gruppo;
-          tdGruppo.rowSpan = righeGruppo.length;
-          tdGruppo.style.fontWeight = "bold";
-          tr.appendChild(tdGruppo);
-          gruppoStampato = true;
-        }
+      // ✅ Stampa categoria solo una volta
+      if (!tipoStampati[r.tipo]) {
+        const tdTipo = document.createElement("td");
+        tdTipo.textContent = r.tipo;
+        tdTipo.rowSpan = righeCategoria.length;
+        tdTipo.style.borderRight = "3px solid #333";
+        tdTipo.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tr.appendChild(tdTipo);
+        tipoStampati[r.tipo] = true;
+      }
 
-        if (!categoriaStampata) {
-          const tdTipo = document.createElement("td");
-          tdTipo.textContent = tipo;
-          tdTipo.rowSpan = righeCategoria.length;
-          tdTipo.style.borderRight = "3px solid #333";
-          tr.appendChild(tdTipo);
-          categoriaStampata = true;
-        }
-
-        const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
-        celle.forEach((val, i) => {
-          const td = document.createElement("td");
-          td.textContent = val;
-          if (i === 1) td.style.borderLeft = "3px solid #333";
-          if (i === 4) td.style.borderRight = "3px solid #333";
-          tr.appendChild(td);
-        });
-
-        if (!totaleStampato) {
-          const tdTot = document.createElement("td");
-          tdTot.rowSpan = righeCategoria.length;
-          tdTot.innerHTML = `
-            <div><strong>${totaleCategoria}</strong></div>
-            <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
-            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
-              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
-            </div>`;
-          tdTot.style.backgroundColor = "#fff3cd";
-          tdTot.style.borderLeft = "3px solid #333";
-          tdTot.style.borderRight = "3px solid #333";
-          tdTot.style.textAlign = "center";
-          tr.appendChild(tdTot);
-          totaleStampato = true;
-        }
-
-        tbody.appendChild(tr);
+      // ✅ Celle dati principali
+      const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
+      celle.forEach((val, i) => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        if (i === 1) td.style.borderLeft = "3px solid #333";
+        if (i === 4) td.style.borderRight = "3px solid #333";
+        tr.appendChild(td);
       });
+
+      // ✅ Totale Categoria con delta — una sola volta
+      if (!totaleStampati[r.tipo]) {
+        const tdTot = document.createElement("td");
+        tdTot.rowSpan = righeCategoria.length;
+        tdTot.innerHTML = `
+          <div><strong>${totaleCategoria}</strong></div>
+          <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
+          <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+          </div>`;
+        tdTot.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tdTot.style.borderLeft = "3px solid #333";
+        tdTot.style.borderRight = "3px solid #333";
+        tdTot.style.textAlign = "center";
+        tr.appendChild(tdTot);
+        totaleStampati[r.tipo] = true;
+      }
+
+      tbody.appendChild(tr);
     });
   });
 }
+
