@@ -93,7 +93,7 @@ function aggiornaTabella() {
 
     if (righeCategoria.length === 0) return;
 
-    // 🔄 Ordina le sezioni ZADANKAI in ordine specifico
+    // 🧩 Ordine sezioni solo per ZADANKAI
     if (tipo === "ZADANKAI") {
       const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
       righeCategoria.sort((a, b) =>
@@ -101,22 +101,35 @@ function aggiornaTabella() {
       );
     }
 
-    const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const totaleCategoria = righeCategoria.reduce(
+      (acc, r) => acc + r.U + r.D + r.GU + r.GD, 0
+    );
+
     const righePrec = righe.filter(r =>
       r.anno === annoPrec &&
       r.mese === mesePrec &&
       r.gruppo === gruppo &&
       r.tipo === tipo
     );
-    const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+
+    const totalePrec = righePrec.reduce(
+      (acc, r) => acc + r.U + r.D + r.GU + r.GD, 0
+    );
     const delta = totaleCategoria - totalePrec;
 
     righeCategoria.forEach((r, index) => {
       const somma = r.U + r.D + r.GU + r.GD;
+
+      // 🔍 Somma mese prec per stessa sezione
+      const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
+      const sommaPrec = righePrecSezione.reduce(
+        (acc, x) => acc + x.U + x.D + x.GU + x.GD, 0
+      );
+
       const tr = document.createElement("tr");
       tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
 
-      // ✅ Stampa una sola cella gruppo
+      // 👥 Gruppo (una sola volta)
       if (!gruppoStampato && index === 0) {
         const tdGruppo = document.createElement("td");
         tdGruppo.textContent = gruppo;
@@ -127,7 +140,7 @@ function aggiornaTabella() {
         gruppoStampato = true;
       }
 
-      // ✅ Stampa categoria una sola volta
+      // 🗂 Categoria (una sola volta)
       if (!tipoStampati[tipo]) {
         const tdTipo = document.createElement("td");
         tdTipo.textContent = tipo;
@@ -137,17 +150,23 @@ function aggiornaTabella() {
         tipoStampati[tipo] = true;
       }
 
-      // ✅ Celle dati
-      const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
+      // 🧮 Dati ordinati
+      const celle = [
+        r.U, r.D, r.GU, r.GD,
+        somma,
+        sommaPrec,
+        r.FUT, r.STU
+      ];
+
       celle.forEach((val, i) => {
         const td = document.createElement("td");
         td.textContent = val;
-        if (i === 1) td.style.borderLeft = "3px solid #333";
-        if (i === 4) td.style.borderRight = "3px solid #333";
+        if (i === 0) td.style.borderLeft = "3px solid #333";
+        if (i === 3) td.style.borderRight = "3px solid #333";
         tr.appendChild(td);
       });
 
-      // ✅ Totale Categoria e Delta
+      // 📦 Totale categoria con variazione
       if (!totaleStampati[tipo]) {
         const tdTot = document.createElement("td");
         tdTot.rowSpan = righeCategoria.length;
@@ -169,6 +188,7 @@ function aggiornaTabella() {
     });
   });
 });
+
 
 
 }
