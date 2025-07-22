@@ -83,51 +83,61 @@ function aggiornaTabella() {
   const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
   gruppi.forEach(gruppo => {
-    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
-    const righeOrdinate = ["ZADANKAI", "PRATICANTI"].flatMap(tipo =>
-      righeGruppo.filter(r => r.tipo === tipo)
-    );
-  
-    let tipoStampati = {};
-    let totaleStampati = {};
-    let gruppoStampato = false;
-  
-    righeOrdinate.forEach((r, index) => {
-      const somma = r.U + r.D + r.GU + r.GD;
-      const righeCategoria = righeOrdinate.filter(x => x.tipo === r.tipo);
-      const totaleCategoria = righeCategoria.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
-  
-      const righePrec = righe.filter(x =>
-        x.anno === annoPrec &&
-        x.mese === mesePrec &&
-        x.gruppo === gruppo &&
-        x.tipo === r.tipo
+  const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+  let gruppoStampato = false;
+  let tipoStampati = {};
+  let totaleStampati = {};
+
+  ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+    let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+
+    if (righeCategoria.length === 0) return;
+
+    // 🔄 Ordina le sezioni ZADANKAI in ordine specifico
+    if (tipo === "ZADANKAI") {
+      const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+      righeCategoria.sort((a, b) =>
+        sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
       );
-      const totalePrec = righePrec.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
-      const delta = totaleCategoria - totalePrec;
-  
+    }
+
+    const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const righePrec = righe.filter(r =>
+      r.anno === annoPrec &&
+      r.mese === mesePrec &&
+      r.gruppo === gruppo &&
+      r.tipo === tipo
+    );
+    const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const delta = totaleCategoria - totalePrec;
+
+    righeCategoria.forEach((r, index) => {
+      const somma = r.U + r.D + r.GU + r.GD;
       const tr = document.createElement("tr");
-      tr.style.backgroundColor = r.tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc"; // colori distintivi
-  
+      tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+
+      // ✅ Stampa una sola cella gruppo
       if (!gruppoStampato && index === 0) {
         const tdGruppo = document.createElement("td");
         tdGruppo.textContent = gruppo;
-        tdGruppo.rowSpan = righeOrdinate.length;
+        tdGruppo.rowSpan = righeGruppo.length;
         tdGruppo.style.fontWeight = "bold";
         tdGruppo.style.backgroundColor = "#f0f0f0";
         tr.appendChild(tdGruppo);
         gruppoStampato = true;
       }
-  
-      if (!tipoStampati[r.tipo]) {
+
+      // ✅ Stampa categoria una sola volta
+      if (!tipoStampati[tipo]) {
         const tdTipo = document.createElement("td");
-        tdTipo.textContent = r.tipo;
+        tdTipo.textContent = tipo;
         tdTipo.rowSpan = righeCategoria.length;
         tdTipo.style.borderRight = "3px solid #333";
         tr.appendChild(tdTipo);
-        tipoStampati[r.tipo] = true;
+        tipoStampati[tipo] = true;
       }
-  
+
+      // ✅ Celle dati
       const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
       celle.forEach((val, i) => {
         const td = document.createElement("td");
@@ -136,8 +146,9 @@ function aggiornaTabella() {
         if (i === 4) td.style.borderRight = "3px solid #333";
         tr.appendChild(td);
       });
-  
-      if (!totaleStampati[r.tipo]) {
+
+      // ✅ Totale Categoria e Delta
+      if (!totaleStampati[tipo]) {
         const tdTot = document.createElement("td");
         tdTot.rowSpan = righeCategoria.length;
         tdTot.innerHTML = `
@@ -149,14 +160,16 @@ function aggiornaTabella() {
         tdTot.style.borderLeft = "3px solid #333";
         tdTot.style.borderRight = "3px solid #333";
         tdTot.style.textAlign = "center";
-        tdTot.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
         tr.appendChild(tdTot);
-        totaleStampati[r.tipo] = true;
+        totaleStampati[tipo] = true;
       }
-  
+
       tbody.appendChild(tr);
     });
   });
+});
+
 
 }
 
