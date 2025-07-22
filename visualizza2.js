@@ -195,7 +195,7 @@ function aggiornaTabella() {
     .flat();
   
   // ✅ Gruppi presenti nei dati per quel mese
-  const gruppiPresenti = gruppiFiltrati.map(r => r.gruppo);
+  const gruppiPresenti = righeFiltrate.map(r => r.gruppo);
   const gruppiMancanti = gruppiCapitolo.filter(gr => !gruppiPresenti.includes(gr));
   
   // 📢 Mostra la lista a video
