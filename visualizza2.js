@@ -128,7 +128,8 @@ function aggiornaTabella() {
           tdGruppo.rowSpan = righeGruppo.length;
           tdGruppo.style.fontWeight = "bold";
           tdGruppo.style.backgroundColor = "#f0f0f0";
-          tdGruppo.style.borderTop = "4px solid #333"; // ⬆️ Bordo superiore spesso
+          tdGruppo.style.borderTop = "3px solid #333"; // ⬆️ Bordo superiore spesso sul nome gruppo
+          tr.style.borderTop = "3px solid #333"; // ⬆️ Bordo superiore spesso sul resto della riga
           tr.appendChild(tdGruppo);
           gruppoStampato = true;
         }
