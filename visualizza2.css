@@ -77,3 +77,12 @@ tr.inizio-categoria td {
   border-top: 2px solid #666;
 }
 
+#tabella-dati td {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+#tabella-dati tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
