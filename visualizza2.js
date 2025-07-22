@@ -139,7 +139,7 @@ function aggiornaTabella() {
           const tdTipo = document.createElement("td");
           tdTipo.textContent = tipo;
           tdTipo.rowSpan = righeCategoria.length;
-          tdTipo.style.borderRight = "3px solid #333";
+          tdTipo.style.borderRight = "2px solid #333";
           tr.appendChild(tdTipo);
           tipoStampati[tipo] = true;
         }
@@ -154,8 +154,8 @@ function aggiornaTabella() {
         celle.forEach((val, i) => {
           const td = document.createElement("td");
           td.textContent = val;
-          if (i === 1) td.style.borderLeft = "3px solid #333";
-          if (i === 4) td.style.borderRight = "3px solid #333";
+          if (i === 1) td.style.borderLeft = "2px solid #333";
+          if (i === 4) td.style.borderRight = "2px solid #333";
           tr.appendChild(td);
         });
   
@@ -169,8 +169,8 @@ function aggiornaTabella() {
             <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
               Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
-          tdTot.style.borderLeft = "3px solid #333";
-          tdTot.style.borderRight = "3px solid #333";
+          tdTot.style.borderLeft = "2px solid #333";
+          tdTot.style.borderRight = "2px solid #333";
           tdTot.style.textAlign = "center";
           tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
           tr.appendChild(tdTot);
