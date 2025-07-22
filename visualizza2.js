@@ -84,51 +84,50 @@ function aggiornaTabella() {
 
   gruppi.forEach(gruppo => {
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
-    const righeOrdinate = righeGruppo.sort((a, b) => a.tipo.localeCompare(b.tipo));
-
+    const righeOrdinate = ["ZADANKAI", "PRATICANTI"].flatMap(tipo =>
+      righeGruppo.filter(r => r.tipo === tipo)
+    );
+  
     let tipoStampati = {};
     let totaleStampati = {};
     let gruppoStampato = false;
-
+  
     righeOrdinate.forEach((r, index) => {
       const somma = r.U + r.D + r.GU + r.GD;
       const righeCategoria = righeOrdinate.filter(x => x.tipo === r.tipo);
       const totaleCategoria = righeCategoria.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
-
+  
       const righePrec = righe.filter(x =>
-        x.anno === mesePrec &&
-        x.mese === annoPrec &&
+        x.anno === annoPrec &&
+        x.mese === mesePrec &&
         x.gruppo === gruppo &&
         x.tipo === r.tipo
       );
       const totalePrec = righePrec.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
       const delta = totaleCategoria - totalePrec;
-
+  
       const tr = document.createElement("tr");
-
-      // ✅ Stampa cella gruppo una sola volta per tutto il blocco
-      if (!gruppoStampato) {
+      tr.style.backgroundColor = r.tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc"; // colori distintivi
+  
+      if (!gruppoStampato && index === 0) {
         const tdGruppo = document.createElement("td");
         tdGruppo.textContent = gruppo;
         tdGruppo.rowSpan = righeOrdinate.length;
         tdGruppo.style.fontWeight = "bold";
-        tdGruppo.style.backgroundColor = "#e9ecef";
+        tdGruppo.style.backgroundColor = "#f0f0f0";
         tr.appendChild(tdGruppo);
         gruppoStampato = true;
       }
-
-      // ✅ Stampa categoria solo una volta
+  
       if (!tipoStampati[r.tipo]) {
         const tdTipo = document.createElement("td");
         tdTipo.textContent = r.tipo;
         tdTipo.rowSpan = righeCategoria.length;
         tdTipo.style.borderRight = "3px solid #333";
-        tdTipo.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
         tr.appendChild(tdTipo);
         tipoStampati[r.tipo] = true;
       }
-
-      // ✅ Celle dati principali
+  
       const celle = [r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
       celle.forEach((val, i) => {
         const td = document.createElement("td");
@@ -137,8 +136,7 @@ function aggiornaTabella() {
         if (i === 4) td.style.borderRight = "3px solid #333";
         tr.appendChild(td);
       });
-
-      // ✅ Totale Categoria con delta — una sola volta
+  
       if (!totaleStampati[r.tipo]) {
         const tdTot = document.createElement("td");
         tdTot.rowSpan = righeCategoria.length;
@@ -148,16 +146,17 @@ function aggiornaTabella() {
           <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
             Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
           </div>`;
-        tdTot.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
         tdTot.style.borderLeft = "3px solid #333";
         tdTot.style.borderRight = "3px solid #333";
         tdTot.style.textAlign = "center";
+        tdTot.style.backgroundColor = r.tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
         tr.appendChild(tdTot);
         totaleStampati[r.tipo] = true;
       }
-
+  
       tbody.appendChild(tr);
     });
   });
+
 }
 
