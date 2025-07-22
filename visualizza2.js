@@ -190,5 +190,30 @@ function aggiornaTabella() {
     });
   });
 
+  // 🔎 Trova gruppi del capitolo selezionato
+  const gruppiCapitolo = Object.values(gruppiData["HOMBU 9"][capitolo])
+    .flat();
+  
+  // ✅ Gruppi presenti nei dati per quel mese
+  const gruppiPresenti = gruppiFiltrati.map(r => r.gruppo);
+  const gruppiMancanti = gruppiCapitolo.filter(gr => !gruppiPresenti.includes(gr));
+  
+  // 📢 Mostra la lista a video
+  const contenitoreLista = document.getElementById("gruppi-mancanti");
+  contenitoreLista.innerHTML = "";
+  
+  if (gruppiMancanti.length > 0) {
+    const ul = document.createElement("ul");
+    gruppiMancanti.forEach(gr => {
+      const li = document.createElement("li");
+      li.textContent = `🔴 ${gr}`;
+      ul.appendChild(li);
+    });
+    contenitoreLista.innerHTML = `<strong>Gruppi senza dati per ${mese} ${anno}:</strong>`;
+    contenitoreLista.appendChild(ul);
+  } else {
+    contenitoreLista.textContent = "✅ Tutti i gruppi del capitolo hanno inserito dati!";
+  }
+
 }
 
