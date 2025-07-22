@@ -83,113 +83,110 @@ function aggiornaTabella() {
   const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
   gruppi.forEach(gruppo => {
-  const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
-  let gruppoStampato = false;
-  let tipoStampati = {};
-  let totaleStampati = {};
-
-  ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
-    let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
-
-    if (righeCategoria.length === 0) return;
-
-    // 🧩 Ordine sezioni solo per ZADANKAI
-    if (tipo === "ZADANKAI") {
-      const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
-      righeCategoria.sort((a, b) =>
-        sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
-      );
-    }
-
-    const totaleCategoria = righeCategoria.reduce(
-      (acc, r) => acc + r.U + r.D + r.GU + r.GD, 0
-    );
-
-    const righePrec = righe.filter(r =>
-      r.anno === annoPrec &&
-      r.mese === mesePrec &&
-      r.gruppo === gruppo &&
-      r.tipo === tipo
-    );
-
-    const totalePrec = righePrec.reduce(
-      (acc, r) => acc + r.U + r.D + r.GU + r.GD, 0
-    );
-    const delta = totaleCategoria - totalePrec;
-
-    righeCategoria.forEach((r, index) => {
-      const somma = r.U + r.D + r.GU + r.GD;
-
-      // 🔍 Somma mese prec per stessa sezione
-      const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
-      const sommaPrec = righePrecSezione.reduce(
-        (acc, x) => acc + x.U + x.D + x.GU + x.GD, 0
-      );
-
-      const tr = document.createElement("tr");
-      tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
-
-      // 👥 Gruppo (una sola volta)
-      if (!gruppoStampato && index === 0) {
-        const tdGruppo = document.createElement("td");
-        tdGruppo.textContent = gruppo;
-        tdGruppo.rowSpan = righeGruppo.length;
-        tdGruppo.style.fontWeight = "bold";
-        tdGruppo.style.backgroundColor = "#f0f0f0";
-        tr.appendChild(tdGruppo);
-        gruppoStampato = true;
+    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+    let gruppoStampato = false;
+    let tipoStampati = {};
+    let totaleStampati = {};
+  
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+  
+      if (righeCategoria.length === 0) return;
+  
+      // 🧩 Ordina sezioni ZADANKAI
+      if (tipo === "ZADANKAI") {
+        const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+        righeCategoria.sort((a, b) =>
+          sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
+        );
       }
-
-      // 🗂 Categoria (una sola volta)
-      if (!tipoStampati[tipo]) {
-        const tdTipo = document.createElement("td");
-        tdTipo.textContent = tipo;
-        tdTipo.rowSpan = righeCategoria.length;
-        tdTipo.style.borderRight = "3px solid #333";
-        tr.appendChild(tdTipo);
-        tipoStampati[tipo] = true;
-      }
-
-      // 🧮 Dati ordinati
-      const celle = [
-        r.U, r.D, r.GU, r.GD,
-        somma,
-        sommaPrec,
-        r.FUT, r.STU
-      ];
-
-      celle.forEach((val, i) => {
-        const td = document.createElement("td");
-        td.textContent = val;
-        if (i === 0) td.style.borderLeft = "3px solid #333";
-        if (i === 3) td.style.borderRight = "3px solid #333";
-        tr.appendChild(td);
+  
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === tipo
+      );
+  
+      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleCategoria - totalePrec;
+  
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
+        const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
+  
+        const tr = document.createElement("tr");
+        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+  
+        // 👥 Gruppo
+        if (!gruppoStampato && index === 0) {
+          const tdGruppo = document.createElement("td");
+          tdGruppo.textContent = gruppo;
+          tdGruppo.rowSpan = righeGruppo.length;
+          tdGruppo.style.fontWeight = "bold";
+          tdGruppo.style.backgroundColor = "#f0f0f0";
+          tr.appendChild(tdGruppo);
+          gruppoStampato = true;
+        }
+  
+        // 📦 Categoria
+        if (!tipoStampati[tipo]) {
+          const tdTipo = document.createElement("td");
+          tdTipo.textContent = tipo;
+          tdTipo.rowSpan = righeCategoria.length;
+          tdTipo.style.borderRight = "3px solid #333";
+          tr.appendChild(tdTipo);
+          tipoStampati[tipo] = true;
+        }
+  
+        // 📊 Dati ordinati
+        const celle = [
+          r.sezione, r.U, r.D, r.GU, r.GD,
+          somma,
+          sommaPrec
+        ];
+  
+        celle.forEach((val, i) => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          if (i === 1) td.style.borderLeft = "3px solid #333";
+          if (i === 4) td.style.borderRight = "3px solid #333";
+          tr.appendChild(td);
+        });
+  
+        // 📦 Totale categoria (ora prima di Futuro/Studente)
+        if (!totaleStampati[tipo]) {
+          const tdTot = document.createElement("td");
+          tdTot.rowSpan = righeCategoria.length;
+          tdTot.innerHTML = `
+            <div><strong>${totaleCategoria}</strong></div>
+            <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
+            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            </div>`;
+          tdTot.style.borderLeft = "3px solid #333";
+          tdTot.style.borderRight = "3px solid #333";
+          tdTot.style.textAlign = "center";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+          tr.appendChild(tdTot);
+          totaleStampati[tipo] = true;
+        }
+  
+        // 🎯 Futuro e Studenti
+        const tdFuturo = document.createElement("td");
+        tdFuturo.textContent = r.FUT;
+        const tdStudenti = document.createElement("td");
+        tdStudenti.textContent = r.STU;
+        tr.appendChild(tdFuturo);
+        tr.appendChild(tdStudenti);
+  
+        tbody.appendChild(tr);
       });
-
-      // 📦 Totale categoria con variazione
-      if (!totaleStampati[tipo]) {
-        const tdTot = document.createElement("td");
-        tdTot.rowSpan = righeCategoria.length;
-        tdTot.innerHTML = `
-          <div><strong>${totaleCategoria}</strong></div>
-          <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
-          <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
-            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
-          </div>`;
-        tdTot.style.borderLeft = "3px solid #333";
-        tdTot.style.borderRight = "3px solid #333";
-        tdTot.style.textAlign = "center";
-        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
-        tr.appendChild(tdTot);
-        totaleStampati[tipo] = true;
-      }
-
-      tbody.appendChild(tr);
     });
   });
-});
-
-
 
 }
 
