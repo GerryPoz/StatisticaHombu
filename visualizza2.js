@@ -97,7 +97,9 @@ function aggiornaTabella() {
   
   gruppi.forEach(gruppo => {
     const settore = settorePerGruppo[gruppo];
+    //-------- MENU GRUPPI
     if (settore !== settoreCorrente) {
+      // 🔹 RIGA SEPARATRICE SETTORE
       const separatore = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 12;
@@ -110,8 +112,32 @@ function aggiornaTabella() {
       separatore.appendChild(td);
       tbody.appendChild(separatore);
     
+      // 🔹 INTESTAZIONE TABELLA (SOLO UNA VOLTA PER SETTORE)
+      const headerRow = document.createElement("tr");
+      const headers = [
+        "Nome Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD",
+        "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
+      ];
+      headers.forEach((testo, i) => {
+        const th = document.createElement("th");
+        th.textContent = testo;
+        th.style.backgroundColor = "#f5f5f5";
+        th.style.fontWeight = "bold";
+        th.style.borderBottom = "2px solid #999";
+        th.style.padding = "4px";
+        if (i === 3) th.style.borderLeft = "2px solid #333"; // U
+        if (i === 6) th.style.borderRight = "2px solid #333"; // GD
+        if (i === 9) {
+          th.style.borderLeft = "2px solid #333"; // Totale Gruppo
+          th.style.borderRight = "2px solid #333";
+        }
+        headerRow.appendChild(th);
+      });
+      tbody.appendChild(headerRow);
+    
       settoreCorrente = settore;
     }
+    //-------------------
     
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     let gruppoStampato = false;
@@ -332,7 +358,7 @@ function aggiornaTabella() {
             acc + r.U + r.D + r.GU + r.GD, 0);
   
           const tr = document.createElement("tr");
-          tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+          tr.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
   
           if (index === 0) {
             const tdTipo = document.createElement("td");
@@ -340,7 +366,7 @@ function aggiornaTabella() {
             tdTipo.rowSpan = tipoRowSpan;
             tdTipo.style.borderRight = "2px solid #333";
             tdTipo.style.fontWeight = "bold";
-            tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+            tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
             tr.appendChild(tdTipo);
           }
   
@@ -364,7 +390,7 @@ function aggiornaTabella() {
                 Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
               </div>`;
             tdTot.style.textAlign = "center";
-            tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+            tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
             tr.appendChild(tdTot);
           }
   
@@ -398,6 +424,7 @@ function aggiornaTabella() {
       <th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabellaCap.appendChild(theadCap);
+  
     const tbodyCap = document.createElement("tbody");
   
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
@@ -448,7 +475,7 @@ function aggiornaTabella() {
           acc + r.U + r.D + r.GU + r.GD, 0);
   
         const tr = document.createElement("tr");
-        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
   
         if (index === 0) {
           const tdTipo = document.createElement("td");
@@ -456,7 +483,7 @@ function aggiornaTabella() {
           tdTipo.rowSpan = tipoRowSpan;
           tdTipo.style.borderRight = "2px solid #333";
           tdTipo.style.fontWeight = "bold";
-          tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+          tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
           tr.appendChild(tdTipo);
         }
   
@@ -483,7 +510,7 @@ function aggiornaTabella() {
               Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
           tdTot.style.textAlign = "center";
-          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
           tdTot.style.borderLeft = "2px solid #333";
           tdTot.style.borderRight = "2px solid #333";
           tr.appendChild(tdTot);
