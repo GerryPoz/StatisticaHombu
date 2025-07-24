@@ -5,42 +5,74 @@
   <title>Inserimento Dati – HOMBU 9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: sans-serif; margin: 2rem; background: #f8f8f8; color: #333; }
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+      background: #f8f8f8;
+      color: #333;
+    }
     h1, h2 { color: #1155cc; }
     label, select { display: block; margin-bottom: 1rem; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: center;
+    }
     input[type="number"] { width: 4rem; }
     input[readonly] { background-color: #eee; }
     button, .button-home {
-      margin-top: 1rem; padding: 0.5rem 1rem;
-      background: #1155cc; color: white;
-      border: none; border-radius: 4px; cursor: pointer;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #1155cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
       text-decoration: none;
     }
-    button:hover, .button-home:hover { background-color: #0d3e99; }
+    button:hover, .button-home:hover {
+      background-color: #0d3e99;
+    }
     #messaggio-successo {
-      margin-top: 2rem; padding: 1rem;
-      background-color: #d4edda; color: #155724; display: none;
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #d4edda;
+      color: #155724;
+      display: none;
     }
     .modal-overlay {
-      position: fixed; top: 0; left: 0;
+      position: fixed;
+      top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.5);
-      display: none; justify-content: center; align-items: center;
+      display: none;
+      justify-content: center;
+      align-items: center;
       z-index: 999;
     }
     .modal-content {
-      background: white; padding: 2rem; border-radius: 8px; text-align: center;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
     }
     .modal-buttons { margin-top: 1rem; }
-    .modal-btn { margin: 0 1rem; padding: 0.5rem 1rem; font-size: 1rem; }
+    .modal-btn {
+      margin: 0 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
     .conferma { background-color: #28a745; color: white; }
     .annulla { background-color: #dc3545; color: white; }
   </style>
 </head>
 <body>
-  <h1>Inserimento Dati – HOMBU6</h1>
+  <h1>Inserimento Dati – HOMBU22</h1>
   <form id="dati-form">
     <label for="anno">Anno:
       <select name="anno" id="anno" required></select>
@@ -55,7 +87,9 @@
     <h2>ZADANKAI</h2>
     <table id="zadankai-table">
       <thead>
-        <tr><th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOTALE</th><th>FUT</th><th>STU</th></tr>
+        <tr>
+          <th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOTALE</th><th>FUT</th><th>STU</th>
+        </tr>
       </thead>
       <tbody>
         <tr>
@@ -98,7 +132,9 @@
     <h2>PRATICANTI</h2>
     <table id="praticanti-table">
       <thead>
-        <tr><th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOTALE</th></tr>
+        <tr>
+          <th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOTALE</th>
+        </tr>
       </thead>
       <tbody>
         <tr>
@@ -143,6 +179,7 @@
     </div>
   </form>
 
+  <!-- 🔧 Script aggiornato HOMBU-style -->
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
@@ -303,7 +340,6 @@
     }
   });
 </script>
-
 
 </body>
 </html>
