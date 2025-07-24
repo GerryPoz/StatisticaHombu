@@ -393,6 +393,8 @@ function aggiornaTabella() {
               </div>`;
             tdTot.style.textAlign = "center";
             tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
+            tdTot.style.borderLeft = "2px solid #333";
+            tdTot.style.borderRight = "2px solid #333";
             tr.appendChild(tdTot);
           }
   
