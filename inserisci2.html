@@ -229,21 +229,22 @@
       document.querySelectorAll('#praticanti-table input[type="number"]').forEach(input => {
         input.addEventListener("input", calcolaTotaliPraticanti);
       });
-    });
 
-    // Mostra popup e salva dopo conferma
-    document.getElementById("dati-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      document.getElementById("popup-conferma").style.display = "flex";
-    });
+      // Mostra popup e salva dopo conferma
+      document.getElementById("dati-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        document.getElementById("popup-conferma").style.display = "flex";
+      });
+  
+      document.getElementById("confermaBtn").addEventListener("click", () => {
+        document.getElementById("popup-conferma").style.display = "none";
+        salvaDati();
+      });
+  
+      document.getElementById("annullaBtn").addEventListener("click", () => {
+        document.getElementById("popup-conferma").style.display = "none";
+      });
 
-    document.getElementById("confermaBtn").addEventListener("click", () => {
-      document.getElementById("popup-conferma").style.display = "none";
-      salvaDati();
-    });
-
-    document.getElementById("annullaBtn").addEventListener("click", () => {
-      document.getElementById("popup-conferma").style.display = "none";
     });
 
     function salvaDati() {
