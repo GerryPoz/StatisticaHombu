@@ -358,7 +358,7 @@ function aggiornaTabella() {
             acc + r.U + r.D + r.GU + r.GD, 0);
   
           const tr = document.createElement("tr");
-          tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+          tr.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
   
           if (index === 0) {
             const tdTipo = document.createElement("td");
@@ -366,7 +366,7 @@ function aggiornaTabella() {
             tdTipo.rowSpan = tipoRowSpan;
             tdTipo.style.borderRight = "2px solid #333";
             tdTipo.style.fontWeight = "bold";
-            tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+            tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
             tr.appendChild(tdTipo);
           }
   
@@ -390,7 +390,7 @@ function aggiornaTabella() {
                 Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
               </div>`;
             tdTot.style.textAlign = "center";
-            tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+            tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
             tr.appendChild(tdTot);
           }
   
@@ -475,7 +475,7 @@ function aggiornaTabella() {
           acc + r.U + r.D + r.GU + r.GD, 0);
   
         const tr = document.createElement("tr");
-        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
   
         if (index === 0) {
           const tdTipo = document.createElement("td");
@@ -483,7 +483,7 @@ function aggiornaTabella() {
           tdTipo.rowSpan = tipoRowSpan;
           tdTipo.style.borderRight = "2px solid #333";
           tdTipo.style.fontWeight = "bold";
-          tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+          tdTipo.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
           tr.appendChild(tdTipo);
         }
   
@@ -510,7 +510,7 @@ function aggiornaTabella() {
               Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
           tdTot.style.textAlign = "center";
-          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
           tdTot.style.borderLeft = "2px solid #333";
           tdTot.style.borderRight = "2px solid #333";
           tr.appendChild(tdTot);
