@@ -123,13 +123,13 @@ function aggiornaTabella() {
         const tr = document.createElement("tr");
         tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
   
-        // 👥 Gruppo
+        // 👥 Nome Gruppo
         if (!gruppoStampato && index === 0) {
           const tdGruppo = document.createElement("td");
           tdGruppo.textContent = gruppo;
           tdGruppo.rowSpan = righeGruppo.length;
           tdGruppo.style.fontWeight = "bold";
-          tdGruppo.style.backgroundColor = "#FFFD55";
+          tdGruppo.style.backgroundColor = "#FFFD55"; 
           tdGruppo.style.borderTop = "3px solid #333"; // ⬆️ Bordo superiore spesso sul nome gruppo
           tr.style.borderTop = "3px solid #333"; // ⬆️ Bordo superiore spesso sul resto della riga
           tr.appendChild(tdGruppo);
@@ -174,7 +174,7 @@ function aggiornaTabella() {
           tdTot.style.borderLeft = "2px solid #333";
           tdTot.style.borderRight = "2px solid #333";
           tdTot.style.textAlign = "center";
-          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
           tr.appendChild(tdTot);
           totaleStampati[tipo] = true;
         }
