@@ -55,7 +55,7 @@
   </style>
 </head>
 <body>
-  <h1>Inserimento dati HOMBU66</h1>
+  <h1>Inserimento dati HOMBU3</h1>
   <form id="dati-form">
     <label for="anno">Anno:
       <select id="anno"><option>2025</option><option>2026</option></select>
@@ -83,124 +83,97 @@
     </div>
   </div>
 
-  <script>
-    const sezioni = ["membri", "simpatizzanti", "ospiti"];
-    const categorie = ["ZADANKAI", "PRATICANTI"];
-    const campi = ["U", "D", "GU", "GD"];
+  <script type="module">
+  // ✅ Importa Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    function creaTabella(gruppo) {
-      const container = document.getElementById("tabelleContainer");
-      container.innerHTML = "";
+  // 🚀 Configura la tua app Firebase
+  const firebaseConfig = {
+    apiKey: "TUO_API_KEY",
+    authDomain: "hombu-8630c.firebaseapp.com",
+    databaseURL: "https://hombu-8630c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "hombu-8630c",
+    storageBucket: "hombu-8630c.appspot.com",
+    messagingSenderId: "TUO_SENDER_ID",
+    appId: "TUO_APP_ID"
+  };
 
-      categorie.forEach(categoria => {
-        const table = document.createElement("table");
-        const caption = document.createElement("caption");
-        caption.textContent = `${gruppo} – ${categoria}`;
-        table.appendChild(caption);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-        const thead = document.createElement("thead");
-        thead.innerHTML = "<tr><th>Sezione</th>" +
-          campi.map(c => `<th>${c}</th>`).join("") +
-          "<th>Totale</th></tr>";
-        table.appendChild(thead);
+  // 🧠 Raccolta dati da tabella (puoi personalizzare)
+  function raccogliDati() {
+    const dati = {
+      ZADANKAI: {
+        membri: {
+          U: parseInt(document.getElementById("zadankai_membri_U").value) || 0,
+          D: parseInt(document.getElementById("zadankai_membri_D").value) || 0,
+          GU: parseInt(document.getElementById("zadankai_membri_GU").value) || 0,
+          GD: parseInt(document.getElementById("zadankai_membri_GD").value) || 0
+        },
+        simpatizzanti: {
+          U: parseInt(document.getElementById("zadankai_simpatizzanti_U").value) || 0,
+          D: parseInt(document.getElementById("zadankai_simpatizzanti_D").value) || 0,
+          GU: parseInt(document.getElementById("zadankai_simpatizzanti_GU").value) || 0,
+          GD: parseInt(document.getElementById("zadankai_simpatizzanti_GD").value) || 0
+        },
+        ospiti: {
+          U: parseInt(document.getElementById("zadankai_ospiti_U").value) || 0,
+          D: parseInt(document.getElementById("zadankai_ospiti_D").value) || 0,
+          GU: parseInt(document.getElementById("zadankai_ospiti_GU").value) || 0,
+          GD: parseInt(document.getElementById("zadankai_ospiti_GD").value) || 0
+        }
+      },
+      PRATICANTI: {
+        membri: {
+          U: parseInt(document.getElementById("praticanti_membri_U").value) || 0,
+          D: parseInt(document.getElementById("praticanti_membri_D").value) || 0,
+          GU: parseInt(document.getElementById("praticanti_membri_GU").value) || 0,
+          GD: parseInt(document.getElementById("praticanti_membri_GD").value) || 0
+        },
+        simpatizzanti: {
+          U: parseInt(document.getElementById("praticanti_simpatizzanti_U").value) || 0,
+          D: parseInt(document.getElementById("praticanti_simpatizzanti_D").value) || 0,
+          GU: parseInt(document.getElementById("praticanti_simpatizzanti_GU").value) || 0,
+          GD: parseInt(document.getElementById("praticanti_simpatizzanti_GD").value) || 0
+        },
+        ospiti: {
+          U: parseInt(document.getElementById("praticanti_ospiti_U").value) || 0,
+          D: parseInt(document.getElementById("praticanti_ospiti_D").value) || 0,
+          GU: parseInt(document.getElementById("praticanti_ospiti_GU").value) || 0,
+          GD: parseInt(document.getElementById("praticanti_ospiti_GD").value) || 0
+        }
+      },
+      timestamp: new Date().toLocaleString("it-IT", {
+        timeZone: "Europe/Rome"
+      })
+    };
 
-        const tbody = document.createElement("tbody");
-        sezioni.forEach(sezione => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${sezione}</td>` +
-            campi.map(c => `<td><input type="number" data-categoria="${categoria}" data-sezione="${sezione}" data-campo="${c}" /></td>`).join("") +
-            `<td class="totale">0</td>`;
-          tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        container.appendChild(table);
-      });
+    return dati;
+  }
+
+  // 💾 Funzione principale per il salvataggio
+  window.salvaDati = function () {
+    const gruppo = document.getElementById("gruppo").value.trim().toUpperCase(); // 👈 sempre MAIUSCOLO
+    if (!gruppo) {
+      alert("Inserisci il nome del gruppo!");
+      return;
     }
 
-    // Totali automatici per riga
-    document.getElementById("tabelleContainer").addEventListener("input", e => {
-      if (e.target.matches("input[type='number']")) {
-        const row = e.target.closest("tr");
-        const inputs = row.querySelectorAll("input[type='number']");
-        let somma = 0;
-        inputs.forEach(inp => somma += Number(inp.value) || 0);
-        row.querySelector(".totale").textContent = somma;
-      }
-    });
+    const path = `zadankai/2025-Gennaio-${gruppo}`;
+    const dati = raccogliDati();
 
-    // Cambio gruppo
-    document.getElementById("gruppo").addEventListener("change", e => {
-      creaTabella(e.target.value);
-    });
+    console.log("📦 Dati pronti da inviare:", dati);
 
-    const popup = document.getElementById("popupConferma");
-    const salvaBtn = document.getElementById("salvaBtn");
-    const confermaBtn = document.getElementById("confermaBtn");
-    const annullaBtn = document.getElementById("annullaBtn");
+    set(ref(db, path), {
+      gruppo: gruppo,
+      ...dati
+    })
+    .then(() => alert("✅ Dati salvati con successo per il gruppo " + gruppo))
+    .catch(error => alert("❌ Errore nel salvataggio: " + error));
+  }
+</script>
 
-    salvaBtn.addEventListener("click", () => {
-      const mese = document.getElementById("mese").value;
-      const anno = document.getElementById("anno").value;
-      const gruppo = document.getElementById("gruppo").value;
-      document.getElementById("riepilogoTesto").innerHTML =
-        `📅 ${mese} ${anno}<br>👥 Gruppo: ${gruppo}`;
-      popup.classList.add("visibile");
-    });
-
-    annullaBtn.addEventListener("click", () => {
-      popup.classList.remove("visibile");
-    });
-
-    confermaBtn.addEventListener("click", async () => {
-      popup.classList.remove("visibile");
-
-      const mese = document.getElementById("mese").value;
-      const anno = document.getElementById("anno").value;
-      const gruppo = document.getElementById("gruppo").value.toUpperCase(); // 👍 MAIUSCOLO
-
-      const dati = {};
-      const inputs = document.querySelectorAll("input[type='number']");
-      let almenoUnValore = false;
-
-      inputs.forEach(input => {
-        const categoria = input.dataset.categoria;
-        const sezione = input.dataset.sezione;
-        const campo = input.dataset.campo;
-        const valore = Number(input.value) || 0;
-
-        if (valore > 0) almenoUnValore = true;
-
-        if (!dati[categoria]) dati[categoria] = {};
-        if (!dati[categoria][sezione]) dati[categoria][sezione] = {};
-        dati[categoria][sezione][campo] = valore;
-      });
-
-      if (!almenoUnValore) {
-        alert("Inserisci almeno un valore prima di confermare.");
-        return;
-      }
-
-      const path = `zadankai/${anno}-${mese}-${gruppo}`;
-      const db = window.getFirebaseDB();
-      set(ref(db, path), {
-        gruppo: gruppo, // 👈 anche il campo interno MAIUSCOLO
-        ...dati
-      });
-      const ref = window.getFirebaseRef(db, path);
-
-      dati.timestamp = new Date().toLocaleString();
-
-      try {
-        await window.setFirebaseData(ref, dati);
-        alert("✅ Dati salvati correttamente su Firebase!");
-      } catch (err) {
-        console.error(err);
-        alert("❌ Errore nel salvataggio su Firebase.");
-      }
-    });
-
-    // ⚡ Inizializzazione tabelle all'avvio
-    creaTabella(document.getElementById("gruppo").value);
-  </script>
 </body>
 </html>
