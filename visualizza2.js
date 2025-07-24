@@ -468,6 +468,9 @@ function aggiornaTabella() {
         celle.forEach(val => {
           const td = document.createElement("td");
           td.textContent = val;
+          if (i === 0) td.style.borderLeft = "2px solid #333"; // Sezione
+          if (i === 1) td.style.borderLeft = "2px solid #333"; // U
+          if (i === 4) td.style.borderRight = "2px solid #333"; // GD
           tr.appendChild(td);
         });
   
@@ -482,6 +485,8 @@ function aggiornaTabella() {
             </div>`;
           tdTot.style.textAlign = "center";
           tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
+          tdTot.style.borderLeft = "2px solid #333";
+          tdTot.style.borderRight = "2px solid #333";
           tr.appendChild(tdTot);
         }
   
