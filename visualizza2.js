@@ -293,8 +293,12 @@ function aggiornaTabella() {
           sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
         }
   
-        // 🔢 Calcolo Totale per tipo completo (categoria)
-        const sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+        const tipoRowSpan = sezioni.length;
+  
+        const sezioniRilevanti = tipo === "ZADANKAI"
+          ? ["membri", "simpatizzanti", "ospiti"]
+          : ["membri", "simpatizzanti"];
+  
         const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
         const sumTot = righeTotali.reduce((acc, r) => ({
           U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
@@ -311,8 +315,6 @@ function aggiornaTabella() {
         const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
         const delta = totaleMese - totalePrec;
   
-        const tipoRowSpan = sezioni.length;
-  
         sezioni.forEach((sezione, index) => {
           const righeSezione = righeTipo.filter(r => r.sezione === sezione);
           const sum = righeSezione.reduce((acc, r) => ({
@@ -321,12 +323,12 @@ function aggiornaTabella() {
           }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
           const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
   
-          const righePrecSezione = righe.filter(r =>
+          const righePrec = righe.filter(r =>
             r.anno === annoPrec && r.mese === mesePrec &&
             r.tipo === tipo && r.sezione === sezione &&
             gruppiSettore.includes(r.gruppo)
           );
-          const sommaPrec = righePrecSezione.reduce((acc, r) =>
+          const sommaPrec = righePrec.reduce((acc, r) =>
             acc + r.U + r.D + r.GU + r.GD, 0);
   
           const tr = document.createElement("tr");
@@ -352,17 +354,19 @@ function aggiornaTabella() {
             tr.appendChild(td);
           });
   
-          // 📦 Colonna Totale: Totale categoria intera
-          const tdTot = document.createElement("td");
-          tdTot.innerHTML = `
-            <div><strong>${totaleMese}</strong></div>
-            <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
-            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
-              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
-            </div>`;
-          tdTot.style.textAlign = "center";
-          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
-          tr.appendChild(tdTot);
+          if (index === 0) {
+            const tdTot = document.createElement("td");
+            tdTot.rowSpan = tipoRowSpan;
+            tdTot.innerHTML = `
+              <div><strong>${totaleMese}</strong></div>
+              <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
+              <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+                Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+              </div>`;
+            tdTot.style.textAlign = "center";
+            tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+            tr.appendChild(tdTot);
+          }
   
           const tdFUT = document.createElement("td");
           tdFUT.textContent = sum.FUT;
@@ -407,8 +411,11 @@ function aggiornaTabella() {
         sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
       }
   
-      // 🔢 Totale categoria intera
-      const sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+      const tipoRowSpan = sezioni.length;
+      const sezioniRilevanti = tipo === "ZADANKAI"
+        ? ["membri", "simpatizzanti", "ospiti"]
+        : ["membri", "simpatizzanti"];
+  
       const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
       const sumTot = righeTotali.reduce((acc, r) => ({
         U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
@@ -425,8 +432,6 @@ function aggiornaTabella() {
       const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
       const delta = totaleMese - totalePrec;
   
-      const tipoRowSpan = sezioni.length;
-  
       sezioni.forEach((sezione, index) => {
         const righeSezione = righeTipo.filter(r => r.sezione === sezione);
         const sum = righeSezione.reduce((acc, r) => ({
@@ -435,12 +440,12 @@ function aggiornaTabella() {
         }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
         const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
   
-        const righePrecSezione = righe.filter(r =>
+        const righePrec = righe.filter(r =>
           r.anno === annoPrec && r.mese === mesePrec &&
           r.tipo === tipo && r.sezione === sezione &&
           gruppoToCapitolo[r.gruppo] === capitolo
         );
-        const sommaPrec = righePrecSezione.reduce((acc, r) =>
+        const sommaPrec = righePrec.reduce((acc, r) =>
           acc + r.U + r.D + r.GU + r.GD, 0);
   
         const tr = document.createElement("tr");
@@ -466,16 +471,19 @@ function aggiornaTabella() {
           tr.appendChild(td);
         });
   
-        const tdTot = document.createElement("td");
-        tdTot.innerHTML = `
-          <div><strong>${totaleMese}</strong></div>
-          <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
-          <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
-            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
-          </div>`;
-        tdTot.style.textAlign = "center";
-        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
-        tr.appendChild(tdTot);
+        if (index === 0) {
+          const tdTot = document.createElement("td");
+          tdTot.rowSpan = tipoRowSpan;
+          tdTot.innerHTML = `
+            <div><strong>${totaleMese}</strong></div>
+            <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
+            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            </div>`;
+          tdTot.style.textAlign = "center";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
+          tr.appendChild(tdTot);
+        }
   
         const tdFUT = document.createElement("td");
         tdFUT.textContent = sum.FUT;
@@ -491,5 +499,7 @@ function aggiornaTabella() {
     tabellaCap.appendChild(tbodyCap);
     contenitore.appendChild(tabellaCap);
   }
+  
+
   
 }
