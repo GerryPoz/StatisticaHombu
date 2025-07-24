@@ -67,8 +67,12 @@ Promise.all([
 
   [filtroAnno, filtroMese, filtroCapitolo].forEach(f => f.addEventListener("change", aggiornaTabella));
   aggiornaTabella();
+  generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
 });
 
+//#######################################################################################
+// FUNZIONI AGGIORNA TABELLA GRUPPI
+//#########################################
 function aggiornaTabella() {
   tbody.innerHTML = "";
   const anno = filtroAnno.value;
@@ -191,7 +195,12 @@ function aggiornaTabella() {
       });
     });
   });
+  //#######################################################################################
 
+
+  //#######################################################################################
+  // FUNZIONI PER GRUPPI MANCANTI
+  //#########################################
   // 🔍 Gruppi del capitolo selezionato
   const gruppiCapitolo = Object.values(gruppiData["HOMBU 9"][capitolo]).flat();
 
@@ -215,4 +224,162 @@ function aggiornaTabella() {
   } else {
     contenitoreLista.textContent = "✅ Tutti i gruppi del capitolo hanno inserito dati!";
   }
+  //#######################################################################################
+
+
+  //#######################################################################################
+  // FUNZIONI PER RIEPILOGO SETTORI E CAPITOLO
+  //############################################
+  function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo) {
+    const contenitore = document.getElementById("riepilogo-capitolo");
+    contenitore.innerHTML = "";
+  
+    const struttura = gruppiData["HOMBU 9"][capitolo];
+    const settori = Object.entries(struttura);
+  
+    // 🧭 Riepilogo per ogni settore
+    settori.forEach(([settore, gruppiSettore]) => {
+      const righeSettore = righeFiltrate.filter(r => gruppiSettore.includes(r.gruppo));
+      if (righeSettore.length === 0) return;
+  
+      const tabella = document.createElement("table");
+      tabella.className = "riepilogo";
+      tabella.style.marginTop = "2em";
+  
+      const intestazione = document.createElement("caption");
+      intestazione.textContent = `Riepilogo Settore: ${settore}`;
+      intestazione.style.fontWeight = "bold";
+      tabella.appendChild(intestazione);
+  
+      const thead = document.createElement("thead");
+      thead.innerHTML = `<tr>
+        <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+        <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+      </tr>`;
+      tabella.appendChild(thead);
+  
+      const tbody = document.createElement("tbody");
+  
+      ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        let righeTipo = righeSettore.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
+  
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+          const ordine = ["membri", "simpatizzanti", "ospiti"];
+          sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+        }
+  
+        sezioni.forEach(sezione => {
+          const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+          const sum = righeSezione.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+          }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+          const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+  
+          const righePrec = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo && r.sezione === sezione &&
+            gruppiSettore.includes(r.gruppo)
+          );
+          const sommaPrec = righePrec.reduce((acc, r) =>
+            acc + r.U + r.D + r.GU + r.GD, 0);
+          const delta = sommaTot - sommaPrec;
+  
+          const tr = document.createElement("tr");
+          tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+  
+          const celle = [
+            tipo, sezione, sum.U, sum.D, sum.GU, sum.GD,
+            sommaTot, sommaPrec,
+            `${sommaTot} (${delta >= 0 ? "+" : ""}${delta})`,
+            sum.FUT, sum.STU
+          ];
+  
+          celle.forEach(val => {
+            const td = document.createElement("td");
+            td.textContent = val;
+            tr.appendChild(td);
+          });
+  
+          tbody.appendChild(tr);
+        });
+      });
+  
+      tabella.appendChild(tbody);
+      contenitore.appendChild(tabella);
+    });
+  
+    // 🧮 Riepilogo Capitolo (tutti i gruppi filtrati)
+    const tabellaCap = document.createElement("table");
+    tabellaCap.className = "riepilogo";
+    tabellaCap.style.marginTop = "2em";
+  
+    const intestazioneCap = document.createElement("caption");
+    intestazioneCap.textContent = `Totale Capitolo ${capitolo}`;
+    intestazioneCap.style.fontWeight = "bold";
+    tabellaCap.appendChild(intestazioneCap);
+  
+    const theadCap = document.createElement("thead");
+    theadCap.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabellaCap.appendChild(theadCap);
+  
+    const tbodyCap = document.createElement("tbody");
+  
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      let righeTipo = righeFiltrate.filter(r => r.tipo === tipo);
+      if (righeTipo.length === 0) return;
+  
+      const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+      if (tipo === "ZADANKAI") {
+        const ordine = ["membri", "simpatizzanti", "ospiti"];
+        sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+      }
+  
+      sezioni.forEach(sezione => {
+        const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+        const sum = righeSezione.reduce((acc, r) => ({
+          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+  
+        const righePrec = righe.filter(r =>
+          r.anno === annoPrec && r.mese === mesePrec &&
+          r.tipo === tipo && r.sezione === sezione &&
+          gruppoToCapitolo[r.gruppo] === capitolo
+        );
+        const sommaPrec = righePrec.reduce((acc, r) =>
+          acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = sommaTot - sommaPrec;
+  
+        const tr = document.createElement("tr");
+        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+  
+        const celle = [
+          tipo, sezione, sum.U, sum.D, sum.GU, sum.GD,
+          sommaTot, sommaPrec,
+          `${sommaTot} (${delta >= 0 ? "+" : ""}${delta})`,
+          sum.FUT, sum.STU
+        ];
+  
+        celle.forEach(val => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+  
+        tbodyCap.appendChild(tr);
+      });
+    });
+  
+    tabellaCap.appendChild(tbodyCap);
+    contenitore.appendChild(tabellaCap);
+  }
+
+  
 }
