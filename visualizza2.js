@@ -25,12 +25,14 @@ function mesePrecedente(mese, anno) {
 
 let righe = [];
 let gruppoToCapitolo = {};
+let gruppiData; // 🔑 per elenco gruppi capitolo
 
 // 🔹 Carica dati da gruppi.json e Firebase
 Promise.all([
   fetch("gruppi.json").then(res => res.json()),
   get(child(ref(db), "zadankai"))
-]).then(([gruppiData, snapshot]) => {
+]).then(([data, snapshot]) => {
+  gruppiData = data;
   const struttura = gruppiData["HOMBU 9"];
   for (const [capitolo, settori] of Object.entries(struttura)) {
     for (const gruppi of Object.values(settori)) {
@@ -190,18 +192,17 @@ function aggiornaTabella() {
     });
   });
 
-  // 🔎 Trova gruppi del capitolo selezionato
-  const gruppiCapitolo = Object.values(gruppiData["HOMBU 9"][capitolo])
-    .flat();
-  
+  // 🔍 Gruppi del capitolo selezionato
+  const gruppiCapitolo = Object.values(gruppiData["HOMBU 9"][capitolo]).flat();
+
   // ✅ Gruppi presenti nei dati per quel mese
   const gruppiPresenti = righeFiltrate.map(r => r.gruppo);
   const gruppiMancanti = gruppiCapitolo.filter(gr => !gruppiPresenti.includes(gr));
-  
-  // 📢 Mostra la lista a video
+
+  // 📢 Mostra lista ritardatari
   const contenitoreLista = document.getElementById("gruppi-mancanti");
   contenitoreLista.innerHTML = "";
-  
+
   if (gruppiMancanti.length > 0) {
     const ul = document.createElement("ul");
     gruppiMancanti.forEach(gr => {
@@ -214,6 +215,4 @@ function aggiornaTabella() {
   } else {
     contenitoreLista.textContent = "✅ Tutti i gruppi del capitolo hanno inserito dati!";
   }
-
 }
-
