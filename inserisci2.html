@@ -16,7 +16,7 @@
 </head>
 <body>
 
-  <h1>Inserimento dati HOMBU 88</h1>
+  <h1>Inserimento dati HOMBU 8</h1>
 
   <label>Anno:
     <select id="anno">
@@ -105,7 +105,7 @@
 
     function raccogliDati() {
       return {
-        ZADANKAI: {
+        zadankai: {
           membri: {
             U: parseInt(document.getElementById("zadankai_membri_U").value) || 0,
             D: parseInt(document.getElementById("zadankai_membri_D").value) || 0,
@@ -125,7 +125,7 @@
             GD: parseInt(document.getElementById("zadankai_ospiti_GD").value) || 0
           }
         },
-        PRATICANTI: {
+        praticanti: {
           membri: {
             U: parseInt(document.getElementById("praticanti_membri_U").value) || 0,
             D: parseInt(document.getElementById("praticanti_membri_D").value) || 0,
