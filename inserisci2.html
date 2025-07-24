@@ -21,7 +21,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     window.getFirebaseDB = () => db;
     window.getFirebaseRef = ref;
     window.setFirebaseData = set;
@@ -56,9 +55,8 @@
   </style>
 </head>
 <body>
-  <h1>Inserimento dati HOMBU</h1>
+  <h1>Inserimento dati HOMBU44</h1>
   <form id="dati-form">
-
     <label for="anno">Anno:
       <select id="anno"><option>2025</option><option>2026</option></select>
     </label>
@@ -71,13 +69,11 @@
       <select id="gruppo"><option>Kansai</option><option>Kanto</option></select>
     </label>
 
-    <!-- 📊 Tabelle HOMBU -->
     <div id="tabelleContainer"></div>
 
     <button type="button" id="salvaBtn">💾 Salva dati</button>
   </form>
 
-  <!-- ✅ Popup conferma -->
   <div id="popupConferma">
     <div class="box">
       <h3>Confermi l'invio?</h3>
@@ -88,125 +84,119 @@
   </div>
 
   <script>
-  const sezioni = ["membri", "simpatizzanti", "ospiti"];
-  const categorie = ["ZADANKAI", "PRATICANTI"];
-  const campi = ["U", "D", "GU", "GD"];
+    const sezioni = ["membri", "simpatizzanti", "ospiti"];
+    const categorie = ["ZADANKAI", "PRATICANTI"];
+    const campi = ["U", "D", "GU", "GD"];
 
-  function creaTabella(gruppo) {
-    const container = document.getElementById("tabelleContainer");
-    container.innerHTML = "";
+    function creaTabella(gruppo) {
+      const container = document.getElementById("tabelleContainer");
+      container.innerHTML = "";
 
-    categorie.forEach(categoria => {
-      const table = document.createElement("table");
-      const caption = document.createElement("caption");
-      caption.textContent = `${gruppo} – ${categoria}`;
-      table.appendChild(caption);
+      categorie.forEach(categoria => {
+        const table = document.createElement("table");
+        const caption = document.createElement("caption");
+        caption.textContent = `${gruppo} – ${categoria}`;
+        table.appendChild(caption);
 
-      const thead = document.createElement("thead");
-      thead.innerHTML = "<tr><th>Sezione</th>" +
-        campi.map(c => `<th>${c}</th>`).join("") +
-        "<th>Totale</th></tr>";
-      table.appendChild(thead);
+        const thead = document.createElement("thead");
+        thead.innerHTML = "<tr><th>Sezione</th>" +
+          campi.map(c => `<th>${c}</th>`).join("") +
+          "<th>Totale</th></tr>";
+        table.appendChild(thead);
 
-      const tbody = document.createElement("tbody");
-      sezioni.forEach(sezione => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${sezione}</td>` +
-          campi.map(c => `<td><input type="number" data-categoria="${categoria}" data-sezione="${sezione}" data-campo="${c}" /></td>`).join("") +
-          `<td class="totale">0</td>`;
-        tbody.appendChild(tr);
+        const tbody = document.createElement("tbody");
+        sezioni.forEach(sezione => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${sezione}</td>` +
+            campi.map(c => `<td><input type="number" data-categoria="${categoria}" data-sezione="${sezione}" data-campo="${c}" /></td>`).join("") +
+            `<td class="totale">0</td>`;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
       });
-      table.appendChild(tbody);
-      container.appendChild(table);
-    });
-  }
-
-  // Totali automatici per riga
-  document.getElementById("tabelleContainer").addEventListener("input", e => {
-    if (e.target.matches("input[type='number']")) {
-      const row = e.target.closest("tr");
-      const inputs = row.querySelectorAll("input[type='number']");
-      let somma = 0;
-      inputs.forEach(inp => somma += Number(inp.value) || 0);
-      row.querySelector(".totale").textContent = somma;
     }
-  });
 
-  // Quando si seleziona un gruppo
-  document.getElementById("gruppo").addEventListener("change", e => {
-    creaTabella(e.target.value);
-  });
-
-  const popup = document.getElementById("popupConferma");
-  const salvaBtn = document.getElementById("salvaBtn");
-  const confermaBtn = document.getElementById("confermaBtn");
-  const annullaBtn = document.getElementById("annullaBtn");
-
-  salvaBtn.addEventListener("click", () => {
-    const mese = document.getElementById("mese").value;
-    const anno = document.getElementById("anno").value;
-    const gruppo = document.getElementById("gruppo").value;
-
-    document.getElementById("riepilogoTesto").innerHTML =
-      `📅 ${mese} ${anno}<br>👥 Gruppo: ${gruppo}`;
-    popup.classList.add("visibile");
-  });
-
-  annullaBtn.addEventListener("click", () => {
-    popup.classList.remove("visibile");
-  });
-
-  confermaBtn.addEventListener("click", async () => {
-    popup.classList.remove("visibile");
-
-    const mese = document.getElementById("mese").value;
-    const anno = document.getElementById("anno").value;
-    const gruppo = document.getElementById("gruppo").value;
-
-    const dati = {}; // 🔄 Dati da salvare
-
-    // Raccolta dati da ogni input
-    const inputs = document.querySelectorAll("input[type='number']");
-    let almenoUnValore = false;
-
-    inputs.forEach(input => {
-      const categoria = input.dataset.categoria;
-      const sezione = input.dataset.sezione;
-      const campo = input.dataset.campo;
-      const valore = Number(input.value) || 0;
-
-      if (valore > 0) almenoUnValore = true;
-
-      // Costruzione struttura
-      if (!dati[categoria]) dati[categoria] = {};
-      if (!dati[categoria][sezione]) dati[categoria][sezione] = {};
-      dati[categoria][sezione][campo] = valore;
+    // Totali automatici per riga
+    document.getElementById("tabelleContainer").addEventListener("input", e => {
+      if (e.target.matches("input[type='number']")) {
+        const row = e.target.closest("tr");
+        const inputs = row.querySelectorAll("input[type='number']");
+        let somma = 0;
+        inputs.forEach(inp => somma += Number(inp.value) || 0);
+        row.querySelector(".totale").textContent = somma;
+      }
     });
 
-    if (!almenoUnValore) {
-      alert("Inserisci almeno un valore prima di confermare.");
-      return;
-    }
+    // Cambio gruppo
+    document.getElementById("gruppo").addEventListener("change", e => {
+      creaTabella(e.target.value);
+    });
 
-    // Salvataggio su Firebase 🔥
-    const path = `${anno}/${mese}/${gruppo}`;
-    const db = window.getFirebaseDB();
-    const ref = window.getFirebaseRef(db, path);
+    const popup = document.getElementById("popupConferma");
+    const salvaBtn = document.getElementById("salvaBtn");
+    const confermaBtn = document.getElementById("confermaBtn");
+    const annullaBtn = document.getElementById("annullaBtn");
 
-    // Aggiunta timestamp
-    dati.timestamp = new Date().toLocaleString();
+    salvaBtn.addEventListener("click", () => {
+      const mese = document.getElementById("mese").value;
+      const anno = document.getElementById("anno").value;
+      const gruppo = document.getElementById("gruppo").value;
+      document.getElementById("riepilogoTesto").innerHTML =
+        `📅 ${mese} ${anno}<br>👥 Gruppo: ${gruppo}`;
+      popup.classList.add("visibile");
+    });
 
-    try {
-      await window.setFirebaseData(ref, dati);
-      alert("✅ Dati salvati correttamente su Firebase!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Errore nel salvataggio su Firebase.");
-    }
-  });
+    annullaBtn.addEventListener("click", () => {
+      popup.classList.remove("visibile");
+    });
 
-  // Avvio iniziale
-  creaTabella(document.getElementById("gruppo").value);
-</script>
+    confermaBtn.addEventListener("click", async () => {
+      popup.classList.remove("visibile");
+
+      const mese = document.getElementById("mese").value;
+      const anno = document.getElementById("anno").value;
+      const gruppo = document.getElementById("gruppo").value;
+
+      const dati = {};
+      const inputs = document.querySelectorAll("input[type='number']");
+      let almenoUnValore = false;
+
+      inputs.forEach(input => {
+        const categoria = input.dataset.categoria;
+        const sezione = input.dataset.sezione;
+        const campo = input.dataset.campo;
+        const valore = Number(input.value) || 0;
+
+        if (valore > 0) almenoUnValore = true;
+
+        if (!dati[categoria]) dati[categoria] = {};
+        if (!dati[categoria][sezione]) dati[categoria][sezione] = {};
+        dati[categoria][sezione][campo] = valore;
+      });
+
+      if (!almenoUnValore) {
+        alert("Inserisci almeno un valore prima di confermare.");
+        return;
+      }
+
+      const path = `${anno}/${mese}/${gruppo}`;
+      const db = window.getFirebaseDB();
+      const ref = window.getFirebaseRef(db, path);
+
+      dati.timestamp = new Date().toLocaleString();
+
+      try {
+        await window.setFirebaseData(ref, dati);
+        alert("✅ Dati salvati correttamente su Firebase!");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Errore nel salvataggio su Firebase.");
+      }
+    });
+
+    // ⚡ Inizializzazione tabelle all'avvio
+    creaTabella(document.getElementById("gruppo").value);
+  </script>
 </body>
 </html>
