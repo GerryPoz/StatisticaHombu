@@ -464,14 +464,14 @@ function aggiornaTabella() {
           sezione, sum.U, sum.D, sum.GU, sum.GD,
           sommaTot, sommaPrec
         ];
-        celle.forEach(val => {
+        celle.forEach((val, i) => {
           const td = document.createElement("td");
           td.textContent = val;
-          if (i === 0) td.style.borderLeft = "2px solid #333"; // Sezione
-          if (i === 1) td.style.borderLeft = "2px solid #333"; // U
-          if (i === 4) td.style.borderRight = "2px solid #333"; // GD
+          if (i === 0 || i === 1) td.style.borderLeft = "2px solid #333";
+          if (i === 4) td.style.borderRight = "2px solid #333";
           tr.appendChild(td);
         });
+
   
         if (index === 0) {
           const tdTot = document.createElement("td");
