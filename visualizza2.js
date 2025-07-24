@@ -399,7 +399,7 @@ function aggiornaTabella() {
     </tr>`;
     tabellaCap.appendChild(theadCap);
     console.log("Genera riepilogo Capitolo per:", capitolo);
-    console.log("Righe filtrate:", righeFiltrate.length
+    console.log("Righe filtrate:", righeFiltrate.length);
     const tbodyCap = document.createElement("tbody");
   
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
