@@ -55,7 +55,7 @@
   </style>
 </head>
 <body>
-  <h1>Inserimento dati HOMBU54</h1>
+  <h1>Inserimento dati HOMBU66</h1>
   <form id="dati-form">
     <label for="anno">Anno:
       <select id="anno"><option>2025</option><option>2026</option></select>
@@ -156,7 +156,7 @@
 
       const mese = document.getElementById("mese").value;
       const anno = document.getElementById("anno").value;
-      const gruppo = document.getElementById("gruppo").value;
+      const gruppo = document.getElementById("gruppo").value.toUpperCase(); // 👍 MAIUSCOLO
 
       const dati = {};
       const inputs = document.querySelectorAll("input[type='number']");
@@ -180,8 +180,12 @@
         return;
       }
 
-      const path = `zadankai/${anno}-${mese}-${gruppo.toUpperCase()}`;
+      const path = `zadankai/${anno}-${mese}-${gruppo}`;
       const db = window.getFirebaseDB();
+      set(ref(db, path), {
+        gruppo: gruppo, // 👈 anche il campo interno MAIUSCOLO
+        ...dati
+      });
       const ref = window.getFirebaseRef(db, path);
 
       dati.timestamp = new Date().toLocaleString();
