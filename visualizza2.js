@@ -67,7 +67,6 @@ Promise.all([
 
   [filtroAnno, filtroMese, filtroCapitolo].forEach(f => f.addEventListener("change", aggiornaTabella));
   aggiornaTabella();
-  generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
 });
 
 //#######################################################################################
@@ -225,7 +224,7 @@ function aggiornaTabella() {
     contenitoreLista.textContent = "✅ Tutti i gruppi del capitolo hanno inserito dati!";
   }
   //#######################################################################################
-
+  generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
 
   //#######################################################################################
   // FUNZIONI PER RIEPILOGO SETTORI E CAPITOLO
