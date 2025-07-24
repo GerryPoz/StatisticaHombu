@@ -87,54 +87,6 @@ document.querySelectorAll('#praticanti-table input[type="number"]').forEach(inpu
   input.addEventListener("input", calcolaTotaliPraticanti);
 });
 
-// Salvataggio su Firebase
-document.getElementById("dati-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData.entries());
-  const key = `${data.anno}-${data.mese}-${data.gruppo}`;
-
-  const payload = {
-    gruppo: data.gruppo,
-    zadankai: {
-      membri: {
-        U: +data.zadankai_m_u || 0,
-        D: +data.zadankai_m_d || 0,
-        GU: +data.zadankai_m_gu || 0,
-        GD: +data.zadankai_m_gd || 0,
-        FUT: +data.zadankai_m_fut || 0,
-        STU: +data.zadankai_m_stu || 0
-      },
-      simpatizzanti: {
-        U: +data.zadankai_s_u || 0,
-        D: +data.zadankai_s_d || 0,
-        GU: +data.zadankai_s_gu || 0,
-        GD: +data.zadankai_s_gd || 0,
-        FUT: +data.zadankai_s_fut || 0,
-        STU: +data.zadankai_s_stu || 0
-      },
-      ospiti: {
-        U: +data.zadankai_o_u || 0,
-        D: +data.zadankai_o_d || 0,
-        GU: +data.zadankai_o_gu || 0,
-        GD: +data.zadankai_o_gd || 0
-      }
-    },
-    praticanti: {
-      membri: {
-        U: +data.praticanti_m_u || 0,
-        D: +data.praticanti_m_d || 0,
-        GU: +data.praticanti_m_gu || 0,
-        GD: +data.praticanti_m_gd || 0
-      },
-      simpatizzanti: {
-        U: +data.praticanti_s_u || 0,
-        D: +data.praticanti_s_d || 0,
-        GU: +data.praticanti_s_gu || 0,
-        GD: +data.praticanti_s_gd || 0
-      }
-    }
-  };
 
   set(ref(db, `zadankai/${key}`), payload)
     .then(() => {
