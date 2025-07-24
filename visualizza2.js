@@ -97,9 +97,7 @@ function aggiornaTabella() {
   
   gruppi.forEach(gruppo => {
     const settore = settorePerGruppo[gruppo];
-    //-------- MENU GRUPPI
     if (settore !== settoreCorrente) {
-      // 🔹 RIGA SEPARATRICE SETTORE
       const separatore = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 12;
@@ -112,32 +110,8 @@ function aggiornaTabella() {
       separatore.appendChild(td);
       tbody.appendChild(separatore);
     
-      // 🔹 INTESTAZIONE TABELLA (SOLO UNA VOLTA PER SETTORE)
-      const headerRow = document.createElement("tr");
-      const headers = [
-        "Nome Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD",
-        "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
-      ];
-      headers.forEach((testo, i) => {
-        const th = document.createElement("th");
-        th.textContent = testo;
-        th.style.backgroundColor = "#f5f5f5";
-        th.style.fontWeight = "bold";
-        th.style.borderBottom = "2px solid #999";
-        th.style.padding = "4px";
-        if (i === 3) th.style.borderLeft = "2px solid #333"; // U
-        if (i === 6) th.style.borderRight = "2px solid #333"; // GD
-        if (i === 9) {
-          th.style.borderLeft = "2px solid #333"; // Totale Gruppo
-          th.style.borderRight = "2px solid #333";
-        }
-        headerRow.appendChild(th);
-      });
-      tbody.appendChild(headerRow);
-    
       settoreCorrente = settore;
     }
-    //-------------------
     
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     let gruppoStampato = false;
