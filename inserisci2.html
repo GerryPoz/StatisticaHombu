@@ -16,7 +16,7 @@
 </head>
 <body>
 
-  <h1>Inserimento dati HOMBU</h1>
+  <h1>Inserimento dati HOMBU ee</h1>
 
   <label>Anno:
     <select id="anno">
@@ -170,7 +170,9 @@
 
       set(ref(db, path), {
         gruppo: gruppo,
-        ...dati
+        praticanti: praticanti,
+        zadankai: zadankai,
+        timestamp: ...
       })
       .then(() => alert(`✅ Dati salvati con successo per ${gruppo} (${mese} ${anno})`))
       .catch(error => alert("❌ Errore nel salvataggio: " + error));
