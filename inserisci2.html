@@ -4,165 +4,209 @@
   <meta charset="UTF-8" />
   <title>Inserimento HOMBU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f7f7f7; }
-    h1 { margin-bottom: 1rem; }
-    select, button, input { margin: 0.5rem 0; padding: 0.5rem; }
-    table { border-collapse: collapse; margin-top: 1rem; width: 100%; background: white; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
-    input[type="number"] { width: 60px; }
-    caption { text-align: left; font-weight: bold; margin-top: 2rem; }
-  </style>
-</head>
-<body>
-
-  <h1>Inserimento dati HOMBU 7</h1>
-
-  <label>Anno:
-    <select id="anno">
-      <option>2025</option>
-      <option>2026</option>
-    </select>
-  </label>
-
-  <label>Mese:
-    <select id="mese">
-      <option>Gennaio</option>
-      <option>Febbraio</option>
-    </select>
-  </label>
-
-  <label>Gruppo:
-    <input id="gruppo" placeholder="es: Kansai" />
-  </label>
-
-  <table>
-    <caption>ZADANKAI - Membri</caption>
-    <tr><td>U</td><td><input type="number" id="zadankai_membri_U" /></td>
-        <td>D</td><td><input type="number" id="zadankai_membri_D" /></td>
-        <td>GU</td><td><input type="number" id="zadankai_membri_GU" /></td>
-        <td>GD</td><td><input type="number" id="zadankai_membri_GD" /></td></tr>
-  </table>
-
-  <table>
-    <caption>ZADANKAI - Simpatizzanti</caption>
-    <tr><td>U</td><td><input type="number" id="zadankai_simpatizzanti_U" /></td>
-        <td>D</td><td><input type="number" id="zadankai_simpatizzanti_D" /></td>
-        <td>GU</td><td><input type="number" id="zadankai_simpatizzanti_GU" /></td>
-        <td>GD</td><td><input type="number" id="zadankai_simpatizzanti_GD" /></td></tr>
-  </table>
-
-  <table>
-    <caption>ZADANKAI - Ospiti</caption>
-    <tr><td>U</td><td><input type="number" id="zadankai_ospiti_U" /></td>
-        <td>D</td><td><input type="number" id="zadankai_ospiti_D" /></td>
-        <td>GU</td><td><input type="number" id="zadankai_ospiti_GU" /></td>
-        <td>GD</td><td><input type="number" id="zadankai_ospiti_GD" /></td></tr>
-  </table>
-
-  <table>
-    <caption>PRATICANTI - Membri</caption>
-    <tr><td>U</td><td><input type="number" id="praticanti_membri_U" /></td>
-        <td>D</td><td><input type="number" id="praticanti_membri_D" /></td>
-        <td>GU</td><td><input type="number" id="praticanti_membri_GU" /></td>
-        <td>GD</td><td><input type="number" id="praticanti_membri_GD" /></td></tr>
-  </table>
-
-  <table>
-    <caption>PRATICANTI - Simpatizzanti</caption>
-    <tr><td>U</td><td><input type="number" id="praticanti_simpatizzanti_U" /></td>
-        <td>D</td><td><input type="number" id="praticanti_simpatizzanti_D" /></td>
-        <td>GU</td><td><input type="number" id="praticanti_simpatizzanti_GU" /></td>
-        <td>GD</td><td><input type="number" id="praticanti_simpatizzanti_GD" /></td></tr>
-  </table>
-
-  <button onclick="salvaDati()">💾 Salva dati</button>
-
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "TUO_API_KEY",
+      apiKey: "AIzaSyAGoVq0-DvyqUUH4aDCfOFZP2NobclIg_o",
       authDomain: "hombu-8630c.firebaseapp.com",
       databaseURL: "https://hombu-8630c-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "hombu-8630c",
-      storageBucket: "hombu-8630c.appspot.com",
-      messagingSenderId: "TUO_SENDER_ID",
-      appId: "TUO_APP_ID"
+      storageBucket: "hombu-8630c.firebasestorage.app",
+      messagingSenderId: "886418358212",
+      appId: "1:886418358212:web:fa87f614ad5665b3426e91",
+      measurementId: "G-D6W8XKCB8Z"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    function raccogliDati() {
-      return {
-        zadankai: {
-          membri: {
-            U: parseInt(document.getElementById("zadankai_membri_U").value) || 0,
-            D: parseInt(document.getElementById("zadankai_membri_D").value) || 0,
-            GU: parseInt(document.getElementById("zadankai_membri_GU").value) || 0,
-            GD: parseInt(document.getElementById("zadankai_membri_GD").value) || 0
-          },
-          simpatizzanti: {
-            U: parseInt(document.getElementById("zadankai_simpatizzanti_U").value) || 0,
-            D: parseInt(document.getElementById("zadankai_simpatizzanti_D").value) || 0,
-            GU: parseInt(document.getElementById("zadankai_simpatizzanti_GU").value) || 0,
-            GD: parseInt(document.getElementById("zadankai_simpatizzanti_GD").value) || 0
-          },
-          ospiti: {
-            U: parseInt(document.getElementById("zadankai_ospiti_U").value) || 0,
-            D: parseInt(document.getElementById("zadankai_ospiti_D").value) || 0,
-            GU: parseInt(document.getElementById("zadankai_ospiti_GU").value) || 0,
-            GD: parseInt(document.getElementById("zadankai_ospiti_GD").value) || 0
-          }
-        },
-        praticanti: {
-          membri: {
-            U: parseInt(document.getElementById("praticanti_membri_U").value) || 0,
-            D: parseInt(document.getElementById("praticanti_membri_D").value) || 0,
-            GU: parseInt(document.getElementById("praticanti_membri_GU").value) || 0,
-            GD: parseInt(document.getElementById("praticanti_membri_GD").value) || 0
-          },
-          simpatizzanti: {
-            U: parseInt(document.getElementById("praticanti_simpatizzanti_U").value) || 0,
-            D: parseInt(document.getElementById("praticanti_simpatizzanti_D").value) || 0,
-            GU: parseInt(document.getElementById("praticanti_simpatizzanti_GU").value) || 0,
-                        GD: parseInt(document.getElementById("praticanti_simpatizzanti_GD").value) || 0
-          }
-        },
-        timestamp: new Date().toLocaleString("it-IT", {
-          timeZone: "Europe/Rome"
-        })
-      };
-      return dati;
-    }
-
-    // 💾 Funzione principale per il salvataggio
-    window.salvaDati = function () {
-      const gruppo = document.getElementById("gruppo").value.trim().toUpperCase();
-      const anno = document.getElementById("anno").value;
-      const mese = document.getElementById("mese").value;
-
-      if (!gruppo) {
-        alert("⚠️ Inserisci il nome del gruppo!");
-        return;
-      }
-
-      const path = `zadankai/${anno}-${mese}-${gruppo}`;
-      const dati = raccogliDati();
-
-      console.log("📦 Dati pronti da inviare:", dati);
-
-      set(ref(db, path), {
-        gruppo: gruppo,
-        ...dati
-      });
-      .then(() => alert(`✅ Dati salvati con successo per ${gruppo} (${mese} ${anno})`))
-      .catch(error => alert("❌ Errore nel salvataggio: " + error));
-    }
+    window.getFirebaseDB = () => db;
+    window.getFirebaseRef = ref;
+    window.setFirebaseData = set;
   </script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f7f7f7; }
+    h1 { margin-bottom: 1rem; }
+    select, button { margin: 0.5rem 0; padding: 0.5rem; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    input[type="number"] { width: 60px; }
+    caption { text-align: left; font-weight: bold; margin-top: 2rem; }
 
+    #popupConferma {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #popupConferma.visibile { display: flex; }
+    #popupConferma .box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #333;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Inserimento dati HOMBU</h1>
+  <form id="dati-form">
 
+    <label for="anno">Anno:
+      <select id="anno"><option>2025</option><option>2026</option></select>
+    </label>
+
+    <label for="mese">Mese:
+      <select id="mese"><option>Gennaio</option><option>Febbraio</option></select>
+    </label>
+
+    <label for="gruppo">Gruppo:
+      <select id="gruppo"><option>Kansai</option><option>Kanto</option></select>
+    </label>
+
+    <!-- 📊 Tabelle HOMBU -->
+    <div id="tabelleContainer"></div>
+
+    <button type="button" id="salvaBtn">💾 Salva dati</button>
+  </form>
+
+  <!-- ✅ Popup conferma -->
+  <div id="popupConferma">
+    <div class="box">
+      <h3>Confermi l'invio?</h3>
+      <p id="riepilogoTesto"></p>
+      <button id="confermaBtn">✅ Conferma</button>
+      <button id="annullaBtn">❌ Annulla</button>
+    </div>
+  </div>
+
+  <script>
+  const sezioni = ["membri", "simpatizzanti", "ospiti"];
+  const categorie = ["ZADANKAI", "PRATICANTI"];
+  const campi = ["U", "D", "GU", "GD"];
+
+  function creaTabella(gruppo) {
+    const container = document.getElementById("tabelleContainer");
+    container.innerHTML = "";
+
+    categorie.forEach(categoria => {
+      const table = document.createElement("table");
+      const caption = document.createElement("caption");
+      caption.textContent = `${gruppo} – ${categoria}`;
+      table.appendChild(caption);
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = "<tr><th>Sezione</th>" +
+        campi.map(c => `<th>${c}</th>`).join("") +
+        "<th>Totale</th></tr>";
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      sezioni.forEach(sezione => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${sezione}</td>` +
+          campi.map(c => `<td><input type="number" data-categoria="${categoria}" data-sezione="${sezione}" data-campo="${c}" /></td>`).join("") +
+          `<td class="totale">0</td>`;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+    });
+  }
+
+  // Totali automatici per riga
+  document.getElementById("tabelleContainer").addEventListener("input", e => {
+    if (e.target.matches("input[type='number']")) {
+      const row = e.target.closest("tr");
+      const inputs = row.querySelectorAll("input[type='number']");
+      let somma = 0;
+      inputs.forEach(inp => somma += Number(inp.value) || 0);
+      row.querySelector(".totale").textContent = somma;
+    }
+  });
+
+  // Quando si seleziona un gruppo
+  document.getElementById("gruppo").addEventListener("change", e => {
+    creaTabella(e.target.value);
+  });
+
+  const popup = document.getElementById("popupConferma");
+  const salvaBtn = document.getElementById("salvaBtn");
+  const confermaBtn = document.getElementById("confermaBtn");
+  const annullaBtn = document.getElementById("annullaBtn");
+
+  salvaBtn.addEventListener("click", () => {
+    const mese = document.getElementById("mese").value;
+    const anno = document.getElementById("anno").value;
+    const gruppo = document.getElementById("gruppo").value;
+
+    document.getElementById("riepilogoTesto").innerHTML =
+      `📅 ${mese} ${anno}<br>👥 Gruppo: ${gruppo}`;
+    popup.classList.add("visibile");
+  });
+
+  annullaBtn.addEventListener("click", () => {
+    popup.classList.remove("visibile");
+  });
+
+  confermaBtn.addEventListener("click", async () => {
+    popup.classList.remove("visibile");
+
+    const mese = document.getElementById("mese").value;
+    const anno = document.getElementById("anno").value;
+    const gruppo = document.getElementById("gruppo").value;
+
+    const dati = {}; // 🔄 Dati da salvare
+
+    // Raccolta dati da ogni input
+    const inputs = document.querySelectorAll("input[type='number']");
+    let almenoUnValore = false;
+
+    inputs.forEach(input => {
+      const categoria = input.dataset.categoria;
+      const sezione = input.dataset.sezione;
+      const campo = input.dataset.campo;
+      const valore = Number(input.value) || 0;
+
+      if (valore > 0) almenoUnValore = true;
+
+      // Costruzione struttura
+      if (!dati[categoria]) dati[categoria] = {};
+      if (!dati[categoria][sezione]) dati[categoria][sezione] = {};
+      dati[categoria][sezione][campo] = valore;
+    });
+
+    if (!almenoUnValore) {
+      alert("Inserisci almeno un valore prima di confermare.");
+      return;
+    }
+
+    // Salvataggio su Firebase 🔥
+    const path = `${anno}/${mese}/${gruppo}`;
+    const db = window.getFirebaseDB();
+    const ref = window.getFirebaseRef(db, path);
+
+    // Aggiunta timestamp
+    dati.timestamp = new Date().toLocaleString();
+
+    try {
+      await window.setFirebaseData(ref, dati);
+      alert("✅ Dati salvati correttamente su Firebase!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Errore nel salvataggio su Firebase.");
+    }
+  });
+
+  // Avvio iniziale
+  creaTabella(document.getElementById("gruppo").value);
+</script>
 </body>
 </html>
