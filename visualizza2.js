@@ -255,6 +255,8 @@ function aggiornaTabella() {
   // FUNZIONI PER RIEPILOGO SETTORI E CAPITOLO
   //############################################
   function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo) {
+    console.log("Genera riepilogo Capitolo per:", capitolo);
+    console.log("Righe filtrate:", righeFiltrate.length
     const contenitore = document.getElementById("riepilogo-capitolo");
     contenitore.innerHTML = "";
   
