@@ -55,7 +55,7 @@
   </style>
 </head>
 <body>
-  <h1>Inserimento dati HOMBU44</h1>
+  <h1>Inserimento dati HOMBU54</h1>
   <form id="dati-form">
     <label for="anno">Anno:
       <select id="anno"><option>2025</option><option>2026</option></select>
@@ -180,7 +180,7 @@
         return;
       }
 
-      const path = `zadankai/${anno}-${mese}-${gruppo}`;
+      const path = `zadankai/${anno}-${mese}-${gruppo.toUpperCase()}`;
       const db = window.getFirebaseDB();
       const ref = window.getFirebaseRef(db, path);
 
