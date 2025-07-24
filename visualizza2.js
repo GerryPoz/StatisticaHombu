@@ -253,7 +253,7 @@ function aggiornaTabella() {
       const thead = document.createElement("thead");
       thead.innerHTML = `<tr>
         <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-        <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+        <th>Somma</th><th>Prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
       </tr>`;
       tabella.appendChild(thead);
   
@@ -316,14 +316,14 @@ function aggiornaTabella() {
     tabellaCap.style.marginTop = "2em";
   
     const intestazioneCap = document.createElement("caption");
-    intestazioneCap.textContent = `Totale Capitolo ${capitolo}`;
+    intestazioneCap.textContent = `Totale Capitolo: ${capitolo}`;
     intestazioneCap.style.fontWeight = "bold";
     tabellaCap.appendChild(intestazioneCap);
   
     const theadCap = document.createElement("thead");
     theadCap.innerHTML = `<tr>
       <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-      <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+      <th>Somma</th><th>Prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabellaCap.appendChild(theadCap);
   
