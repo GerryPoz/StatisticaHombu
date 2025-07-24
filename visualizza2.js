@@ -112,6 +112,24 @@ function aggiornaTabella() {
     
       settoreCorrente = settore;
     }
+
+    //-------------Intestazione tabella
+    const headerRow = document.createElement("tr");
+    const headers = [
+      "Nome Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD",
+      "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
+    ];
+    headers.forEach(testo => {
+      const th = document.createElement("th");
+      th.textContent = testo;
+      th.style.backgroundColor = "#f5f5f5";
+      th.style.fontWeight = "bold";
+      th.style.borderBottom = "2px solid #999";
+      th.style.padding = "4px";
+      headerRow.appendChild(th);
+    });
+    tbody.appendChild(headerRow);
+    //----------------------------------
     
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     let gruppoStampato = false;
