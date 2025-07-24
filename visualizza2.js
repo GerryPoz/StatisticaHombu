@@ -398,8 +398,6 @@ function aggiornaTabella() {
       <th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabellaCap.appendChild(theadCap);
-    console.log("Genera riepilogo Capitolo per:", capitolo);
-    console.log("Righe filtrate:", righeFiltrate.length);
     const tbodyCap = document.createElement("tbody");
   
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
