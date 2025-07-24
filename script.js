@@ -189,3 +189,21 @@ document.getElementById("annullaBtn").addEventListener("click", function () {
   document.getElementById("popupConferma").style.display = "none";
 });
 
+const form = document.getElementById("dati-form");
+const popup = document.getElementById("popup-conferma");
+const btnConferma = document.getElementById("btn-conferma");
+const btnAnnulla = document.getElementById("btn-annulla");
+
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
+  popup.style.display = "flex"; // mostra popup
+});
+
+btnConferma.addEventListener("click", () => {
+  popup.style.display = "none";
+  form.submit(); // invia davvero
+});
+
+btnAnnulla.addEventListener("click", () => {
+  popup.style.display = "none"; // chiudi popup
+});
