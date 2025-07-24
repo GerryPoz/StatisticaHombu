@@ -293,6 +293,24 @@ function aggiornaTabella() {
           sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
         }
   
+        // 🔢 Calcolo Totale per tipo completo (categoria)
+        const sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+  
+        const righePrecTot = righe.filter(r =>
+          r.anno === annoPrec && r.mese === mesePrec &&
+          r.tipo === tipo &&
+          sezioniRilevanti.includes(r.sezione) &&
+          gruppiSettore.includes(r.gruppo)
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+  
         const tipoRowSpan = sezioni.length;
   
         sezioni.forEach((sezione, index) => {
@@ -303,14 +321,13 @@ function aggiornaTabella() {
           }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
           const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
   
-          const righePrec = righe.filter(r =>
+          const righePrecSezione = righe.filter(r =>
             r.anno === annoPrec && r.mese === mesePrec &&
             r.tipo === tipo && r.sezione === sezione &&
             gruppiSettore.includes(r.gruppo)
           );
-          const sommaPrec = righePrec.reduce((acc, r) =>
+          const sommaPrec = righePrecSezione.reduce((acc, r) =>
             acc + r.U + r.D + r.GU + r.GD, 0);
-          const delta = sommaTot - sommaPrec;
   
           const tr = document.createElement("tr");
           tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
@@ -335,10 +352,11 @@ function aggiornaTabella() {
             tr.appendChild(td);
           });
   
+          // 📦 Colonna Totale: Totale categoria intera
           const tdTot = document.createElement("td");
           tdTot.innerHTML = `
-            <div><strong>${sommaTot}</strong></div>
-            <div style="font-size:0.9em;">Prec: ${sommaPrec}</div>
+            <div><strong>${totaleMese}</strong></div>
+            <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
             <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
               Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
@@ -360,8 +378,7 @@ function aggiornaTabella() {
       tabella.appendChild(tbody);
       contenitore.appendChild(tabella);
     });
-  
-    // 🔷 Riepilogo Capitolo
+      // 🔷 Riepilogo Capitolo
     const tabellaCap = document.createElement("table");
     tabellaCap.className = "riepilogo";
     tabellaCap.style.marginTop = "2em";
@@ -390,6 +407,24 @@ function aggiornaTabella() {
         sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
       }
   
+      // 🔢 Totale categoria intera
+      const sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+      const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+      const sumTot = righeTotali.reduce((acc, r) => ({
+        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+      }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+  
+      const righePrecTot = righe.filter(r =>
+        r.anno === annoPrec && r.mese === mesePrec &&
+        r.tipo === tipo &&
+        sezioniRilevanti.includes(r.sezione) &&
+        gruppoToCapitolo[r.gruppo] === capitolo
+      );
+      const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleMese - totalePrec;
+  
       const tipoRowSpan = sezioni.length;
   
       sezioni.forEach((sezione, index) => {
@@ -400,19 +435,18 @@ function aggiornaTabella() {
         }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
         const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
   
-        const righePrec = righe.filter(r =>
+        const righePrecSezione = righe.filter(r =>
           r.anno === annoPrec && r.mese === mesePrec &&
           r.tipo === tipo && r.sezione === sezione &&
           gruppoToCapitolo[r.gruppo] === capitolo
         );
-        const sommaPrec = righePrec.reduce((acc, r) =>
+        const sommaPrec = righePrecSezione.reduce((acc, r) =>
           acc + r.U + r.D + r.GU + r.GD, 0);
-        const delta = sommaTot - sommaPrec;
   
         const tr = document.createElement("tr");
         tr.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
   
-              if (index === 0) {
+        if (index === 0) {
           const tdTipo = document.createElement("td");
           tdTipo.textContent = tipo;
           tdTipo.rowSpan = tipoRowSpan;
@@ -434,13 +468,13 @@ function aggiornaTabella() {
   
         const tdTot = document.createElement("td");
         tdTot.innerHTML = `
-          <div><strong>${sommaTot}</strong></div>
-          <div style="font-size:0.9em;">Prec: ${sommaPrec}</div>
+          <div><strong>${totaleMese}</strong></div>
+          <div style="font-size:0.9em;">Prec: ${totalePrec}</div>
           <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
             Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
           </div>`;
         tdTot.style.textAlign = "center";
-        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#cbe8f6" : "#fff1b3";
         tr.appendChild(tdTot);
   
         const tdFUT = document.createElement("td");
@@ -457,9 +491,5 @@ function aggiornaTabella() {
     tabellaCap.appendChild(tbodyCap);
     contenitore.appendChild(tabellaCap);
   }
-  
-
-
-
   
 }
