@@ -236,7 +236,6 @@ function aggiornaTabella() {
     const struttura = gruppiData["HOMBU 9"][capitolo];
     const settori = Object.entries(struttura);
   
-    // 🧭 Riepilogo per ogni settore
     settori.forEach(([settore, gruppiSettore]) => {
       const righeSettore = righeFiltrate.filter(r => gruppiSettore.includes(r.gruppo));
       if (righeSettore.length === 0) return;
@@ -253,7 +252,7 @@ function aggiornaTabella() {
       const thead = document.createElement("thead");
       thead.innerHTML = `<tr>
         <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-        <th>Somma</th><th>Prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+        <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
       </tr>`;
       tabella.appendChild(thead);
   
@@ -291,9 +290,7 @@ function aggiornaTabella() {
   
           const celle = [
             tipo, sezione, sum.U, sum.D, sum.GU, sum.GD,
-            sommaTot, sommaPrec,
-            `${sommaTot} (${delta >= 0 ? "+" : ""}${delta})`,
-            sum.FUT, sum.STU
+            sommaTot, sommaPrec
           ];
   
           celle.forEach(val => {
@@ -301,6 +298,25 @@ function aggiornaTabella() {
             td.textContent = val;
             tr.appendChild(td);
           });
+  
+          // Totale con delta visivo
+          const tdTot = document.createElement("td");
+          tdTot.innerHTML = `
+            <div><strong>${sommaTot}</strong></div>
+            <div style="font-size:0.9em;">Prec: ${sommaPrec}</div>
+            <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            </div>`;
+          tdTot.style.textAlign = "center";
+          tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+          tr.appendChild(tdTot);
+  
+          const tdFUT = document.createElement("td");
+          tdFUT.textContent = sum.FUT;
+          const tdSTU = document.createElement("td");
+          tdSTU.textContent = sum.STU;
+          tr.appendChild(tdFUT);
+          tr.appendChild(tdSTU);
   
           tbody.appendChild(tr);
         });
@@ -310,20 +326,20 @@ function aggiornaTabella() {
       contenitore.appendChild(tabella);
     });
   
-    // 🧮 Riepilogo Capitolo (tutti i gruppi filtrati)
+    // 🔷 Riepilogo Capitolo (aggregato)
     const tabellaCap = document.createElement("table");
     tabellaCap.className = "riepilogo";
     tabellaCap.style.marginTop = "2em";
   
     const intestazioneCap = document.createElement("caption");
-    intestazioneCap.textContent = `Totale Capitolo: ${capitolo}`;
+    intestazioneCap.textContent = `Totale Capitolo ${capitolo}`;
     intestazioneCap.style.fontWeight = "bold";
     tabellaCap.appendChild(intestazioneCap);
   
     const theadCap = document.createElement("thead");
     theadCap.innerHTML = `<tr>
       <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-      <th>Somma</th><th>Prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
+      <th>Somma</th><th>Somma mese prec.</th><th>Totale</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabellaCap.appendChild(theadCap);
   
@@ -361,9 +377,7 @@ function aggiornaTabella() {
   
         const celle = [
           tipo, sezione, sum.U, sum.D, sum.GU, sum.GD,
-          sommaTot, sommaPrec,
-          `${sommaTot} (${delta >= 0 ? "+" : ""}${delta})`,
-          sum.FUT, sum.STU
+          sommaTot, sommaPrec
         ];
   
         celle.forEach(val => {
@@ -372,6 +386,25 @@ function aggiornaTabella() {
           tr.appendChild(td);
         });
   
+        // Colonna Totale HTML
+        const tdTot = document.createElement("td");
+        tdTot.innerHTML = `
+          <div><strong>${sommaTot}</strong></div>
+          <div style="font-size:0.9em;">Prec: ${sommaPrec}</div>
+          <div style="color:${delta >= 0 ? 'green' : 'red'}; font-weight:bold;">
+            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+          </div>`;
+        tdTot.style.textAlign = "center";
+        tdTot.style.backgroundColor = tipo === "ZADANKAI" ? "#d1ecf1" : "#fff3cd";
+        tr.appendChild(tdTot);
+  
+        const tdFUT = document.createElement("td");
+        tdFUT.textContent = sum.FUT;
+        const tdSTU = document.createElement("td");
+        tdSTU.textContent = sum.STU;
+        tr.appendChild(tdFUT);
+        tr.appendChild(tdSTU);
+  
         tbodyCap.appendChild(tr);
       });
     });
@@ -379,6 +412,7 @@ function aggiornaTabella() {
     tabellaCap.appendChild(tbodyCap);
     contenitore.appendChild(tabellaCap);
   }
+
 
   
 }
