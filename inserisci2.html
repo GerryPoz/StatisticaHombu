@@ -5,76 +5,53 @@
   <title>Inserimento HOMBU</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    label, select { display: block; margin-bottom: 1rem; }
-    button {
-      padding: 0.6rem 1rem;
-      font-weight: bold;
-      margin: 1rem 0;
-      cursor: pointer;
-    }
+    body { font-family: sans-serif; padding: 2rem; background: #f7f7f7; }
+    h1 { margin-bottom: 1rem; }
+    select, button { margin: 0.5rem 0; padding: 0.5rem; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    input[type="number"] { width: 60px; }
+    caption { text-align: left; font-weight: bold; margin-top: 2rem; }
+
     #popupConferma {
       display: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+      background: rgba(0,0,0,0.4);
       justify-content: center;
       align-items: center;
     }
-    #popupConferma.visibile {
-      display: flex;
-      opacity: 1;
-    }
+    #popupConferma.visibile { display: flex; }
     #popupConferma .box {
       background: white;
       padding: 2rem;
       border-radius: 10px;
-      text-align: center;
       box-shadow: 0 0 10px #333;
+      text-align: center;
     }
-    #popupConferma .box button {
-      margin: 0.5rem;
-      border: none;
-      border-radius: 6px;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-    }
-    #confermaBtn { background-color: #228833; color: white; }
-    #annullaBtn { background-color: #990000; color: white; }
   </style>
 </head>
 <body>
   <h1>Inserimento dati HOMBU</h1>
-
   <form id="dati-form">
+
     <label for="anno">Anno:
-      <select name="anno" id="anno">
-        <option>2025</option>
-        <option>2026</option>
-      </select>
+      <select id="anno"><option>2025</option><option>2026</option></select>
     </label>
 
     <label for="mese">Mese:
-      <select name="mese" id="mese">
-        <option>Gennaio</option>
-        <option>Febbraio</option>
-        <option>Marzo</option>
-        <option>Aprile</option>
-        <option>Maggio</option>
-      </select>
+      <select id="mese"><option>Gennaio</option><option>Febbraio</option></select>
     </label>
 
     <label for="gruppo">Gruppo:
-      <select name="gruppo" id="gruppo">
-        <option>Kansai</option>
-        <option>Kanto</option>
-        <option>Hokkaido</option>
-      </select>
+      <select id="gruppo"><option>Kansai</option><option>Kanto</option></select>
     </label>
+
+    <!-- 📊 Tabelle HOMBU -->
+    <div id="tabelleContainer">
+      <!-- Le tabelle saranno inserite via JS -->
+    </div>
 
     <button type="button" id="salvaBtn">💾 Salva dati</button>
   </form>
@@ -83,20 +60,65 @@
   <div id="popupConferma">
     <div class="box">
       <h3>Confermi l'invio?</h3>
-      <p id="riepilogoTesto">📅 Luglio 2025<br>👥 Gruppo: Kansai</p>
+      <p id="riepilogoTesto"></p>
       <button id="confermaBtn">✅ Conferma</button>
       <button id="annullaBtn">❌ Annulla</button>
     </div>
   </div>
 
   <script>
+    const sezioni = ["membri", "simpatizzanti", "ospiti"];
+    const categorie = ["ZADANKAI", "PRATICANTI"];
+    const campi = ["U", "D", "GU", "GD"];
+
+    function creaTabella(gruppo) {
+      const container = document.getElementById("tabelleContainer");
+      container.innerHTML = "";
+
+      categorie.forEach(categoria => {
+        const table = document.createElement("table");
+        const caption = document.createElement("caption");
+        caption.textContent = `${gruppo} – ${categoria}`;
+        table.appendChild(caption);
+
+        const thead = document.createElement("thead");
+        thead.innerHTML = "<tr><th>Sezione</th>" +
+          campi.map(c => `<th>${c}</th>`).join("") +
+          "<th>Totale</th></tr>";
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        sezioni.forEach(sezione => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${sezione}</td>` +
+            campi.map(c => `<td><input type="number" data-campo="${c}" /></td>`).join("") +
+            `<td class="totale">0</td>`;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+      });
+    }
+
+    document.getElementById("gruppo").addEventListener("change", e => {
+      creaTabella(e.target.value);
+    });
+
+    document.getElementById("tabelleContainer").addEventListener("input", e => {
+      if (e.target.matches("input[type='number']")) {
+        const row = e.target.closest("tr");
+        const inputs = row.querySelectorAll("input[type='number']");
+        let somma = 0;
+        inputs.forEach(inp => somma += Number(inp.value) || 0);
+        row.querySelector(".totale").textContent = somma;
+      }
+    });
+
     const popup = document.getElementById("popupConferma");
     const salvaBtn = document.getElementById("salvaBtn");
     const confermaBtn = document.getElementById("confermaBtn");
     const annullaBtn = document.getElementById("annullaBtn");
-    const form = document.getElementById("dati-form");
 
-    // ✅ Mostra popup al click
     salvaBtn.addEventListener("click", () => {
       const mese = document.getElementById("mese").value;
       const anno = document.getElementById("anno").value;
@@ -106,16 +128,17 @@
       popup.classList.add("visibile");
     });
 
-    // ✅ Conferma invio
     confermaBtn.addEventListener("click", () => {
       popup.classList.remove("visibile");
-      form.requestSubmit(); // oppure form.submit() se preferisci
+      alert("Dati confermati (non ancora salvati).");
     });
 
-    // ❌ Annulla invio
     annullaBtn.addEventListener("click", () => {
       popup.classList.remove("visibile");
     });
+
+    // Inizializza tabella iniziale
+    creaTabella(document.getElementById("gruppo").value);
   </script>
 </body>
 </html>
