@@ -121,7 +121,7 @@ function aggiornaTabella() {
         const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
   
         const tr = document.createElement("tr");
-        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#e1f5fe" : "#fff8dc";
+        tr.style.backgroundColor = tipo === "ZADANKAI" ? "#fff3cd" : "#d1ecf1";
   
         // 👥 Nome Gruppo
         if (!gruppoStampato && index === 0) {
