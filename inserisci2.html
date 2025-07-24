@@ -144,164 +144,168 @@
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    import { firebaseConfig } from "./firebase-config.js";
+  // 🔗 Import Firebase SDK e config
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+  import { firebaseConfig } from "./firebase-config.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const anno = new Date().getFullYear();
-      document.getElementById("anno").innerHTML =
-        `<option value="${anno}" selected>${anno}</option><option value="${anno + 1}">${anno + 1}</option>`;
+  // 🧠 Quando tutto il DOM è pronto...
+  document.addEventListener("DOMContentLoaded", () => {
+    // 🗓️ Anno e Mese
+    const anno = new Date().getFullYear();
+    document.getElementById("anno").innerHTML =
+      `<option value="${anno}" selected>${anno}</option><option value="${anno + 1}">${anno + 1}</option>`;
 
-      const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
-        "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-      document.getElementById("mese").innerHTML =
-        '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
+    const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    document.getElementById("mese").innerHTML =
+      '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
 
-      fetch("gruppi.json")
-        .then(res => res.json())
-        .then(data => {
-          const gruppi = [];
-          for (const capitolo of Object.values(data["HOMBU 9"])) {
-            for (const settore of Object.values(capitolo)) {
-              gruppi.push(...settore);
-            }
-          }
-          document.getElementById("gruppo").innerHTML =
-            '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
-        });
-
-      // Blocca input non numerici
-      document.querySelectorAll('input[type="number"]').forEach(input => {
-        input.addEventListener("keypress", e => {
-          if (!/[0-9]/.test(e.key)) e.preventDefault();
-        });
-        input.addEventListener("paste", e => {
-          const pasted = (e.clipboardData || window.clipboardData).getData("text");
-          if (!/^\d+$/.test(pasted)) e.preventDefault();
-        });
-        input.addEventListener("wheel", e => e.target.blur());
-      });
-
-      // Calcolo totali Zadankai
-      const calcolaTotaliZadankai = () => {
-        const sezioni = ["m", "s", "o"];
-        let totaleGenerale = 0;
-
-        sezioni.forEach(sezione => {
-          const u = +document.querySelector(`[name="zadankai_${sezione}_u"]`).value || 0;
-          const d = +document.querySelector(`[name="zadankai_${sezione}_d"]`).value || 0;
-          const gu = +document.querySelector(`[name="zadankai_${sezione}_gu"]`).value || 0;
-          const gd = +document.querySelector(`[name="zadankai_${sezione}_gd"]`).value || 0;
-          const somma = u + d + gu + gd;
-          document.querySelector(`[name="zadankai_${sezione}_tot"]`).value = somma;
-          totaleGenerale += somma;
-        });
-
-        document.querySelector(`[name="zadankai_totale_generale"]`).value = totaleGenerale;
-      };
-
-      // Calcolo totali Praticanti
-      const calcolaTotaliPraticanti = () => {
-        const sezioni = ["m", "s"];
-        let totaleGenerale = 0;
-
-        sezioni.forEach(sezione => {
-          const u = +document.querySelector(`[name="praticanti_${sezione}_u"]`).value || 0;
-          const d = +document.querySelector(`[name="praticanti_${sezione}_d"]`).value || 0;
-          const gu = +document.querySelector(`[name="praticanti_${sezione}_gu"]`).value || 0;
-          const gd = +document.querySelector(`[name="praticanti_${sezione}_gd"]`).value || 0;
-          const somma = u + d + gu + gd;
-          document.querySelector(`[name="praticanti_${sezione}_tot"]`).value = somma;
-          totaleGenerale += somma;
-        });
-
-        document.querySelector(`[name="praticanti_totale_generale"]`).value = totaleGenerale;
-      };
-
-      // Attiva calcolo in tempo reale
-      document.querySelectorAll('#zadankai-table input[type="number"]').forEach(input => {
-        input.addEventListener("input", calcolaTotaliZadankai);
-      });
-      document.querySelectorAll('#praticanti-table input[type="number"]').forEach(input => {
-        input.addEventListener("input", calcolaTotaliPraticanti);
-      });
-
-      // Mostra popup e salva dopo conferma
-      document.getElementById("dati-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        document.getElementById("popup-conferma").style.display = "flex";
-      });
-  
-      document.getElementById("confermaBtn").addEventListener("click", () => {
-        document.getElementById("popup-conferma").style.display = "none";
-        salvaDati();
-      });
-  
-      document.getElementById("annullaBtn").addEventListener("click", () => {
-        document.getElementById("popup-conferma").style.display = "none";
-      });
-
-    });
-
-    function salvaDati() {
-      const form = document.getElementById("dati-form");
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
-      const key = `${data.anno}-${data.mese}-${data.gruppo}`;
-
-      const payload = {
-        gruppo: data.gruppo,
-        zadankai: {
-          membri: {
-            U: +data.zadankai_m_u || 0,
-            D: +data.zadankai_m_d || 0,
-            GU: +data.zadankai_m_gu || 0,
-            GD: +data.zadankai_m_gd || 0,
-            FUT: +data.zadankai_m_fut || 0,
-            STU: +data.zadankai_m_stu || 0
-          },
-          simpatizzanti: {
-            U: +data.zadankai_s_u || 0,
-            D: +data.zadankai_s_d || 0,
-            GU: +data.zadankai_s_gu || 0,
-            GD: +data.zadankai_s_gd || 0,
-            FUT: +data.zadankai_s_fut || 0,
-            STU: +data.zadankai_s_stu || 0
-          },
-          ospiti: {
-            U: +data.zadankai_o_u || 0,
-            D: +data.zadankai_o_d || 0,
-            GU: +data.zadankai_o_gu || 0,
-            GD: +data.zadankai_o_gd || 0
-          }
-        },
-        praticanti: {
-          membri: {
-            U: +data.praticanti_m_u || 0,
-            D: +data.praticanti_m_d || 0,
-            GU: +data.praticanti_m_gu || 0,
-            GD: +data.praticanti_m_gd || 0
-          },
-          simpatizzanti: {
-            U: +data.praticanti_s_u || 0,
-            D: +data.praticanti_s_d || 0,
-            GU: +data.praticanti_s_gu || 0,
-            GD: +data.praticanti_s_gd || 0
+    // 📦 Gruppi da JSON
+    fetch("gruppi.json")
+      .then(res => res.json())
+      .then(data => {
+        const gruppi = [];
+        for (const capitolo of Object.values(data["HOMBU 9"])) {
+          for (const settore of Object.values(capitolo)) {
+            gruppi.push(...settore);
           }
         }
-      };
+        document.getElementById("gruppo").innerHTML =
+          '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
+      });
 
-      set(ref(db, `zadankai/${key}`), payload)
-        .then(() => {
-          document.getElementById("messaggio-successo").style.display = "block";
-          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-        })
-        .catch((err) => alert("❌ Errore nel salvataggio: " + err.message));
-    }
-  </script>
+    // 🔒 Blocca input non numerici
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener("keypress", e => {
+        if (!/[0-9]/.test(e.key)) e.preventDefault();
+      });
+      input.addEventListener("paste", e => {
+        const pasted = (e.clipboardData || window.clipboardData).getData("text");
+        if (!/^\d+$/.test(pasted)) e.preventDefault();
+      });
+      input.addEventListener("wheel", e => e.target.blur());
+    });
+
+    // 🧮 Calcolo totali Zadankai
+    const calcolaTotaliZadankai = () => {
+      const sezioni = ["m", "s", "o"];
+      let totaleGenerale = 0;
+      sezioni.forEach(sezione => {
+        const u = +document.querySelector(`[name="zadankai_${sezione}_u"]`).value || 0;
+        const d = +document.querySelector(`[name="zadankai_${sezione}_d"]`).value || 0;
+        const gu = +document.querySelector(`[name="zadankai_${sezione}_gu"]`).value || 0;
+        const gd = +document.querySelector(`[name="zadankai_${sezione}_gd"]`).value || 0;
+        const somma = u + d + gu + gd;
+        document.querySelector(`[name="zadankai_${sezione}_tot"]`).value = somma;
+        totaleGenerale += somma;
+      });
+      document.querySelector(`[name="zadankai_totale_generale"]`).value = totaleGenerale;
+    };
+
+    // 🧮 Calcolo totali Praticanti
+    const calcolaTotaliPraticanti = () => {
+      const sezioni = ["m", "s"];
+      let totaleGenerale = 0;
+      sezioni.forEach(sezione => {
+        const u = +document.querySelector(`[name="praticanti_${sezione}_u"]`).value || 0;
+        const d = +document.querySelector(`[name="praticanti_${sezione}_d"]`).value || 0;
+        const gu = +document.querySelector(`[name="praticanti_${sezione}_gu"]`).value || 0;
+        const gd = +document.querySelector(`[name="praticanti_${sezione}_gd"]`).value || 0;
+        const somma = u + d + gu + gd;
+        document.querySelector(`[name="praticanti_${sezione}_tot"]`).value = somma;
+        totaleGenerale += somma;
+      });
+      document.querySelector(`[name="praticanti_totale_generale"]`).value = totaleGenerale;
+    };
+
+    // ⏱️ Aggiorna totali in tempo reale
+    document.querySelectorAll('#zadankai-table input[type="number"]').forEach(input => {
+      input.addEventListener("input", calcolaTotaliZadankai);
+    });
+    document.querySelectorAll('#praticanti-table input[type="number"]').forEach(input => {
+      input.addEventListener("input", calcolaTotaliPraticanti);
+    });
+
+    // 🟦 Mostra il popup di conferma
+    document.getElementById("dati-form").addEventListener("submit", e => {
+      e.preventDefault();
+      document.getElementById("popup-conferma").style.display = "flex";
+    });
+
+    // ✔️ Conferma invio → salva + chiudi popup
+    document.getElementById("confermaBtn").addEventListener("click", () => {
+      document.getElementById("popup-conferma").style.display = "none";
+      salvaDati();
+    });
+
+    // ❌ Annulla invio → solo chiusura popup
+    document.getElementById("annullaBtn").addEventListener("click", () => {
+      document.getElementById("popup-conferma").style.display = "none";
+    });
+  });
+
+  // 💾 Salvataggio su Firebase
+  function salvaDati() {
+    const form = document.getElementById("dati-form");
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const key = `${data.anno}-${data.mese}-${data.gruppo}`;
+
+    const payload = {
+      gruppo: data.gruppo,
+      zadankai: {
+        membri: {
+          U: +data.zadankai_m_u || 0,
+          D: +data.zadankai_m_d || 0,
+          GU: +data.zadankai_m_gu || 0,
+          GD: +data.zadankai_m_gd || 0,
+          FUT: +data.zadankai_m_fut || 0,
+          STU: +data.zadankai_m_stu || 0
+        },
+        simpatizzanti: {
+          U: +data.zadankai_s_u || 0,
+          D: +data.zadankai_s_d || 0,
+          GU: +data.zadankai_s_gu || 0,
+          GD: +data.zadankai_s_gd || 0,
+          FUT: +data.zadankai_s_fut || 0,
+          STU: +data.zadankai_s_stu || 0
+        },
+        ospiti: {
+          U: +data.zadankai_o_u || 0,
+          D: +data.zadankai_o_d || 0,
+          GU: +data.zadankai_o_gu || 0,
+          GD: +data.zadankai_o_gd || 0
+        }
+      },
+      praticanti: {
+        membri: {
+          U: +data.praticanti_m_u || 0,
+          D: +data.praticanti_m_d || 0,
+          GU: +data.praticanti_m_gu || 0,
+          GD: +data.praticanti_m_gd || 0
+        },
+        simpatizzanti: {
+          U: +data.praticanti_s_u || 0,
+          D: +data.praticanti_s_d || 0,
+          GU: +data.praticanti_s_gu || 0,
+          GD: +data.praticanti_s_gd || 0
+        }
+      }
+    };
+
+    // 🚀 Salva su Firebase
+    set(ref(db, `zadankai/${key}`), payload)
+      .then(() => {
+        document.getElementById("messaggio-successo").style.display = "block";
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      })
+      .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
+  }
+</script>
+
 </body>
 </html>
