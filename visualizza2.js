@@ -85,9 +85,34 @@ function aggiornaTabella() {
     gruppoToCapitolo[r.gruppo] === capitolo
   );
 
+  const settorePerGruppo = {};
+  const strutturaCapitolo = gruppiData["HOMBU 9"][capitolo];
+  for (const [settore, listaGruppi] of Object.entries(strutturaCapitolo)) {
+    listaGruppi.forEach(gr => settorePerGruppo[gr] = settore);
+  }
+  
   const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
 
+  let settoreCorrente = null;
+  
   gruppi.forEach(gruppo => {
+    const settore = settorePerGruppo[gruppo];
+    if (settore !== settoreCorrente) {
+      const separatore = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 12;
+      td.textContent = `Settore: ${settore}`;
+      td.style.textAlign = "center";
+      td.style.fontWeight = "bold";
+      td.style.backgroundColor = "#eee";
+      td.style.borderTop = "4px solid #333";
+      td.style.borderBottom = "2px solid #999";
+      separatore.appendChild(td);
+      tbody.appendChild(separatore);
+    
+      settoreCorrente = settore;
+    }
+    
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     let gruppoStampato = false;
     let tipoStampati = {};
