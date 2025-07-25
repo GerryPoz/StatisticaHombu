@@ -600,26 +600,27 @@ function aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec
     }
   });
 
-  // Dati per il grafico di confronto con il mese precedente
-  const righePrecedenti = righe.filter(r =>
+  // Dati per il grafico di confronto con il mese precedente - SOLO ZADANKAI
+  const righePrecedentiZadankai = righe.filter(r =>
     r.anno === annoPrec &&
     r.mese === mesePrec &&
+    r.tipo === "ZADANKAI" &&
     gruppoToCapitolo[r.gruppo] === capitolo
   );
 
-  const totaleCorrente = righeFiltrate.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-  const totalePrecedente = righePrecedenti.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  const totaleZadankaiCorrente = datiZadankai.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  const totaleZadankaiPrecedente = righePrecedentiZadankai.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
 
-  // Grafico a barre per il confronto
+  // Grafico a barre per il confronto - SOLO ZADANKAI
   graficoConfrontoInstance = new Chart(chartConfronto, {
     type: 'bar',
     data: {
       labels: [`${mesePrec} ${annoPrec}`, `${mese} ${anno}`],
       datasets: [{
-        label: 'Totale Partecipanti',
-        data: [totalePrecedente, totaleCorrente],
-        backgroundColor: ['#6c757d', '#28a745'],
-        borderColor: ['#5a6268', '#218838'],
+        label: 'Totale Zadankai',
+        data: [totaleZadankaiPrecedente, totaleZadankaiCorrente],
+        backgroundColor: ['#6c757d', '#ffc107'],
+        borderColor: ['#5a6268', '#e0a800'],
         borderWidth: 1
       }]
     },
@@ -633,7 +634,7 @@ function aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec
       plugins: {
         title: {
           display: true,
-          text: 'Confronto con Mese Precedente'
+          text: 'Confronto Zadankai con Mese Precedente'
         }
       }
     }
