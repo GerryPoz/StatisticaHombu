@@ -1,0 +1,101 @@
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* Stili per le tabelle di riepilogo */
+.riepilogo {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  background-color: white;
+}
+
+.riepilogo caption {
+  caption-side: top;
+  padding: 0.75rem;
+  background-color: #e9ecef;
+  font-weight: bold;
+  color: #495057;
+  border-top: 1px solid #dee2e6;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.riepilogo th, .riepilogo td {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.riepilogo th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Stili per le categorie */
+tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+  background-color: #fff3cd !important;
+}
+
+tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+  background-color: #d1ecf1 !important;
+}
+
+/* Stili per i gruppi */
+td.nome-gruppo, td[style*="background-color: #FFFD55"] {
+  background-color: #FFFD55 !important;
+  font-weight: bold;
+}
+
+/* Stili per la stampa */
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
