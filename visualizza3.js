@@ -304,9 +304,6 @@ function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
 
 // Funzione per generare i riepiloghi
 function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo) {
-  // Implementazione esistente...
-  // Questa funzione è già ben strutturata, quindi la mantengo come è
-  // ma aggiungendo classi Bootstrap per lo stile
   const contenitore = document.getElementById("riepilogo-capitolo");
   contenitore.innerHTML = "";
 
@@ -315,13 +312,253 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
 
   // Genera riepiloghi per settori
   settori.forEach(([settore, gruppiSettore]) => {
-    // Implementazione esistente...
-    // Aggiungi classi Bootstrap alle tabelle
-  });
+    const righeSettore = righeFiltrate.filter(r => gruppiSettore.includes(r.gruppo));
+    if (righeSettore.length === 0) return;
 
+    // Crea card per il settore
+    const cardSettore = document.createElement("div");
+    cardSettore.className = "card shadow-sm mb-4";
+    
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "card-header bg-warning text-dark";
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo Settore: ${settore}</h5>`;
+    cardSettore.appendChild(cardHeader);
+    
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body table-responsive";
+    
+    // Crea tabella
+    const tabella = document.createElement("table");
+    tabella.className = "table table-striped table-bordered";
+    
+    const thead = document.createElement("thead");
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement("tbody");
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      const righeTipo = righeSettore.filter(r => r.tipo === tipo);
+      if (righeTipo.length === 0) return;
+      
+      const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+      if (tipo === "ZADANKAI") {
+        const ordine = ["membri", "simpatizzanti", "ospiti"];
+        sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+      }
+      
+      const tipoRowSpan = sezioni.length;
+      
+      const sezioniRilevanti = tipo === "ZADANKAI"
+        ? ["membri", "simpatizzanti", "ospiti"]
+        : ["membri", "simpatizzanti"];
+      
+      const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+      const sumTot = righeTotali.reduce((acc, r) => ({
+        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+      }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+      
+      const righePrecTot = righe.filter(r =>
+        r.anno === annoPrec && r.mese === mesePrec &&
+        r.tipo === tipo &&
+        sezioniRilevanti.includes(r.sezione) &&
+        gruppiSettore.includes(r.gruppo)
+      );
+      const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleMese - totalePrec;
+      
+      sezioni.forEach((sezione, index) => {
+        const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+        const sum = righeSezione.reduce((acc, r) => ({
+          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+        
+        const righePrec = righe.filter(r =>
+          r.anno === annoPrec && r.mese === mesePrec &&
+          r.tipo === tipo && r.sezione === sezione &&
+          gruppiSettore.includes(r.gruppo)
+        );
+        const sommaPrec = righePrec.reduce((acc, r) =>
+          acc + r.U + r.D + r.GU + r.GD, 0);
+        
+        const tr = document.createElement("tr");
+        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+        
+        if (index === 0) {
+          const tdTipo = document.createElement("td");
+          tdTipo.textContent = tipo;
+          tdTipo.rowSpan = tipoRowSpan;
+          tdTipo.className = "fw-bold";
+          tr.appendChild(tdTipo);
+        }
+        
+        const celle = [
+          sezione, sum.U, sum.D, sum.GU, sum.GD,
+          sommaTot, sommaPrec
+        ];
+        celle.forEach((val, i) => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        
+        if (index === 0) {
+          const tdTot = document.createElement("td");
+          tdTot.rowSpan = tipoRowSpan;
+          tdTot.innerHTML = `
+            <div><strong>${totaleMese}</strong></div>
+            <div class="small">Prec: ${totalePrec}</div>
+            <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            </div>`;
+          tdTot.className = "text-center";
+          tr.appendChild(tdTot);
+        }
+        
+        const tdFUT = document.createElement("td");
+        tdFUT.textContent = sum.FUT;
+        const tdSTU = document.createElement("td");
+        tdSTU.textContent = sum.STU;
+        tr.appendChild(tdFUT);
+        tr.appendChild(tdSTU);
+        
+        tbody.appendChild(tr);
+      });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardSettore.appendChild(cardBody);
+    contenitore.appendChild(cardSettore);
+  });
+  
   // Genera riepilogo capitolo
-  // Implementazione esistente...
-  // Aggiungi classi Bootstrap alle tabelle
+  const cardCapitolo = document.createElement("div");
+  cardCapitolo.className = "card shadow-sm mb-4";
+  
+  const cardHeaderCap = document.createElement("div");
+  cardHeaderCap.className = "card-header bg-primary text-white";
+  cardHeaderCap.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo Capitolo: ${capitolo}</h5>`;
+  cardCapitolo.appendChild(cardHeaderCap);
+  
+  const cardBodyCap = document.createElement("div");
+  cardBodyCap.className = "card-body table-responsive";
+  
+  const tabellaCap = document.createElement("table");
+  tabellaCap.className = "table table-striped table-bordered";
+  
+  const theadCap = document.createElement("thead");
+  theadCap.innerHTML = `<tr>
+    <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+    <th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th>
+  </tr>`;
+  tabellaCap.appendChild(theadCap);
+  
+  const tbodyCap = document.createElement("tbody");
+  
+  ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+    const righeTipo = righeFiltrate.filter(r => r.tipo === tipo);
+    if (righeTipo.length === 0) return;
+    
+    const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+    if (tipo === "ZADANKAI") {
+      const ordine = ["membri", "simpatizzanti", "ospiti"];
+      sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+    }
+    
+    const tipoRowSpan = sezioni.length;
+    const sezioniRilevanti = tipo === "ZADANKAI"
+      ? ["membri", "simpatizzanti", "ospiti"]
+      : ["membri", "simpatizzanti"];
+    
+    const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+    const sumTot = righeTotali.reduce((acc, r) => ({
+      U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+      GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+    }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+    const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+    
+    const righePrecTot = righe.filter(r =>
+      r.anno === annoPrec && r.mese === mesePrec &&
+      r.tipo === tipo &&
+      sezioniRilevanti.includes(r.sezione) &&
+      gruppoToCapitolo[r.gruppo] === capitolo
+    );
+    const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+    const delta = totaleMese - totalePrec;
+    
+    sezioni.forEach((sezione, index) => {
+      const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+      const sum = righeSezione.reduce((acc, r) => ({
+        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+      }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+      
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec && r.mese === mesePrec &&
+        r.tipo === tipo && r.sezione === sezione &&
+        gruppoToCapitolo[r.gruppo] === capitolo
+      );
+      const sommaPrec = righePrec.reduce((acc, r) =>
+        acc + r.U + r.D + r.GU + r.GD, 0);
+      
+      const tr = document.createElement("tr");
+      tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+      
+      if (index === 0) {
+        const tdTipo = document.createElement("td");
+        tdTipo.textContent = tipo;
+        tdTipo.rowSpan = tipoRowSpan;
+        tdTipo.className = "fw-bold";
+        tr.appendChild(tdTipo);
+      }
+      
+      const celle = [
+        sezione, sum.U, sum.D, sum.GU, sum.GD,
+        sommaTot, sommaPrec
+      ];
+      celle.forEach((val, i) => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      
+      if (index === 0) {
+        const tdTot = document.createElement("td");
+        tdTot.rowSpan = tipoRowSpan;
+        tdTot.innerHTML = `
+          <div><strong>${totaleMese}</strong></div>
+          <div class="small">Prec: ${totalePrec}</div>
+          <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+          </div>`;
+        tdTot.className = "text-center";
+        tr.appendChild(tdTot);
+      }
+      
+      const tdFUT = document.createElement("td");
+      tdFUT.textContent = sum.FUT;
+      const tdSTU = document.createElement("td");
+      tdSTU.textContent = sum.STU;
+      tr.appendChild(tdFUT);
+      tr.appendChild(tdSTU);
+      
+      tbodyCap.appendChild(tr);
+    });
+  });
+  
+  tabellaCap.appendChild(tbodyCap);
+  cardBodyCap.appendChild(tabellaCap);
+  cardCapitolo.appendChild(cardBodyCap);
+  contenitore.appendChild(cardCapitolo);
 }
 
 // Funzione per aggiornare i grafici
