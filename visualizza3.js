@@ -133,12 +133,31 @@ function aggiornaTabella() {
     listaGruppi.forEach(gr => settorePerGruppo[gr] = settore);
   }
   
-  const gruppi = [...new Set(righeFiltrate.map(r => r.gruppo))];
+  // Raggruppa i gruppi per settore e ordina alfabeticamente
+  const gruppiPresenti = [...new Set(righeFiltrate.map(r => r.gruppo))];
+  
+  // Crea una mappa settore -> gruppi ordinati alfabeticamente
+  const gruppiPerSettore = {};
+  gruppiPresenti.forEach(gruppo => {
+    const settore = settorePerGruppo[gruppo];
+    if (!gruppiPerSettore[settore]) {
+      gruppiPerSettore[settore] = [];
+    }
+    gruppiPerSettore[settore].push(gruppo);
+  });
+  
+  // Ordina i settori alfabeticamente e i gruppi all'interno di ogni settore
+  const settoriOrdinati = Object.keys(gruppiPerSettore).sort();
+  const gruppiOrdinati = [];
+  settoriOrdinati.forEach(settore => {
+    gruppiPerSettore[settore].sort();
+    gruppiOrdinati.push(...gruppiPerSettore[settore]);
+  });
 
   let settoreCorrente = null;
   
   // Genera la tabella
-  gruppi.forEach(gruppo => {
+  gruppiOrdinati.forEach(gruppo => {
     const settore = settorePerGruppo[gruppo];
     
     // Intestazione settore
