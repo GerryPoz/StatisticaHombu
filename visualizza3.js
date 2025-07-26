@@ -248,7 +248,7 @@ function aggiornaTabella() {
             <div><strong>${totaleCategoria}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
             <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
-              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+              Δ ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
           tr.appendChild(tdTot);
           totaleStampati[tipo] = true;
@@ -416,7 +416,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
             <div><strong>${totaleMese}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
             <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
-              Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+              Δ ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
           tdTot.className = "text-center";
           tr.appendChild(tdTot);
@@ -538,7 +538,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           <div><strong>${totaleMese}</strong></div>
           <div class="small">Prec: ${totalePrec}</div>
           <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
-            Δ Tot: ${delta >= 0 ? "+" : ""}${delta}
+            Δ ${delta >= 0 ? "+" : ""}${delta}
           </div>`;
         tdTot.className = "text-center";
         tr.appendChild(tdTot);
