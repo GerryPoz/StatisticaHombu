@@ -75,10 +75,10 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 /* Stili per la stampa - aggiornati */
 @media print {
   .gruppo-separator {
-    height: 6px !important;
+    height: 1px !important;
     background: #6c757d !important;
-    border-top: 3px solid #495057 !important;
-    border-bottom: 3px solid #495057 !important;
+    border-top: 1px solid #495057 !important;
+    border-bottom: 1px solid #495057 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
