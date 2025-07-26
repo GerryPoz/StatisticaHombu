@@ -166,7 +166,7 @@ function aggiornaTabella() {
       const separatore = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 12;
-      td.textContent = `Settore: ${settore}`;
+      td.textContent = `- ${settore} -`;
       td.className = "bg-secondary text-white fw-bold text-center";
       separatore.appendChild(td);
       tbody.appendChild(separatore);
