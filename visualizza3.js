@@ -157,7 +157,7 @@ function aggiornaTabella() {
   let settoreCorrente = null;
   
   // Genera la tabella
-  gruppiOrdinati.forEach(gruppo => {
+  gruppiOrdinati.forEach((gruppo, index) => {
     const settore = settorePerGruppo[gruppo];
     
     // Intestazione settore
@@ -166,7 +166,7 @@ function aggiornaTabella() {
       const separatore = document.createElement("tr");
       const td = document.createElement("td");
       td.colSpan = 12;
-      td.textContent = `- ${settore} -`;
+      td.textContent = `Settore: ${settore}`;
       td.className = "bg-secondary text-white fw-bold text-center";
       separatore.appendChild(td);
       tbody.appendChild(separatore);
@@ -186,6 +186,17 @@ function aggiornaTabella() {
       tbody.appendChild(headerRow);
     
       settoreCorrente = settore;
+    }
+    
+    // Aggiungi separatore tra gruppi (non per il primo gruppo del settore)
+    if (index > 0 && settore === settorePerGruppo[gruppiOrdinati[index - 1]]) {
+      const separatoreGruppo = document.createElement("tr");
+      const tdSeparatore = document.createElement("td");
+      tdSeparatore.colSpan = 12;
+      tdSeparatore.className = "gruppo-separator";
+      tdSeparatore.innerHTML = "&nbsp;";
+      separatoreGruppo.appendChild(tdSeparatore);
+      tbody.appendChild(separatoreGruppo);
     }
     
     // Righe dei dati per gruppo
