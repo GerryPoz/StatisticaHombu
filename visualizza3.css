@@ -50,13 +50,42 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
   font-weight: bold;
 }
 
-/* Separatori tra gruppi */
+/* Separatori tra gruppi - versione migliorata */
 .gruppo-separator {
-  height: 8px !important;
-  background: linear-gradient(90deg, #dee2e6 0%, #adb5bd 50%, #dee2e6 100%) !important;
-  border-top: 3px solid #6c757d !important;
-  border-bottom: 3px solid #6c757d !important;
+  height: 12px !important;
+  background: linear-gradient(90deg, #6c757d 0%, #343a40 50%, #6c757d 100%) !important;
+  border-top: 4px solid #495057 !important;
+  border-bottom: 4px solid #495057 !important;
   padding: 0 !important;
+  position: relative;
+}
+
+.gruppo-separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 2px;
+  background-color: #adb5bd;
+  border-radius: 1px;
+}
+
+/* Stili per la stampa - aggiornati */
+@media print {
+  .gruppo-separator {
+    height: 6px !important;
+    background: #6c757d !important;
+    border-top: 3px solid #495057 !important;
+    border-bottom: 3px solid #495057 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .gruppo-separator::before {
+    display: none;
+  }
 }
 
 /* Stili migliorati per le intestazioni settore */
@@ -91,17 +120,56 @@ tr.praticanti:hover td {
   transition: background-color 0.2s ease;
 }
 
-/* Stili per la stampa - aggiornati */
 @media print {
-  .gruppo-separator {
-    height: 4px !important;
-    background: #dee2e6 !important;
-    border-top: 2px solid #6c757d !important;
-    border-bottom: 2px solid #6c757d !important;
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
   .bg-primary {
     background: #007bff !important;
     color: white !important;
@@ -158,3 +226,2264 @@ tr.praticanti:hover td {
     print-color-adjust: exact;
   }
 }
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+@media print {
+  .btn-group, .no-print {
+    display: none !important;
+  }
+  
+  body {
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  
+  /* Assicura che i colori di sfondo vengano stampati */
+  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
