@@ -50,7 +50,66 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
   font-weight: bold;
 }
 
-/* Stili per la stampa */
+/* Separatori tra gruppi */
+.gruppo-separator {
+  height: 8px !important;
+  background: linear-gradient(90deg, #dee2e6 0%, #adb5bd 50%, #dee2e6 100%) !important;
+  border-top: 3px solid #6c757d !important;
+  border-bottom: 3px solid #6c757d !important;
+  padding: 0 !important;
+}
+
+/* Stili migliorati per le intestazioni settore */
+.bg-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+/* Effetto hover per le righe dei gruppi */
+.nome-gruppo {
+  background-color: #fff3cd !important;
+  font-weight: bold;
+  border-left: 4px solid #ffc107 !important;
+  transition: all 0.3s ease;
+}
+
+.nome-gruppo:hover {
+  background-color: #ffeaa7 !important;
+  transform: translateX(2px);
+}
+
+/* Miglioramento visivo per le categorie */
+tr.zadankai:hover td {
+  background-color: #fff8e1 !important;
+  transition: background-color 0.2s ease;
+}
+
+tr.praticanti:hover td {
+  background-color: #e3f2fd !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Stili per la stampa - aggiornati */
+@media print {
+  .gruppo-separator {
+    height: 4px !important;
+    background: #dee2e6 !important;
+    border-top: 2px solid #6c757d !important;
+    border-bottom: 2px solid #6c757d !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .bg-primary {
+    background: #007bff !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 @media print {
   .btn-group, .no-print {
     display: none !important;
