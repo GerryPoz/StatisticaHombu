@@ -52,8 +52,8 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 
 /* Separatori tra gruppi - versione migliorata */
 .gruppo-separator {
-  height: 3px !important;
-  background: linear-gradient(90deg, #6c757d 0%, #343a40 50%, #6c757d 100%) !important;
+  height: 8px !important;
+  background: #FFFFFF !important; /*bianco*/
   border-top: 1px solid #495057 !important;
   border-bottom: 1px solid #495057 !important;
   padding: 0 !important;
@@ -66,7 +66,7 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 2px;
+  width: 20px;
   height: 2px;
   background-color: #adb5bd;
   border-radius: 1px;
@@ -75,7 +75,7 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 /* Stili per la stampa - aggiornati */
 @media print {
   .gruppo-separator {
-    height: 1px !important;
+    height: 6px !important;
     background: #6c757d !important;
     border-top: 1px solid #495057 !important;
     border-bottom: 1px solid #495057 !important;
