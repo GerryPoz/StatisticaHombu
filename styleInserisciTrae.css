@@ -1,0 +1,246 @@
+/* Reset e base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Personalizzazioni Bootstrap */
+.card {
+  border: none;
+  border-radius: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.card-header {
+  border-radius: 15px 15px 0 0 !important;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+/* Input personalizzati */
+.form-control {
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+  transform: scale(1.02);
+}
+
+.form-control-sm {
+  font-size: 0.9rem;
+  padding: 0.375rem 0.5rem;
+}
+
+/* Input numerici nelle tabelle */
+input[type="number"].form-control-sm {
+  width: 70px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Rimuove le freccette dai campi numerici */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Tabelle */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 1rem 0.5rem;
+}
+
+.table td {
+  padding: 0.75rem 0.5rem;
+  vertical-align: middle;
+}
+
+/* Pulsanti */
+.btn {
+  border-radius: 25px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border: none;
+  padding: 0.75rem 2rem;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.btn-lg {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+}
+
+/* Animazioni */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Modal personalizzato */
+.modal-content {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  border-radius: 15px 15px 0 0;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.modal-footer {
+  border-radius: 0 0 15px 15px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Badge personalizzati */
+.badge {
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+/* Alert personalizzati */
+.alert {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  input[type="number"].form-control-sm {
+    width: 60px;
+    font-size: 0.8rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-lg {
+    max-width: none;
+  }
+}
+
+/* Effetti hover per le righe della tabella */
+.table tbody tr:hover {
+  background-color: rgba(0,123,255,0.05);
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+/* Stili per i totali */
+input[readonly] {
+  background-color: #f8f9fa !important;
+  font-weight: bold;
+  color: #495057;
+}
+
+.bg-primary input[readonly] {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
+.bg-success input[readonly] {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Toast personalizzati */
+.toast {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Scrollbar personalizzata */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
