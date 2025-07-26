@@ -192,7 +192,7 @@ function aggiornaTabella() {
     if (index > 0 && settore === settorePerGruppo[gruppiOrdinati[index - 1]]) {
       const separatoreGruppo = document.createElement("tr");
       const tdSeparatore = document.createElement("td");
-      tdSeparatore.colSpan = 12;
+      tdSeparatore.colSpan = 2;
       tdSeparatore.className = "gruppo-separator";
       tdSeparatore.innerHTML = "&nbsp;";
       separatoreGruppo.appendChild(tdSeparatore);
