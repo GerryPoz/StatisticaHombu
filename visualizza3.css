@@ -52,6 +52,7 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 
 /* Separatori tra gruppi - versione migliorata */
 .gruppo-separator {
+  height: 10px !important;
   background: #FFFFFF !important; /*bianco*/
   border-top: 1px solid #495057 !important;
   border-bottom: 1px solid #495057 !important;
