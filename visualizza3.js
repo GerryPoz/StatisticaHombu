@@ -340,7 +340,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
     
     const cardHeader = document.createElement("div");
     cardHeader.className = "card-header bg-warning text-dark";
-    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo Settore: ${settore}</h5>`;
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ${settore}</h5>`; //SETTORE
     cardSettore.appendChild(cardHeader);
     
     const cardBody = document.createElement("div");
@@ -464,7 +464,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
   
   const cardHeaderCap = document.createElement("div");
   cardHeaderCap.className = "card-header bg-primary text-white";
-  cardHeaderCap.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo Capitolo: ${capitolo}</h5>`;
+  cardHeaderCap.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo: ${capitolo}</h5>`; //CAPITOLO
   cardCapitolo.appendChild(cardHeaderCap);
   
   const cardBodyCap = document.createElement("div");
