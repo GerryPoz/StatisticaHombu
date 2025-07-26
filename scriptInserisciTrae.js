@@ -112,11 +112,13 @@ function calcolaTotaliZadankai() {
     const gd = parseInt(document.querySelector(`[name="zadankai_${sezione}_gd"]`).value) || 0;
     const somma = u + d + gu + gd;
     
-    document.querySelector(`[name="zadankai_${sezione}_tot"]`).value = somma;
+    const totaleInput = document.querySelector(`[name="zadankai_${sezione}_tot"]`);
+    totaleInput.value = somma > 0 ? somma : '';
     totaleGenerale += somma;
   });
 
-  document.querySelector(`[name="zadankai_totale_generale"]`).value = totaleGenerale;
+  const totaleGeneraleInput = document.querySelector(`[name="zadankai_totale_generale"]`);
+  totaleGeneraleInput.value = totaleGenerale > 0 ? totaleGenerale : '';
 }
 
 // Calcolo totali Praticanti
@@ -131,11 +133,13 @@ function calcolaTotaliPraticanti() {
     const gd = parseInt(document.querySelector(`[name="praticanti_${sezione}_gd"]`).value) || 0;
     const somma = u + d + gu + gd;
     
-    document.querySelector(`[name="praticanti_${sezione}_tot"]`).value = somma;
+    const totaleInput = document.querySelector(`[name="praticanti_${sezione}_tot"]`);
+    totaleInput.value = somma > 0 ? somma : '';
     totaleGenerale += somma;
   });
 
-  document.querySelector(`[name="praticanti_totale_generale"]`).value = totaleGenerale;
+  const totaleGeneraleInput = document.querySelector(`[name="praticanti_totale_generale"]`);
+  totaleGeneraleInput.value = totaleGenerale > 0 ? totaleGenerale : '';
 }
 
 // Validazione form
