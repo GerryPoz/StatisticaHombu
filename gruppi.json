@@ -5,7 +5,7 @@
         "AURORA", "COLLINE", "KANSAI", "SOLE", "TORRE PREZIOSA", "VITTORIA"
       ],
       "Settore Invictus": [
-        "ALFIERI", "CESARE PAVESE", "KOKORO", "QUARTO", "RINASCIMENTO"
+        "ALFIERI", "CESARE PAVESE", "RINASCIMENTO"
       ]
     },
     "Capitolo Casale/Crescentino": {
@@ -13,7 +13,7 @@
         "DHARMA", "FENICE", "LEONI", "LAGO", "MAZZINI"
       ],
       "Settore Crescentino": [
-        "AIRONE", "ALBA", "CASALBORGONE", "CAVAGNOLO", "GIOTTO", "LAURIANO", "VESPUCCI"
+        "AIRONE", "CASALBORGONE", "CAVAGNOLO", "GIOTTO", "LAURIANO", "VESPUCCI"
       ]
     }
   }
