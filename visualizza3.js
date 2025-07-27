@@ -13,7 +13,7 @@ const BORDER_CONFIG = {
   horizontal: {
     thickness: "4px",
     style: "solid",
-    color: "#495057"
+    color: "#EE8AF8"
   },
   // Funzioni helper per generare le stringhe CSS
   getVerticalBorder: function() {
@@ -251,7 +251,7 @@ function aggiornaTabella() {
         
         // Applica bordo più spesso per separare i gruppi
         if (primaRigaGruppo && index === 0 && gruppo !== gruppiOrdinati[0]) {
-          tr.classList.add("gruppo-border");
+          tr.style.borderTop = BORDER_CONFIG.getHorizontalBorder();
         }
   
         let colIndex = 0; // Traccia la posizione effettiva delle colonne
