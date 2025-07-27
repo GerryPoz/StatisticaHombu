@@ -6,9 +6,9 @@ import { firebaseConfig } from "./firebase-config.js";
 // 🔹 Configurazione bordi centralizzata
 const BORDER_CONFIG = {
   vertical: {
-    thickness: "1px",
+    thickness: "2px",
     style: "solid",
-    color: "#000"
+    color: "#3282F6"
   },
   horizontal: {
     thickness: "4px",
