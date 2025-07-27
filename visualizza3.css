@@ -7,8 +7,7 @@ body {
 /* Stili per le tabelle di riepilogo */
 .riepilogo {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   margin-bottom: 1.5rem;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   background-color: white;
@@ -20,9 +19,7 @@ body {
   background-color: #e9ecef;
   font-weight: bold;
   color: #495057;
-  border-top: 1px solid #dee2e6;
-  border-left: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
+  border: 1px solid #dee2e6;
 }
 
 .riepilogo th, .riepilogo td {
@@ -38,8 +35,7 @@ body {
 
 /* Stili per le tabelle principali */
 #tabella-dati {
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   width: 100%;
 }
 
@@ -68,25 +64,26 @@ body {
   border-left: 3px solid #000 !important;
 }
 
-/* Separazione tra Totale Gruppo e Futuro (colonna 11) */
-.riepilogo th:nth-child(11), .riepilogo td:nth-child(11),
-#tabella-dati th:nth-child(11), #tabella-dati td:nth-child(11) {
+/* Separazione tra Totale Gruppo e Futuro (colonna 12) */
+.riepilogo th:nth-child(12), .riepilogo td:nth-child(12),
+#tabella-dati th:nth-child(12), #tabella-dati td:nth-child(12) {
   border-left: 3px solid #000 !important;
 }
 
 /* Stili per le categorie */
-tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+tr.zadankai td {
   background-color: #fff3cd !important;
 }
 
-tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+tr.praticanti td {
   background-color: #d1ecf1 !important;
 }
 
 /* Stili per i gruppi */
-td.nome-gruppo, td[style*="background-color: #FFFD55"] {
+td.nome-gruppo {
   background-color: #FFFD55 !important;
   font-weight: bold;
+  border-left: 4px solid #ffc107 !important;
 }
 
 /* Bordi più spessi tra gruppi */
@@ -95,7 +92,7 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 }
 
 /* Stili migliorati per le intestazioni settore */
-.bg-primary {
+.bg-primary, .bg-secondary {
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
   font-size: 1.1rem;
@@ -103,16 +100,10 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 }
 
 /* Effetto hover per le righe dei gruppi */
-.nome-gruppo {
-  background-color: #fff3cd !important;
-  font-weight: bold;
-  border-left: 4px solid #ffc107 !important;
-  transition: all 0.3s ease;
-}
-
 .nome-gruppo:hover {
   background-color: #ffeaa7 !important;
   transform: translateX(2px);
+  transition: all 0.3s ease;
 }
 
 /* Miglioramento visivo per le categorie */
@@ -178,19 +169,19 @@ tr.praticanti:hover td {
     border-left: 2px solid #000 !important;
   }
   
-  .riepilogo th:nth-child(11), .riepilogo td:nth-child(11),
-  #tabella-dati th:nth-child(11), #tabella-dati td:nth-child(11) {
+  .riepilogo th:nth-child(12), .riepilogo td:nth-child(12),
+  #tabella-dati th:nth-child(12), #tabella-dati td:nth-child(12) {
     border-left: 2px solid #000 !important;
   }
   
   /* Assicura che i colori di sfondo vengano stampati */
-  tr.zadankai td, tr[style*="background-color: #fff3cd"] {
+  tr.zadankai td {
     background-color: #fff3cd !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   
-  tr.praticanti td, tr[style*="background-color: #d1ecf1"] {
+  tr.praticanti td {
     background-color: #d1ecf1 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -201,7 +192,7 @@ tr.praticanti:hover td {
     border-top: 3px solid #495057 !important;
   }
   
-  .bg-primary {
+  .bg-primary, .bg-secondary {
     background: #007bff !important;
     color: white !important;
     -webkit-print-color-adjust: exact;
