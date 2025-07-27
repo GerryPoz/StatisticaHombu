@@ -52,7 +52,7 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 
 /* Separatori tra gruppi - versione migliorata */
 .gruppo-separator {
-  height: 5px !important;
+  height: 2px !important;
   background: #FFFFFF !important; /*bianco*/
   border-top: 1px solid #495057 !important;
   border-bottom: 1px solid #495057 !important;
@@ -75,8 +75,8 @@ td.nome-gruppo, td[style*="background-color: #FFFD55"] {
 /* Stili per la stampa - aggiornati */
 @media print {
   .gruppo-separator {
-    height: 5px !important;
-    background: #6c757d !important;
+    height: 2px !important;
+    background: #FFFFFF !important;
     border-top: 1px solid #495057 !important;
     border-bottom: 1px solid #495057 !important;
     -webkit-print-color-adjust: exact;
