@@ -3,14 +3,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // Configurazione Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyBJgZgQ9X8X8X8X8X8X8X8X8X8X8X8X8X8",
-  authDomain: "trae-sgi.firebaseapp.com",
-  databaseURL: "https://trae-sgi-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "trae-sgi",
-  storageBucket: "trae-sgi.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnopqr"
+export const firebaseConfig = {
+  apiKey: "AIzaSyAGoVq0-DvyqUUH4aDCfOFZP2NobclIg_o",
+  authDomain: "hombu-8630c.firebaseapp.com",
+  databaseURL: "https://hombu-8630c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hombu-8630c",
+  storageBucket: "hombu-8630c.firebasestorage.app",
+  messagingSenderId: "886418358212",
+  appId: "1:886418358212:web:fa87f614ad5665b3426e91",
+  measurementId: "G-D6W8XKCB8Z"
 };
 
 // Inizializza Firebase
