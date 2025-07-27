@@ -293,9 +293,9 @@ function aggiornaTabella() {
           if (currentCol === 4) { // Separazione tra Sezione e U
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 8) { // Separazione tra GD e Somma
-            td.style.borderLeft = "3px solid #000";
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
-            td.style.borderLeft = "3px solid #000";
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           }
           
           tr.appendChild(td);
@@ -307,7 +307,7 @@ function aggiornaTabella() {
           const tdTot = document.createElement("td");
           tdTot.rowSpan = righeCategoria.length;
           // Aggiungere il bordo sinistro per separare da "Prec"
-          tdTot.style.borderLeft = "3px solid #000";
+          tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           tdTot.innerHTML = `
             <div><strong>${totaleCategoria}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
@@ -323,7 +323,7 @@ function aggiornaTabella() {
         const tdFuturo = document.createElement("td");
         tdFuturo.textContent = r.FUT;
         // Separazione tra Totale Gruppo e Futuro
-        tdFuturo.style.borderLeft = "3px solid #000";
+        tdFuturo.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         tr.appendChild(tdFuturo);
         
         const tdStudenti = document.createElement("td");
@@ -481,9 +481,9 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           // Applica bordi neri per le colonne specifiche nelle tabelle riepilogo
           // Colonna 3=U, 7=Somma, 8=Prec
           if (i === 1) { // U (dopo Sezione)
-            td.style.borderLeft = "3px solid #000";
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (i === 5) { // Somma (dopo GD)
-            td.style.borderLeft = "3px solid #000";
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           }
           tr.appendChild(td);
         });
@@ -492,7 +492,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           const tdTot = document.createElement("td");
           tdTot.rowSpan = tipoRowSpan;
           // Bordo sinistro per separare da "Prec"
-          tdTot.style.borderLeft = "3px solid #000";
+          tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           tdTot.innerHTML = `
             <div><strong>${totaleMese}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
@@ -506,7 +506,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         const tdFUT = document.createElement("td");
         tdFUT.textContent = sum.FUT;
         // Bordo sinistro per separare da "Totale Gruppo"
-        tdFUT.style.borderLeft = "3px solid #000";
+        tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         const tdSTU = document.createElement("td");
         tdSTU.textContent = sum.STU;
         tr.appendChild(tdFUT);
@@ -614,9 +614,9 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         // Applica bordi neri per le colonne specifiche nel riepilogo capitolo
         // Colonna 1=U (dopo Sezione), 5=Somma (dopo GD)
         if (i === 1) { // U (dopo Sezione)
-          td.style.borderLeft = "3px solid #000";
+          td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         } else if (i === 5) { // Somma (dopo GD)
-          td.style.borderLeft = "3px solid #000";
+          td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         }
         tr.appendChild(td);
       });
@@ -625,7 +625,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         const tdTot = document.createElement("td");
         tdTot.rowSpan = tipoRowSpan;
         // Bordo sinistro per separare da "Prec"
-        tdTot.style.borderLeft = "3px solid #000";
+        tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         tdTot.innerHTML = `
           <div><strong>${totaleMese}</strong></div>
           <div class="small">Prec: ${totalePrec}</div>
@@ -639,7 +639,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       const tdFUT = document.createElement("td");
       tdFUT.textContent = sum.FUT;
       // Bordo sinistro per separare da "Totale Gruppo"
-      tdFUT.style.borderLeft = "3px solid #000";
+      tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
       const tdSTU = document.createElement("td");
       tdSTU.textContent = sum.STU;
       tr.appendChild(tdFUT);
