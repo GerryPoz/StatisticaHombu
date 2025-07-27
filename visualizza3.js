@@ -3,6 +3,27 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebas
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
+/ 🔹 Configurazione bordi centralizzata
+const BORDER_CONFIG = {
+  vertical: {
+    thickness: "1px",
+    style: "solid",
+    color: "#000"
+  },
+  horizontal: {
+    thickness: "4px",
+    style: "solid",
+    color: "#495057"
+  },
+  // Funzioni helper per generare le stringhe CSS
+  getVerticalBorder: function() {
+    return `${this.vertical.thickness} ${this.vertical.style} ${this.vertical.color}`;
+  },
+  getHorizontalBorder: function() {
+    return `${this.horizontal.thickness} ${this.horizontal.style} ${this.horizontal.color}`;
+  }
+};
+
 // 🔹 Inizializza Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -270,7 +291,7 @@ function aggiornaTabella() {
           // Applica bordi neri per le colonne specifiche
           const currentCol = colIndex + i + 1; // +1 perché colIndex è 0-based
           if (currentCol === 4) { // Separazione tra Sezione e U
-            td.style.borderLeft = "3px solid #000";
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 8) { // Separazione tra GD e Somma
             td.style.borderLeft = "3px solid #000";
           } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
