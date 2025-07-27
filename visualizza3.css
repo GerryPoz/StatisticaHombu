@@ -61,11 +61,6 @@ td.nome-gruppo {
   border-left: 4px solid #ffc107 !important;
 }
 
-/* Bordi più spessi tra gruppi */
-.gruppo-border {
-  border-top: 4px solid #495057 !important;
-}
-
 /* Stili migliorati per le intestazioni settore */
 .bg-primary, .bg-secondary {
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
