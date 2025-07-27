@@ -35,6 +35,44 @@ body {
   font-weight: 600;
 }
 
+/* Bordi neri per separare le colonne specificate */
+/* Separazione tra Sezione e U (colonna 3 e 4) */
+.riepilogo th:nth-child(4), .riepilogo td:nth-child(4) {
+  border-left: 2px solid #000 !important;
+}
+
+/* Separazione tra GD e Somma (colonna 7 e 8) */
+.riepilogo th:nth-child(8), .riepilogo td:nth-child(8) {
+  border-left: 2px solid #000 !important;
+}
+
+/* Separazione tra Prec. e Totale Gruppo (colonna 9 e 10) */
+.riepilogo th:nth-child(10), .riepilogo td:nth-child(10) {
+  border-left: 2px solid #000 !important;
+}
+
+/* Separazione tra Totale Gruppo e Futuro (colonna 10 e 11) */
+.riepilogo th:nth-child(11), .riepilogo td:nth-child(11) {
+  border-left: 2px solid #000 !important;
+}
+
+/* Stili per le tabelle principali */
+#tabella-dati th:nth-child(4), #tabella-dati td:nth-child(4) {
+  border-left: 2px solid #000 !important;
+}
+
+#tabella-dati th:nth-child(8), #tabella-dati td:nth-child(8) {
+  border-left: 2px solid #000 !important;
+}
+
+#tabella-dati th:nth-child(10), #tabella-dati td:nth-child(10) {
+  border-left: 2px solid #000 !important;
+}
+
+#tabella-dati th:nth-child(11), #tabella-dati td:nth-child(11) {
+  border-left: 2px solid #000 !important;
+}
+
 /* Stili per le categorie */
 tr.zadankai td, tr[style*="background-color: #fff3cd"] {
   background-color: #fff3cd !important;
