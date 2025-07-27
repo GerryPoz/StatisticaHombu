@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebas
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-/ 🔹 Configurazione bordi centralizzata
+// 🔹 Configurazione bordi centralizzata
 const BORDER_CONFIG = {
   vertical: {
     thickness: "1px",
