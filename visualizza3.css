@@ -45,31 +45,6 @@ body {
   text-align: center;
 }
 
-/* Bordi neri verticali per separare le colonne specificate */
-/* Separazione tra Sezione e U (colonna 4) */
-.riepilogo th:nth-child(4), .riepilogo td:nth-child(4),
-#tabella-dati th:nth-child(4), #tabella-dati td:nth-child(4) {
-  border-left: 3px solid #000 !important;
-}
-
-/* Separazione tra GD e Somma (colonna 8) */
-.riepilogo th:nth-child(8), .riepilogo td:nth-child(8),
-#tabella-dati th:nth-child(8), #tabella-dati td:nth-child(8) {
-  border-left: 3px solid #000 !important;
-}
-
-/* Separazione tra Prec. e Totale Gruppo (colonna 10) */
-.riepilogo th:nth-child(10), .riepilogo td:nth-child(10),
-#tabella-dati th:nth-child(10), #tabella-dati td:nth-child(10) {
-  border-left: 3px solid #000 !important;
-}
-
-/* Separazione tra Totale Gruppo e Futuro (colonna 12) */
-.riepilogo th:nth-child(12), .riepilogo td:nth-child(12),
-#tabella-dati th:nth-child(12), #tabella-dati td:nth-child(12) {
-  border-left: 3px solid #000 !important;
-}
-
 /* Stili per le categorie */
 tr.zadankai td {
   background-color: #fff3cd !important;
@@ -151,27 +126,6 @@ tr.praticanti:hover td {
   
   .table th, .table td {
     border: 1px solid #dee2e6 !important;
-  }
-  
-  /* Bordi neri per la stampa - versione ridotta */
-  .riepilogo th:nth-child(4), .riepilogo td:nth-child(4),
-  #tabella-dati th:nth-child(4), #tabella-dati td:nth-child(4) {
-    border-left: 2px solid #000 !important;
-  }
-  
-  .riepilogo th:nth-child(8), .riepilogo td:nth-child(8),
-  #tabella-dati th:nth-child(8), #tabella-dati td:nth-child(8) {
-    border-left: 2px solid #000 !important;
-  }
-  
-  .riepilogo th:nth-child(10), .riepilogo td:nth-child(10),
-  #tabella-dati th:nth-child(10), #tabella-dati td:nth-child(10) {
-    border-left: 2px solid #000 !important;
-  }
-  
-  .riepilogo th:nth-child(12), .riepilogo td:nth-child(12),
-  #tabella-dati th:nth-child(12), #tabella-dati td:nth-child(12) {
-    border-left: 2px solid #000 !important;
   }
   
   /* Assicura che i colori di sfondo vengano stampati */
