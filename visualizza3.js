@@ -463,7 +463,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
             td.style.borderLeft = "3px solid #000";
           } else if (i === 5) { // Somma (dopo GD)
             td.style.borderLeft = "3px solid #000";
-          }  
+          }
           tr.appendChild(td);
         });
         
