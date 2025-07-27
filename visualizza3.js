@@ -228,10 +228,12 @@ function aggiornaTabella() {
         const tr = document.createElement("tr");
         tr.className = tipo === "ZADANKAI" ? "zadankai" : "praticanti";
         
-        // Applica bordo più spesso per separare i gruppi (non per il primo gruppo del settore)
-        if (primaRigaGruppo && index === 0 && gruppo !== gruppiOrdinati.find(g => settorePerGruppo[g] === settore)) {
+        // Applica bordo più spesso per separare i gruppi
+        if (primaRigaGruppo && index === 0 && gruppo !== gruppiOrdinati[0]) {
           tr.classList.add("gruppo-border");
         }
+  
+        let colIndex = 0; // Traccia la posizione effettiva delle colonne
   
         // Nome Gruppo
         if (!gruppoStampato && index === 0) {
@@ -242,6 +244,7 @@ function aggiornaTabella() {
           tr.appendChild(tdGruppo);
           gruppoStampato = true;
         }
+        colIndex++; // Colonna 1: Nome Gruppo
   
         // Categoria
         if (!tipoStampati[tipo]) {
@@ -251,8 +254,9 @@ function aggiornaTabella() {
           tr.appendChild(tdTipo);
           tipoStampati[tipo] = true;
         }
+        colIndex++; // Colonna 2: Categoria
   
-        // Dati ordinati
+        // Dati ordinati con bordi neri applicati direttamente
         const celle = [
           r.sezione, r.U, r.D, r.GU, r.GD,
           somma,
@@ -262,8 +266,20 @@ function aggiornaTabella() {
         celle.forEach((val, i) => {
           const td = document.createElement("td");
           td.textContent = val;
+          
+          // Applica bordi neri per le colonne specifiche
+          const currentCol = colIndex + i + 1; // +1 perché colIndex è 0-based
+          if (currentCol === 4) { // Separazione tra Sezione e U
+            td.style.borderLeft = "3px solid #000";
+          } else if (currentCol === 8) { // Separazione tra GD e Somma
+            td.style.borderLeft = "3px solid #000";
+          } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
+            td.style.borderLeft = "3px solid #000";
+          }
+          
           tr.appendChild(td);
         });
+        colIndex += celle.length;
   
         // Totale categoria
         if (!totaleStampati[tipo]) {
@@ -278,13 +294,17 @@ function aggiornaTabella() {
           tr.appendChild(tdTot);
           totaleStampati[tipo] = true;
         }
+        colIndex++; // Colonna Totale Gruppo
   
         // Futuro e Studenti
         const tdFuturo = document.createElement("td");
         tdFuturo.textContent = r.FUT;
+        // Separazione tra Totale Gruppo e Futuro
+        tdFuturo.style.borderLeft = "3px solid #000";
+        tr.appendChild(tdFuturo);
+        
         const tdStudenti = document.createElement("td");
         tdStudenti.textContent = r.STU;
-        tr.appendChild(tdFuturo);
         tr.appendChild(tdStudenti);
   
         tbody.appendChild(tr);
