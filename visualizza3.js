@@ -188,22 +188,12 @@ function aggiornaTabella() {
       settoreCorrente = settore;
     }
     
-    // Aggiungi separatore tra gruppi (non per il primo gruppo del settore)
-    if (index > 0 && settore === settorePerGruppo[gruppiOrdinati[index - 1]]) {
-      const separatoreGruppo = document.createElement("tr");
-      const tdSeparatore = document.createElement("td");
-      tdSeparatore.colSpan = 12;
-      tdSeparatore.className = "gruppo-separator";
-      tdSeparatore.innerHTML = "&nbsp;";
-      separatoreGruppo.appendChild(tdSeparatore);
-      tbody.appendChild(separatoreGruppo);
-    }
-    
     // Righe dei dati per gruppo
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
     let gruppoStampato = false;
     let tipoStampati = {};
     let totaleStampati = {};
+    let primaRigaGruppo = true;
   
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
       let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
@@ -237,6 +227,11 @@ function aggiornaTabella() {
   
         const tr = document.createElement("tr");
         tr.className = tipo === "ZADANKAI" ? "zadankai" : "praticanti";
+        
+        // Applica bordo più spesso per separare i gruppi (non per il primo gruppo del settore)
+        if (primaRigaGruppo && index === 0 && gruppo !== gruppiOrdinati.find(g => settorePerGruppo[g] === settore)) {
+          tr.classList.add("gruppo-border");
+        }
   
         // Nome Gruppo
         if (!gruppoStampato && index === 0) {
@@ -293,6 +288,10 @@ function aggiornaTabella() {
         tr.appendChild(tdStudenti);
   
         tbody.appendChild(tr);
+        
+        if (primaRigaGruppo && index === 0) {
+          primaRigaGruppo = false;
+        }
       });
     });
   });
