@@ -7,14 +7,6 @@ import { firebaseConfig } from "./firebase-config.js";
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 🔹 Configurazione stili bordi
-const BORDER_CONFIG = {
-  VERTICAL_THICKNESS: "1px",
-  HORIZONTAL_THICKNESS: "4px",
-  VERTICAL_COLOR: "#000",
-  HORIZONTAL_COLOR: "#495057"
-};
-
 // 🔹 Riferimenti DOM
 const filtroAnno = document.getElementById("filtro-anno");
 const filtroMese = document.getElementById("filtro-mese");
@@ -204,177 +196,160 @@ function aggiornaTabella() {
     let primaRigaGruppo = true;
   
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
-      let righeCategoria = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === tipo);
-      
+      let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+  
       if (righeCategoria.length === 0) return;
-      
-      const sezioni = [...new Set(righeCategoria.map(r => r.sezione))];
+  
+      // Ordina sezioni ZADANKAI
       if (tipo === "ZADANKAI") {
-        const ordine = ["membri", "simpatizzanti", "ospiti"];
-        sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
-      }
-      
-      const tipoRowSpan = sezioni.length;
-      
-      sezioni.forEach((sezione, sezioneIndex) => {
-        const righeSezione = righeCategoria.filter(r => r.sezione === sezione);
-        const sum = righeSezione.reduce((acc, r) => ({
-          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        
-        const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
-        
-        const righePrec = righe.filter(r =>
-          r.anno === annoPrec && r.mese === mesePrec &&
-          r.gruppo === gruppo && r.tipo === tipo && r.sezione === sezione
+        const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+        righeCategoria.sort((a, b) =>
+          sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
         );
-        const sommaPrec = righePrec.reduce((acc, r) =>
-          acc + r.U + r.D + r.GU + r.GD, 0);
-        
+      }
+  
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === tipo
+      );
+  
+      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleCategoria - totalePrec;
+  
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
+        const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
+  
         const tr = document.createElement("tr");
         tr.className = tipo === "ZADANKAI" ? "zadankai" : "praticanti";
         
-        // Applica bordo superiore per separare i gruppi
-        if (primaRigaGruppo && index > 0) {
+        // Applica bordo più spesso per separare i gruppi
+        if (primaRigaGruppo && index === 0 && gruppo !== gruppiOrdinati[0]) {
           tr.classList.add("gruppo-border");
         }
-        primaRigaGruppo = false;
-        
-        let colIndex = 0;
-        
-        // Nome gruppo (solo per la prima riga del gruppo)
-        if (!gruppoStampato) {
+  
+        let colIndex = 0; // Traccia la posizione effettiva delle colonne
+  
+        // Nome Gruppo
+        if (!gruppoStampato && index === 0) {
           const tdGruppo = document.createElement("td");
           tdGruppo.textContent = gruppo;
+          tdGruppo.rowSpan = righeGruppo.length;
           tdGruppo.className = "nome-gruppo";
-          
-          // Calcola il rowspan totale per il gruppo
-          const righeZadankai = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === "ZADANKAI");
-          const righePraticanti = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === "PRATICANTI");
-          const sezioniZ = [...new Set(righeZadankai.map(r => r.sezione))];
-          const sezioniP = [...new Set(righePraticanti.map(r => r.sezione))];
-          const totaleRighe = sezioniZ.length + sezioniP.length;
-          
-          tdGruppo.rowSpan = totaleRighe;
           tr.appendChild(tdGruppo);
           gruppoStampato = true;
         }
-        colIndex++;
-        
-        // Tipo (solo per la prima riga del tipo)
+        colIndex++; // Colonna 1: Nome Gruppo
+  
+        // Categoria
         if (!tipoStampati[tipo]) {
           const tdTipo = document.createElement("td");
           tdTipo.textContent = tipo;
-          tdTipo.rowSpan = tipoRowSpan;
-          tdTipo.className = "fw-bold";
+          tdTipo.rowSpan = righeCategoria.length;
           tr.appendChild(tdTipo);
           tipoStampati[tipo] = true;
         }
-        colIndex++;
-        
-        // Dati della sezione
-        const celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+        colIndex++; // Colonna 2: Categoria
+  
+        // Dati ordinati con bordi neri applicati direttamente
+        const celle = [
+          r.sezione, r.U, r.D, r.GU, r.GD,
+          somma,
+          sommaPrec
+        ];
+  
         celle.forEach((val, i) => {
-          const cell = document.createElement("td");
-          cell.textContent = val;
+          const td = document.createElement("td");
+          td.textContent = val;
           
           // Applica bordi neri per le colonne specifiche
-          if (colIndex === 4 || colIndex === 8 || colIndex === 10) {
-            cell.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+          const currentCol = colIndex + i + 1; // +1 perché colIndex è 0-based
+          if (currentCol === 4) { // Separazione tra Sezione e U
+            td.style.borderLeft = "3px solid #000";
+          } else if (currentCol === 8) { // Separazione tra GD e Somma
+            td.style.borderLeft = "3px solid #000";
+          } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
+            td.style.borderLeft = "3px solid #000";
           }
           
-          tr.appendChild(cell);
-          colIndex++;
+          tr.appendChild(td);
         });
-        
-        // Totale categoria (solo per la prima riga del tipo)
+        colIndex += celle.length;
+  
+        // Totale categoria
         if (!totaleStampati[tipo]) {
-          const sezioniRilevanti = tipo === "ZADANKAI" 
-            ? ["membri", "simpatizzanti", "ospiti"]
-            : ["membri", "simpatizzanti"];
-          
-          const righeTotali = righeFiltrate.filter(r => 
-            r.gruppo === gruppo && r.tipo === tipo && 
-            sezioniRilevanti.includes(r.sezione)
-          );
-          
-          const sumTot = righeTotali.reduce((acc, r) => ({
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-          }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-          
-          const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
-          
-          const righePrecTot = righe.filter(r =>
-            r.anno === annoPrec && r.mese === mesePrec &&
-            r.gruppo === gruppo && r.tipo === tipo &&
-            sezioniRilevanti.includes(r.sezione)
-          );
-          const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-          const delta = totaleMese - totalePrec;
-          
           const tdTot = document.createElement("td");
-          tdTot.rowSpan = tipoRowSpan;
-          // Bordo sinistro per separare da "Prec"
-          tdTot.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+          tdTot.rowSpan = righeCategoria.length;
+          // Aggiungere il bordo sinistro per separare da "Prec"
+          tdTot.style.borderLeft = "3px solid #000";
           tdTot.innerHTML = `
-            <div><strong>${totaleMese}</strong></div>
+            <div><strong>${totaleCategoria}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
             <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
               Δ ${delta >= 0 ? "+" : ""}${delta}
             </div>`;
-          tdTot.className = "text-center";
           tr.appendChild(tdTot);
           totaleStampati[tipo] = true;
         }
-        
+        colIndex++; // Colonna Totale Gruppo
+  
         // Futuro e Studenti
-        const futuroColIndex = colIndex;
-        const cellFuturo = document.createElement("td");
-        cellFuturo.textContent = sum.FUT;
-        // Bordo sinistro per separare da "Totale Gruppo"
-        cellFuturo.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
-        tr.appendChild(cellFuturo);
+        const tdFuturo = document.createElement("td");
+        tdFuturo.textContent = r.FUT;
+        // Separazione tra Totale Gruppo e Futuro
+        tdFuturo.style.borderLeft = "3px solid #000";
+        tr.appendChild(tdFuturo);
         
-        const cellStudenti = document.createElement("td");
-        cellStudenti.textContent = sum.STU;
-        tr.appendChild(cellStudenti);
-        
+        const tdStudenti = document.createElement("td");
+        tdStudenti.textContent = r.STU;
+        tr.appendChild(tdStudenti);
+  
         tbody.appendChild(tr);
+        
+        if (primaRigaGruppo && index === 0) {
+          primaRigaGruppo = false;
+        }
       });
     });
   });
-  
-  // Mostra gruppi mancanti
-  mostraGruppiMancanti(righeFiltrate, mese, anno, capitolo);
-  
-  // Genera riepiloghi
+
+  // Aggiorna le altre sezioni
+  mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo);
   generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
-  
-  // Aggiorna grafici
   aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
 }
 
 // Funzione per mostrare i gruppi mancanti
-function mostraGruppiMancanti(righeFiltrate, mese, anno, capitolo) {
-  const contenitoreLista = document.getElementById("lista-gruppi-mancanti");
+function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
+  const contenitoreLista = document.getElementById("gruppi-mancanti");
+  contenitoreLista.innerHTML = "";
+
+  // Gruppi del capitolo selezionato
+  const gruppiCapitolo = Object.values(gruppiData["HOMBU 9"][capitolo]).flat();
+
+  // Gruppi presenti nei dati per quel mese
   const gruppiPresenti = [...new Set(righeFiltrate.map(r => r.gruppo))];
-  const tuttiGruppi = Object.values(gruppiData["HOMBU 9"][capitolo]).flat();
-  const gruppiMancanti = tuttiGruppi.filter(g => !gruppiPresenti.includes(g));
-  
+  const gruppiMancanti = gruppiCapitolo.filter(gr => !gruppiPresenti.includes(gr));
+
   if (gruppiMancanti.length > 0) {
+    contenitoreLista.className = "alert alert-warning";
     const ul = document.createElement("ul");
-    ul.className = "list-unstyled";
-    gruppiMancanti.forEach(gruppo => {
+    ul.className = "mb-0 list-unstyled";
+    gruppiMancanti.forEach(gr => {
       const li = document.createElement("li");
-      li.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-2"></i>${gruppo}`;
+      li.innerHTML = `<i class="fas fa-exclamation-triangle text-danger me-2"></i>${gr}`;
       ul.appendChild(li);
     });
-    contenitoreLista.innerHTML = "";
+    contenitoreLista.innerHTML = `<strong>Gruppi senza dati per ${mese} ${anno}:</strong>`;
     contenitoreLista.appendChild(ul);
   } else {
-    contenitoreLista.textContent = "✅ Tutti i gruppi del capitolo hanno inserito dati!";
+    contenitoreLista.className = "alert alert-success";
+    contenitoreLista.innerHTML = `<i class="fas fa-check-circle me-2"></i>Tutti i gruppi del capitolo hanno inserito dati!`;
   }
 }
 
@@ -427,6 +402,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       }
       
       const tipoRowSpan = sezioni.length;
+      
       const sezioniRilevanti = tipo === "ZADANKAI"
         ? ["membri", "simpatizzanti", "ospiti"]
         : ["membri", "simpatizzanti"];
@@ -482,11 +458,11 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           const td = document.createElement("td");
           td.textContent = val;
           // Applica bordi neri per le colonne specifiche nelle tabelle riepilogo
-          // Colonna 1=U (dopo Sezione), 5=Somma (dopo GD)
+          // Colonna 3=U, 7=Somma, 8=Prec
           if (i === 1) { // U (dopo Sezione)
-            td.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+            td.style.borderLeft = "3px solid #000";
           } else if (i === 5) { // Somma (dopo GD)
-            td.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+            td.style.borderLeft = "3px solid #000";
           }
           tr.appendChild(td);
         });
@@ -495,7 +471,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           const tdTot = document.createElement("td");
           tdTot.rowSpan = tipoRowSpan;
           // Bordo sinistro per separare da "Prec"
-          tdTot.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+          tdTot.style.borderLeft = "3px solid #000";
           tdTot.innerHTML = `
             <div><strong>${totaleMese}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
@@ -509,7 +485,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         const tdFUT = document.createElement("td");
         tdFUT.textContent = sum.FUT;
         // Bordo sinistro per separare da "Totale Gruppo"
-        tdFUT.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+        tdFUT.style.borderLeft = "3px solid #000";
         const tdSTU = document.createElement("td");
         tdSTU.textContent = sum.STU;
         tr.appendChild(tdFUT);
@@ -617,9 +593,9 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         // Applica bordi neri per le colonne specifiche nel riepilogo capitolo
         // Colonna 1=U (dopo Sezione), 5=Somma (dopo GD)
         if (i === 1) { // U (dopo Sezione)
-          td.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+          td.style.borderLeft = "3px solid #000";
         } else if (i === 5) { // Somma (dopo GD)
-          td.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+          td.style.borderLeft = "3px solid #000";
         }
         tr.appendChild(td);
       });
@@ -628,7 +604,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         const tdTot = document.createElement("td");
         tdTot.rowSpan = tipoRowSpan;
         // Bordo sinistro per separare da "Prec"
-        tdTot.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+        tdTot.style.borderLeft = "3px solid #000";
         tdTot.innerHTML = `
           <div><strong>${totaleMese}</strong></div>
           <div class="small">Prec: ${totalePrec}</div>
@@ -642,7 +618,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       const tdFUT = document.createElement("td");
       tdFUT.textContent = sum.FUT;
       // Bordo sinistro per separare da "Totale Gruppo"
-      tdFUT.style.borderLeft = `${BORDER_CONFIG.VERTICAL_THICKNESS} solid ${BORDER_CONFIG.VERTICAL_COLOR}`;
+      tdFUT.style.borderLeft = "3px solid #000";
       const tdSTU = document.createElement("td");
       tdSTU.textContent = sum.STU;
       tr.appendChild(tdFUT);
@@ -697,40 +673,41 @@ function aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec
     }
   });
 
-  // Dati per il grafico di confronto
-  const datiMeseCorrente = righeFiltrate.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-  const datiMesePrecedente = righe.filter(r =>
-    r.anno === annoPrec && r.mese === mesePrec &&
+  // Dati per il grafico di confronto con il mese precedente - SOLO ZADANKAI
+  const righePrecedentiZadankai = righe.filter(r =>
+    r.anno === annoPrec &&
+    r.mese === mesePrec &&
+    r.tipo === "ZADANKAI" &&
     gruppoToCapitolo[r.gruppo] === capitolo
-  ).reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  );
 
-  // Grafico a barre per il confronto
+  const totaleZadankaiCorrente = datiZadankai.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+  const totaleZadankaiPrecedente = righePrecedentiZadankai.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+
+  // Grafico a barre per il confronto - SOLO ZADANKAI
   graficoConfrontoInstance = new Chart(chartConfronto, {
     type: 'bar',
     data: {
       labels: [`${mesePrec} ${annoPrec}`, `${mese} ${anno}`],
       datasets: [{
-        label: 'Totale Partecipanti',
-        data: [datiMesePrecedente, datiMeseCorrente],
-        backgroundColor: ['#6c757d', '#007bff'],
-        borderColor: ['#495057', '#0056b3'],
+        label: 'Totale Zadankai',
+        data: [totaleZadankaiPrecedente, totaleZadankaiCorrente],
+        backgroundColor: ['#6c757d', '#ffc107'],
+        borderColor: ['#5a6268', '#e0a800'],
         borderWidth: 1
       }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        },
-        title: {
-          display: true,
-          text: `Confronto Mensile - ${capitolo}`
-        }
-      },
       scales: {
         y: {
           beginAtZero: true
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: 'Confronto Zadankai con Mese Precedente'
         }
       }
     }
@@ -742,28 +719,40 @@ function esportaCsv() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
   const capitolo = filtroCapitolo.value;
-  
+
   const righeFiltrate = righe.filter(r =>
     r.anno === anno &&
     r.mese === mese &&
     gruppoToCapitolo[r.gruppo] === capitolo
   );
-  
-  let csv = "Gruppo,Tipo,Sezione,U,D,GU,GD,FUT,STU\n";
+
+  if (righeFiltrate.length === 0) {
+    alert("Nessun dato da esportare");
+    return;
+  }
+
+  // Intestazioni CSV
+  let csv = "Gruppo,Categoria,Sezione,U,D,GU,GD,Somma,Futuro,Studenti\n";
+
+  // Righe dati
   righeFiltrate.forEach(r => {
-    csv += `${r.gruppo},${r.tipo},${r.sezione},${r.U},${r.D},${r.GU},${r.GD},${r.FUT},${r.STU}\n`;
+    const somma = r.U + r.D + r.GU + r.GD;
+    csv += `"${r.gruppo}","${r.tipo}","${r.sezione}",${r.U},${r.D},${r.GU},${r.GD},${somma},${r.FUT},${r.STU}\n`;
   });
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `dati_${capitolo}_${mese}_${anno}.csv`;
-  a.click();
-  window.URL.revokeObjectURL(url);
+
+  // Crea e scarica il file
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `dati_${capitolo}_${mese}_${anno}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-// Funzione per stampare
+// Funzione per la stampa
 function stampa() {
   window.print();
 }
