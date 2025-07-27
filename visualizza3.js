@@ -297,6 +297,11 @@ function aggiornaTabella() {
           } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           }
+
+          // Applica grassetto alla colonna Somma (indice 5 nell'array celle)
+          if (i === 5) {
+            td.style.fontWeight = "bold";
+          }
           
           tr.appendChild(td);
         });
@@ -484,6 +489,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (i === 5) { // Somma (dopo GD)
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            td.style.fontWeight = "bold"; // Applica grassetto alla colonna Somma
           }
           tr.appendChild(td);
         });
@@ -617,6 +623,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         } else if (i === 5) { // Somma (dopo GD)
           td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+          td.style.fontWeight = "bold"; // Applica grassetto alla colonna Somma
         }
         tr.appendChild(td);
       });
