@@ -28,6 +28,7 @@ body {
   padding: 0.75rem;
   border: 1px solid #dee2e6;
   text-align: center;
+  position: relative;
 }
 
 .riepilogo th {
@@ -56,7 +57,19 @@ body {
   border-left: 2px solid #000 !important;
 }
 
-/* Stili per le tabelle principali */
+/* Stili per le tabelle principali - versione corretta */
+#tabella-dati {
+  border-collapse: collapse;
+}
+
+#tabella-dati th, #tabella-dati td {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  text-align: center;
+  position: relative;
+}
+
+/* Bordi verticali per tabella principale */
 #tabella-dati th:nth-child(4), #tabella-dati td:nth-child(4) {
   border-left: 2px solid #000 !important;
 }
@@ -71,6 +84,26 @@ body {
 
 #tabella-dati th:nth-child(11), #tabella-dati td:nth-child(11) {
   border-left: 2px solid #000 !important;
+}
+
+/* Correzione per celle con rowspan - linee verticali continue */
+#tabella-dati td[rowspan] {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* Pseudo-elementi per estendere i bordi verticali attraverso le celle con rowspan */
+#tabella-dati td:nth-child(4)::after,
+#tabella-dati td:nth-child(8)::after,
+#tabella-dati td:nth-child(10)::after,
+#tabella-dati td:nth-child(11)::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #000;
+  z-index: 1;
 }
 
 /* Stili per le categorie */
