@@ -187,7 +187,7 @@ function aggiornaTabella() {
     
       settoreCorrente = settore;
     }
-    
+    /*
     // Aggiungi separatore tra gruppi (non per il primo gruppo del settore)
     if (index > 0 && settore === settorePerGruppo[gruppiOrdinati[index - 1]]) {
       const separatoreGruppo = document.createElement("tr");
@@ -197,7 +197,7 @@ function aggiornaTabella() {
       tdSeparatore.innerHTML = "&nbsp;";
       separatoreGruppo.appendChild(tdSeparatore);
       tbody.appendChild(separatoreGruppo);
-    }
+    }*/
     
     // Righe dei dati per gruppo
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
