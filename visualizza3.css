@@ -33,6 +33,23 @@ body {
   font-weight: 600;
 }
 
+/* Bordi neri verticali per le tabelle di riepilogo */
+.riepilogo th:nth-child(3), .riepilogo td:nth-child(3) {
+  border-left: 3px solid #000 !important;
+}
+
+.riepilogo th:nth-child(7), .riepilogo td:nth-child(7) {
+  border-left: 3px solid #000 !important;
+}
+
+.riepilogo th:nth-child(9), .riepilogo td:nth-child(9) {
+  border-left: 3px solid #000 !important;
+}
+
+.riepilogo th:nth-child(10), .riepilogo td:nth-child(10) {
+  border-left: 3px solid #000 !important;
+}
+
 /* Stili per le tabelle principali */
 #tabella-dati {
   border-collapse: collapse;
@@ -92,6 +109,105 @@ tr.praticanti:hover td {
   transition: background-color 0.2s ease;
 }
 
+/* Stili per le tabelle Bootstrap nelle card */
+.table {
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+/* Bordi neri verticali per le tabelle Bootstrap */
+.table th:nth-child(3), .table td:nth-child(3) {
+  border-left: 3px solid #000 !important;
+}
+
+.table th:nth-child(7), .table td:nth-child(7) {
+  border-left: 3px solid #000 !important;
+}
+
+.table th:nth-child(9), .table td:nth-child(9) {
+  border-left: 3px solid #000 !important;
+}
+
+.table th:nth-child(10), .table td:nth-child(10) {
+  border-left: 3px solid #000 !important;
+}
+
+/* Stili per le card */
+.card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: calc(0.375rem - 1px);
+  border-top-right-radius: calc(0.375rem - 1px);
+}
+
+.card-body {
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+/* Stili per gli alert */
+.alert {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+/* Stili per i colori di sfondo delle tabelle Bootstrap */
+.table-warning {
+  background-color: #fff3cd;
+}
+
+.table-info {
+  background-color: #d1ecf1;
+}
+
+/* Stili per il testo */
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.fw-bold {
+  font-weight: bold !important;
+}
+
+.small {
+  font-size: 0.875em;
+}
+
 /* Stili per la stampa */
 @media print {
   .btn-group, .no-print {
@@ -128,6 +244,40 @@ tr.praticanti:hover td {
     border: 1px solid #dee2e6 !important;
   }
   
+  /* Bordi neri per le tabelle di riepilogo in stampa */
+  .riepilogo th:nth-child(3), .riepilogo td:nth-child(3) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .riepilogo th:nth-child(7), .riepilogo td:nth-child(7) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .riepilogo th:nth-child(9), .riepilogo td:nth-child(9) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .riepilogo th:nth-child(10), .riepilogo td:nth-child(10) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  /* Bordi neri per le tabelle Bootstrap in stampa */
+  .table th:nth-child(3), .table td:nth-child(3) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .table th:nth-child(7), .table td:nth-child(7) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .table th:nth-child(9), .table td:nth-child(9) {
+    border-left: 2px solid #000 !important;
+  }
+  
+  .table th:nth-child(10), .table td:nth-child(10) {
+    border-left: 2px solid #000 !important;
+  }
+  
   /* Assicura che i colori di sfondo vengano stampati */
   tr.zadankai td {
     background-color: #fff3cd !important;
@@ -141,6 +291,18 @@ tr.praticanti:hover td {
     print-color-adjust: exact;
   }
   
+  .table-warning {
+    background-color: #fff3cd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .table-info {
+    background-color: #d1ecf1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
   /* Bordi più spessi per la stampa */
   .gruppo-border {
     border-top: 3px solid #495057 !important;
@@ -149,6 +311,13 @@ tr.praticanti:hover td {
   .bg-primary, .bg-secondary {
     background: #007bff !important;
     color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .bg-warning {
+    background: #ffc107 !important;
+    color: #212529 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
