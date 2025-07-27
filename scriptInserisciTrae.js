@@ -25,48 +25,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Inizializza modal
   modalConferma = new bootstrap.Modal(document.getElementById("modal-conferma"));
   
-  // Popola dropdown anni (dal 2020 al 2030)
-  const annoSelect = document.getElementById("anno");
-  for (let anno = 2020; anno <= 2030; anno++) {
-    const option = document.createElement("option");
-    option.value = anno;
-    option.textContent = anno;
-    if (anno === new Date().getFullYear()) {
-      option.selected = true;
-    }
-    annoSelect.appendChild(option);
-  }
-  
-  // Popola dropdown mesi
-  const mesi = [
-    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-  ];
-  const meseSelect = document.getElementById("mese");
-  mesi.forEach((mese, index) => {
-    const option = document.createElement("option");
-    option.value = String(index + 1).padStart(2, '0');
-    option.textContent = mese;
-    if (index + 1 === new Date().getMonth() + 1) {
-      option.selected = true;
-    }
-    meseSelect.appendChild(option);
-  });
-  
-  // Carica gruppi da file JSON
+  // Popola Anno
+  const anno = new Date().getFullYear();
+  document.getElementById("anno").innerHTML = `
+    <option value="">Seleziona anno...</option>
+    <option value="${anno}" selected>${anno}</option>
+    <option value="${anno + 1}">${anno + 1}</option>
+  `;
+
+  // Popola Mese
+  const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  const meseCorrente = new Date().getMonth();
+  document.getElementById("mese").innerHTML = '<option value="">Seleziona mese...</option>' + 
+    mesi.map((m, i) => `<option value="${m}" ${i === meseCorrente ? 'selected' : ''}>${m}</option>`).join("");
+
+  // Popola Gruppo da gruppi.json
   try {
     const response = await fetch('gruppi.json');
-    const gruppi = await response.json();
-    const gruppoSelect = document.getElementById("gruppo");
-    
-    gruppi.forEach(gruppo => {
-      const option = document.createElement("option");
-      option.value = gruppo;
-      option.textContent = gruppo;
-      gruppoSelect.appendChild(option);
-    });
+    const data = await response.json();
+    const gruppi = [];
+    for (const capitolo of Object.values(data["HOMBU 9"])) {
+      for (const settore of Object.values(capitolo)) {
+        gruppi.push(...settore);
+      }
+    }
+    gruppi.sort(); // Ordina alfabeticamente
+    document.getElementById("gruppo").innerHTML = '<option value="">Seleziona gruppo...</option>' + 
+      gruppi.map(g => `<option value="${g}">${g}</option>`).join("");
   } catch (error) {
     console.error("Errore nel caricamento gruppi:", error);
+    showToast("Errore nel caricamento dei gruppi", "error");
   }
   
   // Setup input numerici
@@ -170,9 +158,8 @@ function caricaDatiNelForm(dati) {
   }
   
   // Ricalcola i totali automaticamente
-  document.querySelectorAll('input[type="number"]').forEach(input => {
-    input.dispatchEvent(new Event('input'));
-  });
+  calcolaTotaliZadankai();
+  calcolaTotaliPraticanti();
 }
 
 // Setup input numerici con calcolo automatico
@@ -185,40 +172,93 @@ function setupInputNumerici() {
       input.value = 0;
     }
     
-    // Aggiungi listener per calcolo automatico
-    input.addEventListener('input', () => {
-      calcolaTotaliAutomatici();
+    // Blocca caratteri non numerici
+    input.addEventListener("keypress", e => {
+      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+      }
     });
     
-    // Previeni valori negativi
-    input.addEventListener('change', () => {
-      if (parseInt(input.value) < 0) {
-        input.value = 0;
+    // Gestisce incolla
+    input.addEventListener("paste", e => {
+      const pasted = (e.clipboardData || window.clipboardData).getData("text");
+      if (!/^\d+$/.test(pasted)) {
+        e.preventDefault();
+        showToast("Puoi incollare solo numeri", "warning");
+      }
+    });
+    
+    // Disabilita rotella del mouse
+    input.addEventListener("wheel", e => {
+      e.target.blur();
+      e.preventDefault();
+    });
+    
+    // Validazione valori negativi e calcolo automatico
+    input.addEventListener("input", e => {
+      if (parseInt(e.target.value) < 0) {
+        e.target.value = 0;
+        showToast("I valori non possono essere negativi", "warning");
+      }
+      
+      // Calcola totali automaticamente
+      if (e.target.name.includes('zadankai')) {
+        calcolaTotaliZadankai();
+      } else if (e.target.name.includes('praticanti')) {
+        calcolaTotaliPraticanti();
       }
     });
   });
 }
 
-// Calcolo automatico dei totali
-function calcolaTotaliAutomatici() {
-  // Calcola totali per ogni riga
-  const righe = [
-    'zadankai_m', 'zadankai_s', 'zadankai_o',
-    'praticanti_m', 'praticanti_s'
-  ];
-  
-  righe.forEach(riga => {
-    const u = parseInt(document.querySelector(`[name="${riga}_u"]`).value) || 0;
-    const d = parseInt(document.querySelector(`[name="${riga}_d"]`).value) || 0;
-    const gu = parseInt(document.querySelector(`[name="${riga}_gu"]`).value) || 0;
-    const gd = parseInt(document.querySelector(`[name="${riga}_gd"]`).value) || 0;
+// Calcolo totali Zadankai
+function calcolaTotaliZadankai() {
+  const sezioni = ["m", "s", "o"];
+  let totaleGenerale = 0;
+
+  sezioni.forEach(sezione => {
+    const u = parseInt(document.querySelector(`[name="zadankai_${sezione}_u"]`).value) || 0;
+    const d = parseInt(document.querySelector(`[name="zadankai_${sezione}_d"]`).value) || 0;
+    const gu = parseInt(document.querySelector(`[name="zadankai_${sezione}_gu"]`).value) || 0;
+    const gd = parseInt(document.querySelector(`[name="zadankai_${sezione}_gd"]`).value) || 0;
+    const somma = u + d + gu + gd;
     
-    const totale = u + d + gu + gd;
-    const totaleElement = document.getElementById(`${riga}_totale`);
+    const totaleElement = document.querySelector(`[name="zadankai_${sezione}_tot"]`);
     if (totaleElement) {
-      totaleElement.textContent = totale;
+      totaleElement.value = somma;
     }
+    totaleGenerale += somma;
   });
+
+  const totaleGeneraleElement = document.querySelector(`[name="zadankai_totale_generale"]`);
+  if (totaleGeneraleElement) {
+    totaleGeneraleElement.value = totaleGenerale;
+  }
+}
+
+// Calcolo totali Praticanti
+function calcolaTotaliPraticanti() {
+  const sezioni = ["m", "s"];
+  let totaleGenerale = 0;
+
+  sezioni.forEach(sezione => {
+    const u = parseInt(document.querySelector(`[name="praticanti_${sezione}_u"]`).value) || 0;
+    const d = parseInt(document.querySelector(`[name="praticanti_${sezione}_d"]`).value) || 0;
+    const gu = parseInt(document.querySelector(`[name="praticanti_${sezione}_gu"]`).value) || 0;
+    const gd = parseInt(document.querySelector(`[name="praticanti_${sezione}_gd"]`).value) || 0;
+    const somma = u + d + gu + gd;
+    
+    const totaleElement = document.querySelector(`[name="praticanti_${sezione}_tot"]`);
+    if (totaleElement) {
+      totaleElement.value = somma;
+    }
+    totaleGenerale += somma;
+  });
+
+  const totaleGeneraleElement = document.querySelector(`[name="praticanti_totale_generale"]`);
+  if (totaleGeneraleElement) {
+    totaleGeneraleElement.value = totaleGenerale;
+  }
 }
 
 // Validazione form
@@ -226,17 +266,49 @@ function validaForm() {
   const anno = document.getElementById("anno").value;
   const mese = document.getElementById("mese").value;
   const gruppo = document.getElementById("gruppo").value;
-  
+
   if (!anno || !mese || !gruppo) {
-    showToast("Seleziona anno, mese e gruppo prima di procedere.", "warning");
+    showToast("Seleziona anno, mese e gruppo prima di procedere", "error");
     return false;
   }
-  
+
+  // Verifica se almeno un campo è compilato
+  const campiNumerici = document.querySelectorAll('input[type="number"]:not([readonly])');
+  const hasDati = Array.from(campiNumerici).some(input => {
+    const val = parseInt(input.value) || 0;
+    return val > 0;
+  });
+
+  if (!hasDati) {
+    showToast("Inserisci almeno un valore maggiore di zero", "warning");
+    return false;
+  }
+
   return true;
 }
 
 // Genera riepilogo per modal
 function generaRiepilogo() {
+  const anno = document.getElementById("anno").value;
+  const mese = document.getElementById("mese").value;
+  const gruppo = document.getElementById("gruppo").value;
+
+  // Riepilogo selezioni
+  document.getElementById("riepilogo-selezioni").innerHTML = `
+    <div class="col-md-4">
+      <strong><i class="fas fa-calendar-alt me-1"></i>Anno:</strong><br>
+      <span class="badge bg-primary fs-6">${anno}</span>
+    </div>
+    <div class="col-md-4">
+      <strong><i class="fas fa-calendar me-1"></i>Mese:</strong><br>
+      <span class="badge bg-info fs-6">${mese}</span>
+    </div>
+    <div class="col-md-4">
+      <strong><i class="fas fa-users me-1"></i>Gruppo:</strong><br>
+      <span class="badge bg-secondary fs-6">${gruppo}</span>
+    </div>
+  `;
+  
   // Riepilogo Zadankai
   const zadankaiHtml = generaRiepilogoTabella("zadankai", [
     { key: "m", label: "Membri" },
@@ -244,7 +316,7 @@ function generaRiepilogo() {
     { key: "o", label: "Ospiti" }
   ], true);
   document.getElementById("riepilogo-zadankai").innerHTML = zadankaiHtml;
-  
+
   // Riepilogo Praticanti
   const praticantiHtml = generaRiepilogoTabella("praticanti", [
     { key: "m", label: "Membri" },
