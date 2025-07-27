@@ -590,12 +590,21 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       celle.forEach((val, i) => {
         const td = document.createElement("td");
         td.textContent = val;
+        // Applica bordi neri per le colonne specifiche nel riepilogo capitolo
+        // Colonna 1=U (dopo Sezione), 5=Somma (dopo GD)
+        if (i === 1) { // U (dopo Sezione)
+          td.style.borderLeft = "3px solid #000";
+        } else if (i === 5) { // Somma (dopo GD)
+          td.style.borderLeft = "3px solid #000";
+        }
         tr.appendChild(td);
       });
       
       if (index === 0) {
         const tdTot = document.createElement("td");
         tdTot.rowSpan = tipoRowSpan;
+        // Bordo sinistro per separare da "Prec"
+        tdTot.style.borderLeft = "3px solid #000";
         tdTot.innerHTML = `
           <div><strong>${totaleMese}</strong></div>
           <div class="small">Prec: ${totalePrec}</div>
@@ -608,6 +617,8 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       
       const tdFUT = document.createElement("td");
       tdFUT.textContent = sum.FUT;
+      // Bordo sinistro per separare da "Totale Gruppo"
+      tdFUT.style.borderLeft = "3px solid #000";
       const tdSTU = document.createElement("td");
       tdSTU.textContent = sum.STU;
       tr.appendChild(tdFUT);
