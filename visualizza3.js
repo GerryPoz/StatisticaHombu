@@ -500,7 +500,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           // Bordo sinistro per separare da "Prec"
           tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           tdTot.innerHTML = `
-            <div><strong>${totaleMese}</strong></div>
+            <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
             <div class="small">Prec: ${totalePrec}</div>
             <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
               Δ ${delta >= 0 ? "+" : ""}${delta}
@@ -634,7 +634,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         // Bordo sinistro per separare da "Prec"
         tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         tdTot.innerHTML = `
-          <div><strong>${totaleMese}</strong></div>
+          <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
           <div class="small">Prec: ${totalePrec}</div>
           <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
             Δ ${delta >= 0 ? "+" : ""}${delta}
