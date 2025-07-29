@@ -31,6 +31,13 @@ const ADMIN_EMAILS = [
   'pliplomail@gmail.com'  // SOSTITUISCI CON LA TUA EMAIL
 ];
 
+/ Funzione per verificare se l'utente è admin
+export function isAdmin() {
+    const user = auth.currentUser;
+    if (!user) return false;
+    return ADMIN_EMAILS.includes(user.email);
+}
+
 // Funzione per verificare se l'utente è admin
 export async function isAdmin() {
   return new Promise((resolve) => {
