@@ -56,18 +56,21 @@
             margin-top: 10px;
             text-align: center;
         }
+        .success {
+            color: green;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>Accesso Sistema</h1>
+        <h1 id="loginTitle">Accesso Sistema</h1>
         <form id="loginForm">
             <div class="form-group">
-                <label for="userType">Tipo Utente:</label>
-                <select id="userType" required>
-                    <option value="">Seleziona...</option>
-                    <option value="admin">Amministratore</option>
-                    <option value="user">Utente</option>
+                <label for="username">Utente:</label>
+                <select id="username" required>
+                    <option value="">Seleziona utente...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -75,40 +78,74 @@
                 <input type="password" id="password" required>
             </div>
             <button type="submit">Accedi</button>
-            <div id="error" class="error"></div>
+            <div id="message" class="error"></div>
         </form>
     </div>
 
     <script>
-        // Password semplici
-        const PASSWORDS = {
-            admin: 'admin123',  // Cambia questa password
-            user: 'user123'     // Cambia questa password
-        };
+        let config = null;
 
+        // Carica configurazione
+        async function loadConfig() {
+            try {
+                const response = await fetch('config.json');
+                config = await response.json();
+                
+                // Aggiorna titolo
+                document.getElementById('loginTitle').textContent = config.settings.loginTitle;
+                
+                // Popola select utenti
+                const userSelect = document.getElementById('username');
+                Object.keys(config.users).forEach(username => {
+                    const option = document.createElement('option');
+                    option.value = username;
+                    option.textContent = username.charAt(0).toUpperCase() + username.slice(1);
+                    userSelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Errore caricamento configurazione:', error);
+                document.getElementById('message').textContent = 'Errore caricamento configurazione';
+            }
+        }
+
+        // Gestione login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const userType = document.getElementById('userType').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error');
+            const messageDiv = document.getElementById('message');
             
-            // Verifica password
-            if (PASSWORDS[userType] && PASSWORDS[userType] === password) {
-                // Salva il tipo di utente nel localStorage
-                localStorage.setItem('userType', userType);
+            if (!config) {
+                messageDiv.textContent = 'Configurazione non caricata';
+                return;
+            }
+            
+            const user = config.users[username];
+            
+            if (user && user.password === password) {
+                // Login riuscito
+                localStorage.setItem('username', username);
+                localStorage.setItem('userRole', user.role);
                 localStorage.setItem('isLoggedIn', 'true');
                 
-                // Reindirizza in base al tipo
-                if (userType === 'admin') {
-                    window.location.href = 'index.html';
-                } else {
-                    window.location.href = 'index1.html';
-                }
+                messageDiv.className = 'success';
+                messageDiv.textContent = 'Accesso riuscito! Reindirizzamento...';
+                
+                // Reindirizza alla pagina configurata
+                setTimeout(() => {
+                    window.location.href = user.redirectPage;
+                }, 1000);
+                
             } else {
-                errorDiv.textContent = 'Password errata!';
+                messageDiv.className = 'error';
+                messageDiv.textContent = 'Credenziali errate!';
             }
         });
+
+        // Carica configurazione all'avvio
+        loadConfig();
     </script>
 </body>
 </html>
