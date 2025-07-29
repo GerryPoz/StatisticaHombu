@@ -1,0 +1,23 @@
+{
+  "users": {
+    "admin": {
+      "password": "admin123",
+      "redirectPage": "index.html",
+      "role": "admin"
+    },
+    "user": {
+      "password": "user123",
+      "redirectPage": "index1.html",
+      "role": "user"
+    },
+    "inserimento": {
+      "password": "insert123",
+      "redirectPage": "inserisciTrae.html",
+      "role": "editor"
+    }
+  },
+  "settings": {
+    "loginTitle": "Accesso Sistema Statistiche",
+    "defaultRedirect": "index1.html"
+  }
+}
