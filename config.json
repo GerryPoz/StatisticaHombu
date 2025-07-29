@@ -2,12 +2,12 @@
   "users": {
     "admin": {
       "password": "admin158",
-      "redirectPage": "index1.html",
+      "redirectPage": "index.html",
       "role": "admin"
     },
     "user": {
       "password": "user1222",
-      "redirectPage": "index.html",
+      "redirectPage": "index1.html",
       "role": "user"
     },
     "inserimento": {
