@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crea Admin</title>
+</head>
+<body>
+    <h2>Crea Primo Utente Admin</h2>
+    <form id="createAdminForm">
+        <div>
+            <label>Email:</label>
+            <input type="email" id="adminEmail" required>
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" id="adminPassword" required>
+        </div>
+        <button type="submit">Crea Admin</button>
+    </form>
+    <div id="result"></div>
+    
+    <script type="module">
+        import { auth } from './firebase-config.js';
+        import { createUserWithEmailAndPassword } from 'firebase/auth';
+        
+        document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const result = document.getElementById('result');
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                result.innerHTML = `<p style="color: green;">Utente creato! UID: ${userCredential.user.uid}</p>
+                <p><strong>IMPORTANTE:</strong> Copia questo UID e usalo nel passo successivo per impostare i privilegi admin.</p>`;
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">Errore: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
