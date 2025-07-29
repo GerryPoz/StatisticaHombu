@@ -7,7 +7,7 @@
     },
     "user": {
       "password": "user1222",
-      "redirectPage": "index1.html",
+      "redirectPage": "index.html",
       "role": "user"
     },
     "inserimento": {
