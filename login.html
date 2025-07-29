@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema Statistiche</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="email"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-btn:hover {
+            background: #5a6fd8;
+        }
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Accesso Sistema</h2>
+            <p>Inserisci le tue credenziali</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                Accedi
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <p>Accesso in corso...</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+    
+    <script type="module" src="login.js"></script>
+</body>
+</html>
