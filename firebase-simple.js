@@ -31,7 +31,7 @@ window.loginUser = async function(email, password) {
         const isAdmin = ADMIN_EMAILS.includes(user.email);
         
         if (isAdmin) {
-            window.location.href = 'visualizza3.html';
+            window.location.href = 'visualizza33.html';
         } else {
             window.location.href = 'index1.html';
         }
