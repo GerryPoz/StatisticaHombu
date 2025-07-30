@@ -2,195 +2,57 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>HOMBU 9 – Sistema Statistiche</title>
+  <title>HOMBU 9 – Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- Firebase App -->
+
+  <!-- Firebase App & Auth -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-  <!-- Firebase Authentication -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
 
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome per icone -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- CSS personalizzato -->
-  <link rel="stylesheet" href="visualizza3.css" />
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background-color: #f9f9f9; }
+    .login-box { max-width: 400px; margin: auto; padding: 30px; border-radius: 10px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .login-box h3 { margin-bottom: 20px; }
+  </style>
 </head>
-<body class="bg-light">
-  <!-- form login -->
-  <div id="login-container" class="text-center mt-5">
-    <h3 class="mb-3">Accedi al sistema HOMBU 9</h3>
-    <input id="email" type="email" placeholder="Email" class="form-control mb-2" />
-    <input id="password" type="password" placeholder="Password" class="form-control mb-2" />
-    <button onclick="login()" class="btn btn-primary">Login</button>
-    <p id="login-error" class="text-danger mt-2"></p>
+<body>
+  <div class="login-box mt-5">
+    <h3 class="text-center">Accedi al sistema HOMBU 9</h3>
+    <input type="email" id="email" class="form-control mb-2" placeholder="Email" />
+    <input type="password" id="password" class="form-control mb-3" placeholder="Password" />
+    <button id="login-btn" class="btn btn-primary w-100">Login</button>
+    <p id="login-error" class="text-danger mt-2 text-center"></p>
   </div>
 
-  <!-- CONTENUTO DELLA PAGINA -->
-  <div id="main-content" style="display:none;">
-    <div class="container-fluid py-5">
-      <!-- Header -->
-      <header class="mb-5">
-        <div class="text-center">
-          <h1 class="display-4 text-primary mb-3">
-            <i class="fas fa-chart-line me-3"></i>
-            HOMBU 9
-          </h1>
-          <p class="lead text-muted">Sistema di Gestione Statistiche</p>
-        </div>
-      </header>
-  
-      <!-- Menu Principale -->
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="row g-4">
-            <!-- Card Inserimento Dati -->
-            <div class="col-md-6">
-              <div class="card shadow-lg h-100 border-0">
-                <div class="card-header bg-primary text-white text-center py-4">
-                  <i class="fas fa-plus-circle fa-3x mb-3"></i>
-                  <h4 class="mb-0">Inserimento Dati</h4>
-                </div>
-                <div class="card-body d-flex flex-column justify-content-between">
-                  <div>
-                    <p class="card-text text-muted mb-4">
-                      Inserisci i dati mensili per ZADANKAI e PRATICANTI del tuo gruppo.
-                    </p>
-                    <ul class="list-unstyled">
-                      <li><i class="fas fa-check text-success me-2"></i>Dati ZADANKAI</li>
-                      <li><i class="fas fa-check text-success me-2"></i>Dati PRATICANTI</li>
-                      <li><i class="fas fa-check text-success me-2"></i>Calcolo automatico totali</li>
-                    </ul>
-                  </div>
-                  <div class="text-center mt-4">
-                    <a href="inserisciTrae.html" class="btn btn-primary btn-lg">
-                      <i class="fas fa-edit me-2"></i>Inserisci Dati
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-  
-            <!-- Card Visualizzazione Dati -->
-            <div class="col-md-6">
-              <div class="card shadow-lg h-100 border-0">
-                <div class="card-header bg-success text-white text-center py-4">
-                  <i class="fas fa-chart-bar fa-3x mb-3"></i>
-                  <h4 class="mb-0">Visualizzazione Dati</h4>
-                </div>
-                <div class="card-body d-flex flex-column justify-content-between">
-                  <div>
-                    <p class="card-text text-muted mb-4">
-                      Visualizza e analizza i dati inseriti con tabelle dettagliate e grafici.
-                    </p>
-                    <ul class="list-unstyled">
-                      <li><i class="fas fa-check text-success me-2"></i>Tabelle dettagliate</li>
-                      <li><i class="fas fa-check text-success me-2"></i>Grafici interattivi</li>
-                      <li><i class="fas fa-check text-success me-2"></i>Riepiloghi per settore</li>
-                      <li><i class="fas fa-check text-success me-2"></i>Esportazione CSV</li>
-                    </ul>
-                  </div>
-                  <div class="text-center mt-4">
-                    <a href="visualizza3.html" class="btn btn-success btn-lg">
-                      <i class="fas fa-eye me-2"></i>Visualizza Dati
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <!-- Sezione Informazioni -->
-      <div class="row justify-content-center mt-5">
-        <div class="col-lg-8">
-          <div class="card shadow-sm border-0">
-            <div class="card-header bg-info text-white">
-              <h5 class="mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                Informazioni Sistema
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-4 text-center mb-3">
-                  <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                  <h6>Gestione Gruppi</h6>
-                  <p class="text-muted small">Organizzazione per capitoli e settori</p>
-                </div>
-                <div class="col-md-4 text-center mb-3">
-                  <i class="fas fa-calendar-alt fa-2x text-warning mb-2"></i>
-                  <h6>Dati Mensili</h6>
-                  <p class="text-muted small">Tracciamento temporale completo</p>
-                </div>
-                <div class="col-md-4 text-center mb-3">
-                  <i class="fas fa-chart-pie fa-2x text-success mb-2"></i>
-                  <h6>Analisi Avanzate</h6>
-                  <p class="text-muted small">Confronti e tendenze</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <!-- Footer -->
-      <footer class="text-center mt-5 pt-4 border-top">
-        <p class="text-muted">
-          <i class="fas fa-copyright me-1"></i>
-          2025 HOMBU 9 – Sistema Statistiche
-        </p>
-      </footer>
-    </div>
-  </div>
-
-  
-  
-
-  <!-- Bootstrap JS Bundle con Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
+  <!-- Firebase Config -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAGoVq0-DvyqUUH4aDCfOFZP2NobclIg_o",
       authDomain: "hombu-8630c.firebaseapp.com",
-      databaseURL: "https://hombu-8630c-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "hombu-8630c",
-      storageBucket: "hombu-8630c.firebasestorage.app",
-      messagingSenderId: "886418358212",
-      appId: "1:886418358212:web:fa87f614ad5665b3426e91",
-      measurementId: "G-D6W8XKCB8Z"
     };
-  
     firebase.initializeApp(firebaseConfig);
   </script>
 
+  <!-- Login Script -->
   <script>
-    const auth = firebase.auth();
-  
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('main-content').style.display = 'block';
-      } else {
-        document.getElementById('login-container').style.display = 'block';
-        document.getElementById('main-content').style.display = 'none';
-      }
-    });
-  
-    function login() {
+    const loginButton = document.getElementById("login-btn");
+
+    loginButton.addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-  
-      auth.signInWithEmailAndPassword(email, password)
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+          window.location.href = "visualizza3.html";
+        })
         .catch(error => {
           document.getElementById("login-error").textContent = error.message;
         });
-    }
+    });
   </script>
-
-
 </body>
 </html>
