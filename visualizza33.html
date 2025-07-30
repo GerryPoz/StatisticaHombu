@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <!-- protezione pagina -->
+  <script type="module">
+      import './firebase-simple.js';
+      
+      // Richiedi autenticazione admin
+      document.addEventListener('DOMContentLoaded', function() {
+          window.requireAuth(true); // true = solo admin
+      });
+  </script>
+  
+  <meta charset="UTF-8" />
+  <title>Statistica Capitoli Hombu 9</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome per icone -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- CSS personalizzato -->
+  <link rel="stylesheet" href="visualizza3.css" />
+</head>
+<body>
+  <script src="auth-simple.js"></script>
+  
+  <div class="container-fluid py-4">
+    <header class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Statistica Capitoli Hombu 9</h1>
+        <div class="btn-group">
+          <button id="btn-export-csv" class="btn btn-outline-primary">
+            <i class="fas fa-file-csv me-2"></i>Esporta CSV
+          </button>
+          <button id="btn-print" class="btn btn-outline-secondary">
+            <i class="fas fa-print me-2"></i>Stampa
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtri</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label for="filtro-anno" class="form-label">Anno:</label>
+            <select id="filtro-anno" class="form-select"></select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="filtro-mese" class="form-label">Mese:</label>
+            <select id="filtro-mese" class="form-select"></select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="filtro-capitolo" class="form-label">Capitolo:</label>
+            <select id="filtro-capitolo" class="form-select"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grafici -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Distribuzione per Categoria</h5>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-categorie"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Confronto con Mese Precedente</h5>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-confronto"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gruppi mancanti -->
+    <div id="gruppi-mancanti" class="alert" role="alert"></div>
+
+    <!-- Tabella dati -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Dettaglio Gruppi</h5>
+      </div>
+      <div class="card-body table-responsive">
+        <table id="tabella-dati" class="table table-striped table-bordered">
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Riepilogo capitolo -->
+    <div id="riepilogo-capitolo" class="mt-4"></div>
+  </div>
+
+  <!-- Bootstrap JS Bundle con Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js per i grafici -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Firebase -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+  <!-- Script personalizzato -->
+  <script type="module" src="visualizza3.js"></script>
+</body>
+</html>
