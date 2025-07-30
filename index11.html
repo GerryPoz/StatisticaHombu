@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <!-- ... existing head content ... -->
+  <script type="module">
+      import './firebase-simple.js';
+      
+      // Richiedi autenticazione (qualsiasi utente)
+      document.addEventListener('DOMContentLoaded', function() {
+          window.requireAuth(false); // false = qualsiasi utente autenticato
+      });
+  </script>
+  
+  <meta charset="UTF-8" />
+  <title>Statistica HOMBU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f7f7;
+      padding: 2rem;
+      text-align: center;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .btn-azione {
+      background-color: #b80000;
+      color: white;
+      padding: 0.8rem 1.2rem;
+      font-weight: bold;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0.5rem;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+      font-size: 1.2rem;
+    }
+
+    .btn-azione:hover {
+      background-color: #990000;
+    }
+
+    @media screen and (max-width: 768px) {
+      .btn-azione {
+        display: block;
+        width: 90%;
+        margin: 1rem auto;
+        font-size: 1.1rem;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Benvenuto in Statistica HOMBU</h1>
+
+  <a href="inserisci.html" class="button-home">✍️ Inserisci dati</a>
+  <a href="visualizza.html" class="button-home">📊 Visualizza dati</a>
+</body>
+</html>
