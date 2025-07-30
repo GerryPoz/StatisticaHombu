@@ -786,4 +786,16 @@ function stampa() {
 }
 
 // Inizializza l'applicazione
-document.addEventListener("DOMContentLoaded", caricaDati);
+//document.addEventListener("DOMContentLoaded", caricaDati);
+document.addEventListener("DOMContentLoaded", () => {
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      console.log("✅ Utente autenticato:", user.email);
+      caricaDati(); // ora puoi leggere dal database
+    } else {
+      console.warn("⛔ Nessun utente loggato, reindirizzo...");
+      window.location.href = "indexFirebase.html";
+    }
+  });
+});
+
