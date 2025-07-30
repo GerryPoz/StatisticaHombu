@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 // 🔹 Configurazione bordi centralizzata
 const BORDER_CONFIG = {
@@ -788,14 +789,17 @@ function stampa() {
 // Inizializza l'applicazione
 //document.addEventListener("DOMContentLoaded", caricaDati);
 document.addEventListener("DOMContentLoaded", () => {
-  firebase.auth().onAuthStateChanged(user => {
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, user => {
     if (user) {
       console.log("✅ Utente autenticato:", user.email);
-      caricaDati(); // ora puoi leggere dal database
+      caricaDati();
     } else {
       console.warn("⛔ Nessun utente loggato, reindirizzo...");
       window.location.href = "indexFirebase.html";
     }
   });
+
 });
 
