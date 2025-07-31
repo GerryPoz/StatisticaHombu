@@ -96,7 +96,6 @@ function setupApp() {
       }
     })
     .catch(error => console.error("Errore nel caricamento dei gruppi:", error));
-  });
 
   // Funzioni per calcolare i totali
   function calcolaTotaliZadankai() {
@@ -112,7 +111,10 @@ function setupApp() {
       totale += valore;
     });
     
-    document.getElementById("zadankai_totale").value = totale;
+    const totaleElement = document.getElementById("zadankai_totale");
+    if (totaleElement) {
+      totaleElement.value = totale;
+    }
   }
 
   function calcolaTotaliPraticanti() {
@@ -127,129 +129,167 @@ function setupApp() {
       totale += valore;
     });
     
-    document.getElementById("praticanti_totale").value = totale;
+    const totaleElement = document.getElementById("praticanti_totale");
+    if (totaleElement) {
+      totaleElement.value = totale;
+    }
   }
 
   // Event listeners per il calcolo automatico dei totali
-  document.querySelectorAll('#zadankai-table input[type="number"]').forEach(input => {
+  const zadankaiInputs = document.querySelectorAll('#zadankai-table input[type="number"]');
+  zadankaiInputs.forEach(input => {
     input.addEventListener('input', calcolaTotaliZadankai);
   });
-  document.querySelectorAll('#praticanti-table input[type="number"]').forEach(input => {
+  
+  const praticantiInputs = document.querySelectorAll('#praticanti-table input[type="number"]');
+  praticantiInputs.forEach(input => {
     input.addEventListener('input', calcolaTotaliPraticanti);
   });
 
   // Gestione del form con la struttura originale
-  document.getElementById("dati-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    
-    // Verifica autenticazione prima del salvataggio
-    if (!auth.currentUser) {
-      alert("❌ Devi essere autenticato per salvare i dati.");
-      window.location.href = 'index.html';
-      return;
-    }
-
-    const data = new FormData(e.target);
-    const anno = data.get("anno");
-    const mese = data.get("mese");
-    const gruppo = data.get("gruppo");
-    const key = `${anno}${String(new Date(Date.parse(mese + " 1, 2020")).getMonth() + 1).padStart(2, "0")}_${gruppo}`;
-
-    // Struttura dati identica al file originale
-    const payload = {
-      anno,
-      mese,
-      gruppo,
-      zadankai: {
-        membri: {
-          U: +data.get("zadankai_m_u") || 0,
-          D: +data.get("zadankai_m_d") || 0,
-          GU: +data.get("zadankai_m_gu") || 0,
-          GD: +data.get("zadankai_m_gd") || 0,
-          FUT: +data.get("zadankai_m_fut") || 0,
-          STU: +data.get("zadankai_m_stu") || 0
-        },
-        simpatizzanti: {
-          U: +data.get("zadankai_s_u") || 0,
-          D: +data.get("zadankai_s_d") || 0,
-          GU: +data.get("zadankai_s_gu") || 0,
-          GD: +data.get("zadankai_s_gd") || 0,
-          FUT: +data.get("zadankai_s_fut") || 0,
-          STU: +data.get("zadankai_s_stu") || 0
-        },
-        ospiti: {
-          U: +data.get("zadankai_o_u") || 0,
-          D: +data.get("zadankai_o_d") || 0,
-          GU: +data.get("zadankai_o_gu") || 0,
-          GD: +data.get("zadankai_o_gd") || 0
-        }
-      },
-      praticanti: {
-        membri: {
-          U: +data.get("praticanti_m_u") || 0,
-          D: +data.get("praticanti_m_d") || 0,
-          GU: +data.get("praticanti_m_gu") || 0,
-          GD: +data.get("praticanti_m_gd") || 0
-        },
-        simpatizzanti: {
-          U: +data.get("praticanti_s_u") || 0,
-          D: +data.get("praticanti_s_d") || 0,
-          GU: +data.get("praticanti_s_gu") || 0,
-          GD: +data.get("praticanti_s_gd") || 0
-        }
+  const form = document.getElementById("dati-form");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      // Verifica autenticazione prima del salvataggio
+      if (!auth.currentUser) {
+        alert("❌ Devi essere autenticato per salvare i dati.");
+        window.location.href = 'index.html';
+        return;
       }
-    };
 
-    set(ref(db, `zadankai/${key}`), payload)
-      .then(() => {
-        document.getElementById("messaggio-successo").style.display = "block";
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      })
-      .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
-  });
+      const data = new FormData(e.target);
+      const anno = data.get("anno");
+      const mese = data.get("mese");
+      const gruppo = data.get("gruppo");
+      const key = `${anno}${String(new Date(Date.parse(mese + " 1, 2020")).getMonth() + 1).padStart(2, "0")}_${gruppo}`;
+
+      // Struttura dati identica al file originale
+      const payload = {
+        anno,
+        mese,
+        gruppo,
+        zadankai: {
+          membri: {
+            U: +data.get("zadankai_m_u") || 0,
+            D: +data.get("zadankai_m_d") || 0,
+            GU: +data.get("zadankai_m_gu") || 0,
+            GD: +data.get("zadankai_m_gd") || 0,
+            FUT: +data.get("zadankai_m_fut") || 0,
+            STU: +data.get("zadankai_m_stu") || 0
+          },
+          simpatizzanti: {
+            U: +data.get("zadankai_s_u") || 0,
+            D: +data.get("zadankai_s_d") || 0,
+            GU: +data.get("zadankai_s_gu") || 0,
+            GD: +data.get("zadankai_s_gd") || 0,
+            FUT: +data.get("zadankai_s_fut") || 0,
+            STU: +data.get("zadankai_s_stu") || 0
+          },
+          ospiti: {
+            U: +data.get("zadankai_o_u") || 0,
+            D: +data.get("zadankai_o_d") || 0,
+            GU: +data.get("zadankai_o_gu") || 0,
+            GD: +data.get("zadankai_o_gd") || 0
+          }
+        },
+        praticanti: {
+          membri: {
+            U: +data.get("praticanti_m_u") || 0,
+            D: +data.get("praticanti_m_d") || 0,
+            GU: +data.get("praticanti_m_gu") || 0,
+            GD: +data.get("praticanti_m_gd") || 0
+          },
+          simpatizzanti: {
+            U: +data.get("praticanti_s_u") || 0,
+            D: +data.get("praticanti_s_d") || 0,
+            GU: +data.get("praticanti_s_gu") || 0,
+            GD: +data.get("praticanti_s_gd") || 0
+          }
+        }
+      };
+
+      set(ref(db, `zadankai/${key}`), payload)
+        .then(() => {
+          const successElement = document.getElementById("messaggio-successo");
+          if (successElement) {
+            successElement.style.display = "block";
+            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+          }
+        })
+        .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
+    });
+  }
 
   // Gestione del popup di conferma
-  document.getElementById("salvaBtn").addEventListener("click", function () {
-    const anno = document.getElementById("anno").value;
-    const mese = document.getElementById("mese").value;
-    const gruppo = document.getElementById("gruppo").value;
+  const salvaBtn = document.getElementById("salvaBtn");
+  if (salvaBtn) {
+    salvaBtn.addEventListener("click", function () {
+      const anno = document.getElementById("anno").value;
+      const mese = document.getElementById("mese").value;
+      const gruppo = document.getElementById("gruppo").value;
 
-    const campi = [
-      "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd",
-      "zadankai_m_fut", "zadankai_m_stu",
-      "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd",
-      "zadankai_s_fut", "zadankai_s_stu",
-      "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd",
-      "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
-      "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
-    ];
+      const campi = [
+        "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd",
+        "zadankai_m_fut", "zadankai_m_stu",
+        "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd",
+        "zadankai_s_fut", "zadankai_s_stu",
+        "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd",
+        "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
+        "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
+      ];
 
-    const tuttiVuoti = campi.every(id => {
-      const val = document.getElementById(id)?.value.trim();
-      return val === "" || val === "0";
+      const tuttiVuoti = campi.every(id => {
+        const element = document.getElementById(id);
+        const val = element ? element.value.trim() : "";
+        return val === "" || val === "0";
+      });
+
+      if (!anno || !mese || !gruppo) {
+        alert("⚠️ Seleziona anno, mese e gruppo.");
+        return;
+      }
+
+      if (tuttiVuoti) {
+        alert("⚠️ Nessun dato inserito: compila almeno una casella!");
+        return;
+      }
+
+      const riepilogoElement = document.getElementById("riepilogoTesto");
+      if (riepilogoElement) {
+        riepilogoElement.innerText = `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
+      }
+      
+      const popupElement = document.getElementById("popupConferma");
+      if (popupElement) {
+        popupElement.style.display = "flex";
+      }
     });
+  }
 
-    if (!anno || !mese || !gruppo) {
-      alert("⚠️ Seleziona anno, mese e gruppo.");
-      return;
-    }
+  const confermaBtn = document.getElementById("confermaBtn");
+  if (confermaBtn) {
+    confermaBtn.addEventListener("click", function () {
+      const popupElement = document.getElementById("popupConferma");
+      if (popupElement) {
+        popupElement.style.display = "none";
+      }
+      
+      const form = document.getElementById("dati-form");
+      if (form) {
+        form.requestSubmit();
+      }
+    });
+  }
 
-    if (tuttiVuoti) {
-      alert("⚠️ Nessun dato inserito: compila almeno una casella!");
-      return;
-    }
-
-    document.getElementById("riepilogoTesto").innerText =
-      `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
-    document.getElementById("popupConferma").style.display = "flex";
-  });
-
-  document.getElementById("confermaBtn").addEventListener("click", function () {
-    document.getElementById("popupConferma").style.display = "none";
-    document.getElementById("dati-form").requestSubmit();
-  });
-
-  document.getElementById("annullaBtn").addEventListener("click", function () {
-    document.getElementById("popupConferma").style.display = "none";
-  });
+  const annullaBtn = document.getElementById("annullaBtn");
+  if (annullaBtn) {
+    annullaBtn.addEventListener("click", function () {
+      const popupElement = document.getElementById("popupConferma");
+      if (popupElement) {
+        popupElement.style.display = "none";
+      }
+    });
+  }
 }
