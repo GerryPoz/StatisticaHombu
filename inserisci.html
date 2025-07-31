@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inserimento Dati Zadankai</title>
+    <title>Inserimento Dati – HOMBU 9</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="inserisci.css" rel="stylesheet">
@@ -27,7 +27,7 @@
                     <div class="header-section d-flex justify-content-between align-items-center mb-4">
                         <h1 class="text-center flex-grow-1">
                             <i class="fas fa-plus-circle me-2"></i>
-                            Inserimento Dati Zadankai
+                            Inserimento Dati – HOMBU 9
                         </h1>
                         <button id="logoutBtn" class="btn btn-outline-danger btn-sm">
                             <i class="fas fa-sign-out-alt me-1"></i>
@@ -37,160 +37,144 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-calendar-alt me-2"></i>
-                                Selezione Periodo
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="anno" class="form-label">Anno</label>
-                                    <select id="anno" class="form-select">
-                                        <!-- Opzioni anno verranno popolate dinamicamente -->
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="mese" class="form-label">Mese</label>
-                                    <select id="mese" class="form-select">
-                                        <option value="">Seleziona mese</option>
-                                        <option value="01">Gennaio</option>
-                                        <option value="02">Febbraio</option>
-                                        <option value="03">Marzo</option>
-                                        <option value="04">Aprile</option>
-                                        <option value="05">Maggio</option>
-                                        <option value="06">Giugno</option>
-                                        <option value="07">Luglio</option>
-                                        <option value="08">Agosto</option>
-                                        <option value="09">Settembre</option>
-                                        <option value="10">Ottobre</option>
-                                        <option value="11">Novembre</option>
-                                        <option value="12">Dicembre</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button id="caricaGruppi" class="btn btn-primary w-100">
-                                <i class="fas fa-download me-2"></i>
-                                Carica Gruppi
-                            </button>
+            <form id="dati-form">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="anno" class="form-label">Anno:</label>
+                        <select name="anno" id="anno" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="mese" class="form-label">Mese:</label>
+                        <select name="mese" id="mese" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="gruppo" class="form-label">Gruppo:</label>
+                        <select name="gruppo" id="gruppo" class="form-select" required></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <h2><i class="fas fa-comments me-2"></i>ZADANKAI</h2>
+                        <div class="table-responsive">
+                            <table id="zadankai-table" class="table table-bordered">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>Categoria</th>
+                                        <th>U</th>
+                                        <th>D</th>
+                                        <th>GU</th>
+                                        <th>GD</th>
+                                        <th>TOTALE</th>
+                                        <th>FUT</th>
+                                        <th>STU</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Membri</strong></td>
+                                        <td><input type="number" name="zadankai_m_u" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_m_d" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_m_gu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_m_gd" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_m_tot" class="form-control" readonly></td>
+                                        <td><input type="number" name="zadankai_m_fut" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_m_stu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Simpatizzanti</strong></td>
+                                        <td><input type="number" name="zadankai_s_u" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_s_d" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_s_gu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_s_gd" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_s_tot" class="form-control" readonly></td>
+                                        <td><input type="number" name="zadankai_s_fut" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_s_stu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Ospiti</strong></td>
+                                        <td><input type="number" name="zadankai_o_u" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_o_d" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_o_gu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_o_gd" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="zadankai_o_tot" class="form-control" readonly></td>
+                                        <td colspan="2" class="text-center">–</td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td colspan="5" class="text-end"><strong>TOTALE GENERALE</strong></td>
+                                        <td><input type="number" name="zadankai_totale_generale" class="form-control fw-bold" readonly></td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Informazioni
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info" role="alert">
-                                <i class="fas fa-lightbulb me-2"></i>
-                                <strong>Istruzioni:</strong>
-                                <ol class="mb-0 mt-2">
-                                    <li>Seleziona anno e mese</li>
-                                    <li>Clicca "Carica Gruppi" per visualizzare i gruppi disponibili</li>
-                                    <li>Inserisci i dati per ogni gruppo</li>
-                                    <li>Rivedi i dati prima del salvataggio</li>
-                                </ol>
-                            </div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-users me-2"></i>PRATICANTI</h2>
+                        <div class="table-responsive">
+                            <table id="praticanti-table" class="table table-bordered">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>Categoria</th>
+                                        <th>U</th>
+                                        <th>D</th>
+                                        <th>GU</th>
+                                        <th>GD</th>
+                                        <th>TOTALE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Membri</strong></td>
+                                        <td><input type="number" name="praticanti_m_u" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_m_d" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_m_gu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_m_gd" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_m_tot" class="form-control" readonly></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Simpatizzanti</strong></td>
+                                        <td><input type="number" name="praticanti_s_u" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_s_d" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_s_gu" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_s_gd" class="form-control" inputmode="numeric" pattern="[0-9]*"></td>
+                                        <td><input type="number" name="praticanti_s_tot" class="form-control" readonly></td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td colspan="5" class="text-end"><strong>TOTALE GENERALE</strong></td>
+                                        <td><input type="number" name="praticanti_totale_generale" class="form-control fw-bold" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="gruppiContainer" class="row mt-4" style="display: none;">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-users me-2"></i>
-                                Inserimento Dati Gruppi
-                            </h5>
-                            <div>
-                                <button id="rivedidati" class="btn btn-success me-2">
-                                    <i class="fas fa-eye me-2"></i>
-                                    Rivedi Dati
-                                </button>
-                                <button id="salvadati" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i>
-                                    Salva su Firebase
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="gruppiForm">
-                                <!-- I gruppi verranno inseriti qui dinamicamente -->
-                            </div>
-                        </div>
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-save me-2"></i>
+                            Salva dati
+                        </button>
+                        <a href="index.html" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-home me-2"></i>
+                            Torna alla Home
+                        </a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal per Revisione Dati -->
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reviewModalLabel">
-                        <i class="fas fa-eye me-2"></i>
-                        Revisione Dati
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div id="messaggio-successo" class="alert alert-success mt-4 d-none">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Dati salvati con successo! 
+                    <a href="index.html" class="btn btn-sm btn-success ms-3">
+                        <i class="fas fa-home me-1"></i>
+                        Torna alla Home
+                    </a>
                 </div>
-                <div class="modal-body">
-                    <!-- Sezione Periodo e Gruppo -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="border-bottom pb-2">
-                                <i class="fas fa-calendar-alt me-2"></i>
-                                Periodo e Gruppo
-                            </h6>
-                            <div id="reviewPeriodoGruppo"></div>
-                        </div>
-                    </div>
-
-                    <!-- Sezione Zadankai -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="border-bottom pb-2">
-                                <i class="fas fa-comments me-2"></i>
-                                Zadankai
-                            </h6>
-                            <div id="reviewZadankai"></div>
-                        </div>
-                    </div>
-
-                    <!-- Sezione Praticanti -->
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="border-bottom pb-2">
-                                <i class="fas fa-users me-2"></i>
-                                Praticanti
-                            </h6>
-                            <div id="reviewPraticanti"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>
-                        Chiudi
-                    </button>
-                    <button type="button" class="btn btn-primary" id="confermaeSalva">
-                        <i class="fas fa-check me-2"></i>
-                        Conferma e Salva
-                    </button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
