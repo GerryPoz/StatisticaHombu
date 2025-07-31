@@ -146,54 +146,43 @@ function salvasuFirebase(e) {
 
     const payload = {
         gruppo: data.gruppo,
-        anno: data.anno,
-        mese: data.mese,
-        dataInserimento: new Date().toISOString(),
-        utente: auth.currentUser.email,
         zadankai: {
-            membri: {
-                u: +data.zadankai_m_u || 0,
-                d: +data.zadankai_m_d || 0,
-                gu: +data.zadankai_m_gu || 0,
-                gd: +data.zadankai_m_gd || 0,
-                tot: +data.zadankai_m_tot || 0,
-                fut: +data.zadankai_m_fut || 0,
-                stu: +data.zadankai_m_stu || 0
-            },
-            simpatizzanti: {
-                u: +data.zadankai_s_u || 0,
-                d: +data.zadankai_s_d || 0,
-                gu: +data.zadankai_s_gu || 0,
-                gd: +data.zadankai_s_gd || 0,
-                tot: +data.zadankai_s_tot || 0,
-                fut: +data.zadankai_s_fut || 0,
-                stu: +data.zadankai_s_stu || 0
-            },
-            ospiti: {
-                u: +data.zadankai_o_u || 0,
-                d: +data.zadankai_o_d || 0,
-                gu: +data.zadankai_o_gu || 0,
-                gd: +data.zadankai_o_gd || 0,
-                tot: +data.zadankai_o_tot || 0
-            },
-            totaleGenerale: +data.zadankai_totale_generale || 0
+          membri: {
+            U: parseInt(data.zadankai_m_u) || 0,
+            D: parseInt(data.zadankai_m_d) || 0,
+            GU: parseInt(data.zadankai_m_gu) || 0,
+            GD: parseInt(data.zadankai_m_gd) || 0,
+            FUT: parseInt(data.zadankai_m_fut) || 0,
+            STU: parseInt(data.zadankai_m_stu) || 0
+          },
+          simpatizzanti: {
+            U: parseInt(data.zadankai_s_u) || 0,
+            D: parseInt(data.zadankai_s_d) || 0,
+            GU: parseInt(data.zadankai_s_gu) || 0,
+            GD: parseInt(data.zadankai_s_gd) || 0,
+            FUT: parseInt(data.zadankai_s_fut) || 0,
+            STU: parseInt(data.zadankai_s_stu) || 0
+          },
+          ospiti: {
+            U: parseInt(data.zadankai_o_u) || 0,
+            D: parseInt(data.zadankai_o_d) || 0,
+            GU: parseInt(data.zadankai_o_gu) || 0,
+            GD: parseInt(data.zadankai_o_gd) || 0
+          }
         },
         praticanti: {
-            membri: {
-                u: +data.praticanti_m_u || 0,
-                d: +data.praticanti_m_d || 0,
-                gu: +data.praticanti_m_gu || 0,
-                gd: +data.praticanti_m_gd || 0,
-                tot: +data.praticanti_m_tot || 0
-            },
-            simpatizzanti: {
-                u: +data.praticanti_s_u || 0,
-                d: +data.praticanti_s_d || 0,
-                gu: +data.praticanti_s_gu || 0,
-                gd: +data.praticanti_s_gd || 0,
-                tot: +data.praticanti_s_tot || 0
-            },
-            totaleGenerale: +data.praticanti_totale_generale || 0
+          membri: {
+            U: parseInt(data.praticanti_m_u) || 0,
+            D: parseInt(data.praticanti_m_d) || 0,
+            GU: parseInt(data.praticanti_m_gu) || 0,
+            GD: parseInt(data.praticanti_m_gd) || 0
+          },
+          simpatizzanti: {
+            U: parseInt(data.praticanti_s_u) || 0,
+            D: parseInt(data.praticanti_s_d) || 0,
+            GU: parseInt(data.praticanti_s_gu) || 0,
+            GD: parseInt(data.praticanti_s_gd) || 0
+          }
         }
     };
 
