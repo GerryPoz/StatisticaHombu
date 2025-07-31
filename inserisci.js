@@ -13,7 +13,9 @@ onAuthStateChanged(auth, (user) => {
   
   if (user) {
     console.log('Utente autenticato:', user.email);
-    loadingScreen.style.display = 'none';
+    if (loadingScreen) {
+      loadingScreen.style.display = 'none';
+    }
     inizializzaApp();
   } else {
     console.log('Utente non autenticato, reindirizzamento...');
@@ -34,34 +36,47 @@ function logout() {
 window.logout = logout;
 
 function inizializzaApp() {
-  document.addEventListener("DOMContentLoaded", () => {
-    // Popola gli anni (dal 2020 al 2030)
-    const annoSelect = document.getElementById("anno");
+  // Aspetta che il DOM sia completamente caricato
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupApp);
+  } else {
+    setupApp();
+  }
+}
+
+function setupApp() {
+  // Popola gli anni (dal 2020 al 2030)
+  const annoSelect = document.getElementById("anno");
+  if (annoSelect) {
     for (let anno = 2020; anno <= 2030; anno++) {
       const option = document.createElement("option");
       option.value = anno;
       option.textContent = anno;
       annoSelect.appendChild(option);
     }
+  }
 
-    // Popola i mesi
-    const mesi = [
-      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-    ];
-    const meseSelect = document.getElementById("mese");
+  // Popola i mesi
+  const mesi = [
+    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+  ];
+  const meseSelect = document.getElementById("mese");
+  if (meseSelect) {
     mesi.forEach((mese, index) => {
       const option = document.createElement("option");
       option.value = mese;
       option.textContent = mese;
       meseSelect.appendChild(option);
     });
+  }
 
-    // Carica i gruppi da gruppi.json
-    fetch("gruppi.json")
-      .then(response => response.json())
-      .then(data => {
-        const gruppoSelect = document.getElementById("gruppo");
+  // Carica i gruppi da gruppi.json
+  fetch("gruppi.json")
+    .then(response => response.json())
+    .then(data => {
+      const gruppoSelect = document.getElementById("gruppo");
+      if (gruppoSelect) {
         const hombuData = data["HOMBU 9"];
         
         if (hombuData) {
@@ -78,8 +93,9 @@ function inizializzaApp() {
             });
           });
         }
-      })
-      .catch(error => console.error("Errore nel caricamento dei gruppi:", error));
+      }
+    })
+    .catch(error => console.error("Errore nel caricamento dei gruppi:", error));
   });
 
   // Funzioni per calcolare i totali
