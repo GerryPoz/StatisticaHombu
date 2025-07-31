@@ -152,7 +152,7 @@ input[type="number"] {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* Responsive */
+/* Responsive per dispositivi mobili */
 @media (max-width: 768px) {
   .container {
     padding: 0 15px;
@@ -167,19 +167,55 @@ input[type="number"] {
     font-size: 1rem;
   }
   
+  /* Miglioramenti specifici per la tabella zadankai */
+  #zadankai-table input[type="number"] {
+    width: 50px !important;
+    font-size: 0.75rem !important;
+    padding: 0.25rem !important;
+  }
+  
+  #zadankai-table th,
+  #zadankai-table td {
+    padding: 0.3rem 0.1rem !important;
+    font-size: 0.7rem !important;
+    text-align: center;
+  }
+  
+  #zadankai-table th {
+    font-size: 0.65rem !important;
+  }
+  
+  /* Assicura che tutti gli input siano visibili */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
   input[type="number"].form-control-sm {
-    width: 60px;
-    font-size: 0.8rem;
+    width: 50px;
+    font-size: 0.75rem;
   }
   
   .table th,
   .table td {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.85rem;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 576px) {
+  /* Per schermi molto piccoli */
+  #zadankai-table input[type="number"] {
+    width: 45px !important;
+    font-size: 0.7rem !important;
+  }
+  
+  #zadankai-table th,
+  #zadankai-table td {
+    padding: 0.2rem 0.05rem !important;
+    font-size: 0.65rem !important;
+  }
+  
   .modal-dialog {
     margin: 0.5rem;
   }
@@ -188,7 +224,6 @@ input[type="number"] {
     max-width: none;
   }
 }
-
 /* Effetti hover per le righe della tabella */
 .table tbody tr:hover {
   background-color: rgba(0,123,255,0.05);
