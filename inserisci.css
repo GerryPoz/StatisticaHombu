@@ -248,6 +248,44 @@ input[readonly] {
   border-radius: 10px;
 }
 
+/* Regole pe aggiornamento Login al database */
+
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.gruppo-card {
+    transition: transform 0.2s;
+}
+
+.gruppo-card:hover {
+    transform: translateY(-2px);
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
