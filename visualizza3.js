@@ -797,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
       caricaDati();
     } else {
       console.warn("⛔ Nessun utente loggato, reindirizzo...");
-      window.location.href = "indexFirebase.html";
+      window.location.href = "index.html";
     }
   });
 
