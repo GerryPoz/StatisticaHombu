@@ -1,467 +1,361 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-import { firebaseConfig } from "./firebase-config.js";
+// Importa i moduli Firebase necessari
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { firebaseConfig } from './firebase-config.js';
 
+// Inizializza Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const database = getDatabase(app);
+const auth = getAuth(app);
 
-// Variabili globali
-let modalConferma;
-
+// Verifica autenticazione all'avvio
 document.addEventListener("DOMContentLoaded", () => {
-  // Inizializza il modal Bootstrap
-  modalConferma = new bootstrap.Modal(document.getElementById('modalConferma'));
-  
-  // Popola Anno
-  const anno = new Date().getFullYear();
-  document.getElementById("anno").innerHTML = `
-    <option value="">Seleziona anno...</option>
-    <option value="${anno}" selected>${anno}</option>
-    <option value="${anno + 1}">${anno + 1}</option>
-  `;
-
-  // Popola Mese
-  const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-  const meseCorrente = new Date().getMonth();
-  document.getElementById("mese").innerHTML = '<option value="">Seleziona mese...</option>' + 
-    mesi.map((m, i) => `<option value="${m}" ${i === meseCorrente ? 'selected' : ''}>${m}</option>`).join("");
-
-  // Popola Gruppo da gruppi.json
-  fetch("gruppi.json")
-    .then(res => res.json())
-    .then(data => {
-      const gruppi = [];
-      for (const capitolo of Object.values(data["HOMBU 9"])) {
-        for (const settore of Object.values(capitolo)) {
-          gruppi.push(...settore);
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
+    
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log('Utente autenticato:', user.email);
+            loadingScreen.classList.add('d-none');
+            mainContent.classList.remove('d-none');
+            inizializzaApp();
+        } else {
+            console.log('Utente non autenticato, reindirizzamento...');
+            window.location.href = 'index.html';
         }
-      }
-      gruppi.sort(); // Ordina alfabeticamente
-      document.getElementById("gruppo").innerHTML = '<option value="">Seleziona gruppo...</option>' + 
-        gruppi.map(g => `<option value="${g}">${g}</option>`).join("");
-    })
-    .catch(err => {
-      console.error("Errore nel caricamento gruppi:", err);
-      showToast("Errore nel caricamento dei gruppi", "error");
     });
-  
-  // Gestione input numerici
-  setupNumericInputs();
-  
-  // Attiva calcoli automatici
-  setupAutoCalculations();
-  
-  // Aggiungi listener per caricamento dati esistenti
-  aggiungiListenerCaricamentoDati();
 });
 
-// Configurazione input numerici
-function setupNumericInputs() {
-  document.querySelectorAll('input[type="number"]').forEach(input => {
-    // Blocca caratteri non numerici
-    input.addEventListener("keypress", e => {
-      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
-        e.preventDefault();
-      }
+// Funzione per inizializzare l'applicazione
+function inizializzaApp() {
+    // Carica i dati dei gruppi
+    fetch('gruppi.json')
+        .then(response => response.json())
+        .then(data => {
+            window.gruppiData = data;
+            popolaAnni();
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento dei gruppi:', error);
+            alert('Errore nel caricamento dei dati dei gruppi');
+        });
+
+    // Event listeners
+    document.getElementById('caricaGruppi').addEventListener('click', caricaGruppi);
+    document.getElementById('rivedidati').addEventListener('click', rivedidati);
+    document.getElementById('salvadati').addEventListener('click', salvasuFirebase);
+    document.getElementById('confermaeSalva').addEventListener('click', confermaeSalva);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+}
+
+// Funzione per il logout
+function logout() {
+    signOut(auth).then(() => {
+        console.log('Logout effettuato');
+        window.location.href = 'index.html';
+    }).catch((error) => {
+        console.error('Errore durante il logout:', error);
+        alert('Errore durante il logout');
+    });
+}
+
+// Popola gli anni disponibili
+function popolaAnni() {
+    const annoSelect = document.getElementById('anno');
+    const anniDisponibili = new Set();
+    
+    // Estrai tutti gli anni dai dati dei gruppi
+    Object.keys(window.gruppiData).forEach(key => {
+        const anno = key.substring(0, 4);
+        anniDisponibili.add(anno);
     });
     
-    // Gestisce incolla
-    input.addEventListener("paste", e => {
-      const pasted = (e.clipboardData || window.clipboardData).getData("text");
-      if (!/^\d+$/.test(pasted)) {
-        e.preventDefault();
-        showToast("Puoi incollare solo numeri", "warning");
-      }
+    // Ordina gli anni in ordine decrescente
+    const anniOrdinati = Array.from(anniDisponibili).sort((a, b) => b - a);
+    
+    // Popola il select
+    annoSelect.innerHTML = '<option value="">Seleziona anno</option>';
+    anniOrdinati.forEach(anno => {
+        const option = document.createElement('option');
+        option.value = anno;
+        option.textContent = anno;
+        annoSelect.appendChild(option);
     });
+}
+
+// Carica i gruppi per il periodo selezionato
+function caricaGruppi() {
+    const anno = document.getElementById('anno').value;
+    const mese = document.getElementById('mese').value;
     
-    // Disabilita rotella del mouse
-    input.addEventListener("wheel", e => {
-      e.target.blur();
-      e.preventDefault();
-    });
-    
-    // Validazione valori negativi
-    input.addEventListener("input", e => {
-      if (parseInt(e.target.value) < 0) {
-        e.target.value = 0;
-        showToast("I valori non possono essere negativi", "warning");
-      }
-    });
-  });
-}
-
-// Configurazione calcoli automatici
-function setupAutoCalculations() {
-  // Calcoli Zadankai
-  document.querySelectorAll('#zadankai-table input[type="number"]:not([readonly])').forEach(input => {
-    input.addEventListener("input", calcolaTotaliZadankai);
-  });
-  
-  // Calcoli Praticanti
-  document.querySelectorAll('#praticanti-table input[type="number"]:not([readonly])').forEach(input => {
-    input.addEventListener("input", calcolaTotaliPraticanti);
-  });
-}
-
-// Aggiungi listener per caricamento dati esistenti
-function aggiungiListenerCaricamentoDati() {
-  const annoSelect = document.getElementById("anno");
-  const meseSelect = document.getElementById("mese");
-  const gruppoSelect = document.getElementById("gruppo");
-  
-  [annoSelect, meseSelect, gruppoSelect].forEach(select => {
-    select.addEventListener("change", verificaECaricaDatiEsistenti);
-  });
-}
-
-// Verifica e carica dati esistenti
-async function verificaECaricaDatiEsistenti() {
-  const anno = document.getElementById("anno").value;
-  const mese = document.getElementById("mese").value;
-  const gruppo = document.getElementById("gruppo").value;
-  
-  if (!anno || !mese || !gruppo) return;
-  
-  const key = `${anno}-${mese}-${gruppo}`;
-  
-  try {
-    const snapshot = await get(child(ref(db), `zadankai/${key}`));
-    
-    if (snapshot.exists()) {
-      const conferma = confirm(
-        `Sono già presenti dati per ${gruppo} - ${mese} ${anno}.\n\n` +
-        "Vuoi caricare i dati esistenti per modificarli?"
-      );
-      
-      if (conferma) {
-        caricaDatiNelForm(snapshot.val());
-      }
-    }
-  } catch (error) {
-    console.error("Errore nel controllo dati esistenti:", error);
-  }
-}
-
-// Carica dati nel form
-function caricaDatiNelForm(dati) {
-  // Carica dati Zadankai
-  if (dati.zadankai) {
-    Object.entries(dati.zadankai).forEach(([categoria, valori]) => {
-      const prefisso = categoria === "membri" ? "m" : categoria === "simpatizzanti" ? "s" : "o";
-      
-      Object.entries(valori).forEach(([campo, valore]) => {
-        const input = document.querySelector(`[name="zadankai_${prefisso}_${campo.toLowerCase()}"]`);
-        if (input) {
-          input.value = valore || '';
-        }
-      });
-    });
-  }
-  
-  // Carica dati Praticanti
-  if (dati.praticanti) {
-    Object.entries(dati.praticanti).forEach(([categoria, valori]) => {
-      const prefisso = categoria === "membri" ? "m" : "s";
-      
-      Object.entries(valori).forEach(([campo, valore]) => {
-        const input = document.querySelector(`[name="praticanti_${prefisso}_${campo.toLowerCase()}"]`);
-        if (input) {
-          input.value = valore || '';
-        }
-      });
-    });
-  }
-  
-  // Ricalcola i totali
-  calcolaTotaliZadankai();
-  calcolaTotaliPraticanti();
-  
-  showToast("Dati caricati con successo!", "success");
-}
-
-// Calcolo totali Zadankai
-function calcolaTotaliZadankai() {
-  const sezioni = ["m", "s", "o"];
-  let totaleGenerale = 0;
-
-  sezioni.forEach(sezione => {
-    const u = parseInt(document.querySelector(`[name="zadankai_${sezione}_u"]`).value) || 0;
-    const d = parseInt(document.querySelector(`[name="zadankai_${sezione}_d"]`).value) || 0;
-    const gu = parseInt(document.querySelector(`[name="zadankai_${sezione}_gu"]`).value) || 0;
-    const gd = parseInt(document.querySelector(`[name="zadankai_${sezione}_gd"]`).value) || 0;
-    const somma = u + d + gu + gd;
-    
-    const totaleInput = document.querySelector(`[name="zadankai_${sezione}_tot"]`);
-    totaleInput.value = somma > 0 ? somma : '';
-    totaleGenerale += somma;
-  });
-
-  const totaleGeneraleInput = document.querySelector(`[name="zadankai_totale_generale"]`);
-  totaleGeneraleInput.value = totaleGenerale > 0 ? totaleGenerale : '';
-}
-
-// Calcolo totali Praticanti
-function calcolaTotaliPraticanti() {
-  const sezioni = ["m", "s"];
-  let totaleGenerale = 0;
-
-  sezioni.forEach(sezione => {
-    const u = parseInt(document.querySelector(`[name="praticanti_${sezione}_u"]`).value) || 0;
-    const d = parseInt(document.querySelector(`[name="praticanti_${sezione}_d"]`).value) || 0;
-    const gu = parseInt(document.querySelector(`[name="praticanti_${sezione}_gu"]`).value) || 0;
-    const gd = parseInt(document.querySelector(`[name="praticanti_${sezione}_gd"]`).value) || 0;
-    const somma = u + d + gu + gd;
-    
-    const totaleInput = document.querySelector(`[name="praticanti_${sezione}_tot"]`);
-    totaleInput.value = somma > 0 ? somma : '';
-    totaleGenerale += somma;
-  });
-
-  const totaleGeneraleInput = document.querySelector(`[name="praticanti_totale_generale"]`);
-  totaleGeneraleInput.value = totaleGenerale > 0 ? totaleGenerale : '';
-}
-
-// Validazione form
-function validaForm() {
-  const anno = document.getElementById("anno").value;
-  const mese = document.getElementById("mese").value;
-  const gruppo = document.getElementById("gruppo").value;
-
-  if (!anno || !mese || !gruppo) {
-    showToast("Seleziona anno, mese e gruppo prima di procedere", "error");
-    return false;
-  }
-
-  // Verifica se almeno un campo è compilato
-  const campiNumerici = document.querySelectorAll('input[type="number"]:not([readonly])');
-  const hasDati = Array.from(campiNumerici).some(input => {
-    const val = parseInt(input.value) || 0;
-    return val > 0;
-  });
-
-  if (!hasDati) {
-    showToast("Inserisci almeno un valore maggiore di zero", "warning");
-    return false;
-  }
-
-  return true;
-}
-
-// Genera riepilogo per il modal
-function generaRiepilogo() {
-  const anno = document.getElementById("anno").value;
-  const mese = document.getElementById("mese").value;
-  const gruppo = document.getElementById("gruppo").value;
-
-  // Riepilogo selezioni
-  document.getElementById("riepilogo-selezioni").innerHTML = `
-    <div class="col-md-4">
-      <strong><i class="fas fa-calendar-alt me-1"></i>Anno:</strong><br>
-      <span class="badge bg-primary fs-6">${anno}</span>
-    </div>
-    <div class="col-md-4">
-      <strong><i class="fas fa-calendar me-1"></i>Mese:</strong><br>
-      <span class="badge bg-info fs-6">${mese}</span>
-    </div>
-    <div class="col-md-4">
-      <strong><i class="fas fa-users me-1"></i>Gruppo:</strong><br>
-      <span class="badge bg-secondary fs-6">${gruppo}</span>
-    </div>
-  `;
-
-  // Riepilogo Zadankai
-  const zadankaiHtml = generaRiepilogoTabella("zadankai", [
-    { key: "m", label: "Membri" },
-    { key: "s", label: "Simpatizzanti" },
-    { key: "o", label: "Ospiti" }
-  ], true);
-  document.getElementById("riepilogo-zadankai").innerHTML = zadankaiHtml;
-
-  // Riepilogo Praticanti
-  const praticantiHtml = generaRiepilogoTabella("praticanti", [
-    { key: "m", label: "Membri" },
-    { key: "s", label: "Simpatizzanti" }
-  ], false);
-  document.getElementById("riepilogo-praticanti").innerHTML = praticantiHtml;
-}
-
-// Genera HTML per tabella riepilogo
-function generaRiepilogoTabella(tipo, sezioni, includiExtra) {
-  let html = `
-    <table class="table table-sm table-bordered">
-      <thead class="table-dark">
-        <tr>
-          <th>Categoria</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Totale</th>
-          ${includiExtra ? '<th>FUT</th><th>STU</th>' : ''}
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  let totaleGenerale = 0;
-  
-  sezioni.forEach(sezione => {
-    const u = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_u"]`).value) || 0;
-    const d = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_d"]`).value) || 0;
-    const gu = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_gu"]`).value) || 0;
-    const gd = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_gd"]`).value) || 0;
-    const totale = u + d + gu + gd;
-    totaleGenerale += totale;
-    
-    let extraCells = '';
-    if (includiExtra) {
-      if (sezione.key !== 'o') { // Ospiti non hanno FUT e STU
-        const fut = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_fut"]`).value) || 0;
-        const stu = parseInt(document.querySelector(`[name="${tipo}_${sezione.key}_stu"]`).value) || 0;
-        extraCells = `<td class="text-center">${fut}</td><td class="text-center">${stu}</td>`;
-      } else {
-        extraCells = '<td colspan="2" class="text-muted text-center">–</td>';
-      }
+    if (!anno || !mese) {
+        alert('Seleziona anno e mese');
+        return;
     }
     
-    html += `
-      <tr>
-        <td><strong>${sezione.label}</strong></td>
-        <td class="text-center">${u}</td>
-        <td class="text-center">${d}</td>
-        <td class="text-center">${gu}</td>
-        <td class="text-center">${gd}</td>
-        <td class="text-center"><strong>${totale}</strong></td>
-        ${extraCells}
-      </tr>
+    const chiave = `${anno}${mese}`;
+    const gruppi = window.gruppiData[chiave];
+    
+    if (!gruppi) {
+        alert('Nessun gruppo trovato per il periodo selezionato');
+        return;
+    }
+    
+    // Mostra il container dei gruppi
+    document.getElementById('gruppiContainer').style.display = 'block';
+    
+    // Genera il form per i gruppi
+    generaFormGruppi(gruppi, anno, mese);
+}
+
+// Genera il form per l'inserimento dei dati dei gruppi
+function generaFormGruppi(gruppi, anno, mese) {
+    const container = document.getElementById('gruppiForm');
+    container.innerHTML = '';
+    
+    gruppi.forEach((gruppo, index) => {
+        const gruppoDiv = document.createElement('div');
+        gruppoDiv.className = 'gruppo-card mb-4';
+        gruppoDiv.innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        ${gruppo.nome} - ${gruppo.capitolo}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Zadankai Svolti</label>
+                            <input type="number" class="form-control" id="zadankai_${index}" min="0" value="0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Praticanti Uomini</label>
+                            <input type="number" class="form-control" id="uomini_${index}" min="0" value="0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Praticanti Donne</label>
+                            <input type="number" class="form-control" id="donne_${index}" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giovani (Under 35)</label>
+                            <input type="number" class="form-control" id="giovani_${index}" min="0" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ospiti</label>
+                            <input type="number" class="form-control" id="ospiti_${index}" min="0" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(gruppoDiv);
+    });
+}
+
+// Rivedi i dati inseriti
+function rivedidati() {
+    const anno = document.getElementById('anno').value;
+    const mese = document.getElementById('mese').value;
+    
+    if (!anno || !mese) {
+        alert('Seleziona anno e mese prima di rivedere i dati');
+        return;
+    }
+    
+    const chiave = `${anno}${mese}`;
+    const gruppi = window.gruppiData[chiave];
+    
+    if (!gruppi) {
+        alert('Nessun gruppo caricato');
+        return;
+    }
+    
+    // Popola il modal di revisione
+    popolaModalRevisione(gruppi, anno, mese);
+    
+    // Mostra il modal
+    const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+    modal.show();
+}
+
+// Popola il modal di revisione con i dati inseriti
+function popolaModalRevisione(gruppi, anno, mese) {
+    // Sezione Periodo e Gruppo
+    const reviewPeriodoGruppo = document.getElementById('reviewPeriodoGruppo');
+    reviewPeriodoGruppo.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Anno:</strong> ${anno}
+            </div>
+            <div class="col-md-6">
+                <strong>Mese:</strong> ${getNomeMese(mese)}
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12">
+                <strong>Numero Gruppi:</strong> ${gruppi.length}
+            </div>
+        </div>
     `;
-  });
-  
-  html += `
-      </tbody>
-      <tfoot class="table-secondary">
-        <tr>
-          <th>TOTALE GENERALE</th>
-          <th colspan="4"></th>
-          <th class="text-center">${totaleGenerale}</th>
-          ${includiExtra ? '<th colspan="2"></th>' : ''}
+    
+    // Sezione Zadankai
+    const reviewZadankai = document.getElementById('reviewZadankai');
+    let zadankaiHtml = '<div class="row">';
+    let totalZadankai = 0;
+    
+    gruppi.forEach((gruppo, index) => {
+        const zadankai = parseInt(document.getElementById(`zadankai_${index}`).value) || 0;
+        totalZadankai += zadankai;
+        zadankaiHtml += `
+            <div class="col-md-6 mb-2">
+                <strong>${gruppo.nome}:</strong> ${zadankai} zadankai
+            </div>
+        `;
+    });
+    
+    zadankaiHtml += `</div><div class="alert alert-info mt-3"><strong>Totale Zadankai:</strong> ${totalZadankai}</div>`;
+    reviewZadankai.innerHTML = zadankaiHtml;
+    
+    // Sezione Praticanti
+    const reviewPraticanti = document.getElementById('reviewPraticanti');
+    let pratikantiHtml = '<div class="table-responsive"><table class="table table-sm table-striped">';
+    pratikantiHtml += '<thead><tr><th>Gruppo</th><th>Uomini</th><th>Donne</th><th>Giovani</th><th>Ospiti</th><th>Totale</th></tr></thead><tbody>';
+    
+    let totalUomini = 0, totalDonne = 0, totalGiovani = 0, totalOspiti = 0, totalPraticanti = 0;
+    
+    gruppi.forEach((gruppo, index) => {
+        const uomini = parseInt(document.getElementById(`uomini_${index}`).value) || 0;
+        const donne = parseInt(document.getElementById(`donne_${index}`).value) || 0;
+        const giovani = parseInt(document.getElementById(`giovani_${index}`).value) || 0;
+        const ospiti = parseInt(document.getElementById(`ospiti_${index}`).value) || 0;
+        const totaleGruppo = uomini + donne + giovani + ospiti;
+        
+        totalUomini += uomini;
+        totalDonne += donne;
+        totalGiovani += giovani;
+        totalOspiti += ospiti;
+        totalPraticanti += totaleGruppo;
+        
+        pratikantiHtml += `
+            <tr>
+                <td><strong>${gruppo.nome}</strong></td>
+                <td>${uomini}</td>
+                <td>${donne}</td>
+                <td>${giovani}</td>
+                <td>${ospiti}</td>
+                <td><strong>${totaleGruppo}</strong></td>
+            </tr>
+        `;
+    });
+    
+    pratikantiHtml += `
+        <tr class="table-primary">
+            <td><strong>TOTALI</strong></td>
+            <td><strong>${totalUomini}</strong></td>
+            <td><strong>${totalDonne}</strong></td>
+            <td><strong>${totalGiovani}</strong></td>
+            <td><strong>${totalOspiti}</strong></td>
+            <td><strong>${totalPraticanti}</strong></td>
         </tr>
-      </tfoot>
-    </table>
-  `;
-  
-  return html;
+    `;
+    pratikantiHtml += '</tbody></table></div>';
+    
+    reviewPraticanti.innerHTML = pratikantiHtml;
 }
 
-// Gestione submit form
-document.getElementById("dati-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  
-  if (!validaForm()) {
-    return;
-  }
-  
-  // Genera riepilogo e mostra modal
-  generaRiepilogo();
-  modalConferma.show();
-});
+// Ottieni il nome del mese
+function getNomeMese(numeroMese) {
+    const mesi = {
+        '01': 'Gennaio', '02': 'Febbraio', '03': 'Marzo', '04': 'Aprile',
+        '05': 'Maggio', '06': 'Giugno', '07': 'Luglio', '08': 'Agosto',
+        '09': 'Settembre', '10': 'Ottobre', '11': 'Novembre', '12': 'Dicembre'
+    };
+    return mesi[numeroMese] || numeroMese;
+}
 
-// Conferma invio dal modal
-document.getElementById("conferma-invio").addEventListener("click", async () => {
-  modalConferma.hide();
-  
-  try {
-    await salvasuFirebase();
-    showSuccessMessage();
-  } catch (error) {
-    console.error("Errore nel salvataggio:", error);
-    showToast("Errore nel salvataggio: " + error.message, "error");
-  }
-});
+// Conferma e salva i dati
+function confermaeSalva() {
+    // Chiudi il modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+    modal.hide();
+    
+    // Salva su Firebase
+    salvasuFirebase();
+}
 
-// Salvataggio su Firebase
-async function salvasuFirebase() {
-  const formData = new FormData(document.getElementById("dati-form"));
-  const data = Object.fromEntries(formData.entries());
-  const key = `${data.anno}-${data.mese}-${data.gruppo}`;
-
-  const payload = {
-    gruppo: data.gruppo,
-    zadankai: {
-      membri: {
-        U: parseInt(data.zadankai_m_u) || 0,
-        D: parseInt(data.zadankai_m_d) || 0,
-        GU: parseInt(data.zadankai_m_gu) || 0,
-        GD: parseInt(data.zadankai_m_gd) || 0,
-        FUT: parseInt(data.zadankai_m_fut) || 0,
-        STU: parseInt(data.zadankai_m_stu) || 0
-      },
-      simpatizzanti: {
-        U: parseInt(data.zadankai_s_u) || 0,
-        D: parseInt(data.zadankai_s_d) || 0,
-        GU: parseInt(data.zadankai_s_gu) || 0,
-        GD: parseInt(data.zadankai_s_gd) || 0,
-        FUT: parseInt(data.zadankai_s_fut) || 0,
-        STU: parseInt(data.zadankai_s_stu) || 0
-      },
-      ospiti: {
-        U: parseInt(data.zadankai_o_u) || 0,
-        D: parseInt(data.zadankai_o_d) || 0,
-        GU: parseInt(data.zadankai_o_gu) || 0,
-        GD: parseInt(data.zadankai_o_gd) || 0
-      }
-    },
-    praticanti: {
-      membri: {
-        U: parseInt(data.praticanti_m_u) || 0,
-        D: parseInt(data.praticanti_m_d) || 0,
-        GU: parseInt(data.praticanti_m_gu) || 0,
-        GD: parseInt(data.praticanti_m_gd) || 0
-      },
-      simpatizzanti: {
-        U: parseInt(data.praticanti_s_u) || 0,
-        D: parseInt(data.praticanti_s_d) || 0,
-        GU: parseInt(data.praticanti_s_gu) || 0,
-        GD: parseInt(data.praticanti_s_gd) || 0
-      }
+// Salva i dati su Firebase
+function salvasuFirebase() {
+    // Verifica autenticazione prima di salvare
+    if (!auth.currentUser) {
+        alert('Devi essere autenticato per salvare i dati');
+        window.location.href = 'index.html';
+        return;
     }
-  };
-
-  await set(ref(db, `zadankai/${key}`), payload);
-}
-
-// Mostra messaggio di successo
-function showSuccessMessage() {
-  const successDiv = document.getElementById("success-message");
-  successDiv.style.display = "block";
-  successDiv.scrollIntoView({ behavior: "smooth" });
-  
-  // Nascondi dopo 5 secondi
-  setTimeout(() => {
-    successDiv.style.display = "none";
-  }, 5000);
-  
-  // Reset form
-  document.getElementById("dati-form").reset();
-  
-  // Reset totali
-  document.querySelectorAll('input[readonly]').forEach(input => {
-    input.value = '';
-  });
-}
-
-// Funzione toast
-function showToast(message, type = "info") {
-  // Crea elemento toast
-  const toast = document.createElement("div");
-  toast.className = `alert alert-${type === "error" ? "danger" : type === "warning" ? "warning" : type === "success" ? "success" : "info"} alert-dismissible fade show position-fixed`;
-  toast.style.cssText = "top: 20px; right: 20px; z-index: 9999; min-width: 300px;";
-  toast.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  `;
-  
-  document.body.appendChild(toast);
-  
-  // Rimuovi automaticamente dopo 4 secondi
-  setTimeout(() => {
-    if (toast.parentNode) {
-      toast.parentNode.removeChild(toast);
+    
+    const anno = document.getElementById('anno').value;
+    const mese = document.getElementById('mese').value;
+    
+    if (!anno || !mese) {
+        alert('Seleziona anno e mese prima di salvare');
+        return;
     }
-  }, 4000);
+    
+    const chiave = `${anno}${mese}`;
+    const gruppi = window.gruppiData[chiave];
+    
+    if (!gruppi) {
+        alert('Nessun gruppo caricato');
+        return;
+    }
+    
+    // Raccogli tutti i dati
+    const datiDaSalvare = {
+        anno: anno,
+        mese: mese,
+        dataInserimento: new Date().toISOString(),
+        utente: auth.currentUser.email,
+        gruppi: []
+    };
+    
+    gruppi.forEach((gruppo, index) => {
+        const zadankai = parseInt(document.getElementById(`zadankai_${index}`).value) || 0;
+        const uomini = parseInt(document.getElementById(`uomini_${index}`).value) || 0;
+        const donne = parseInt(document.getElementById(`donne_${index}`).value) || 0;
+        const giovani = parseInt(document.getElementById(`giovani_${index}`).value) || 0;
+        const ospiti = parseInt(document.getElementById(`ospiti_${index}`).value) || 0;
+        
+        datiDaSalvare.gruppi.push({
+            nome: gruppo.nome,
+            capitolo: gruppo.capitolo,
+            zadankai: zadankai,
+            uomini: uomini,
+            donne: donne,
+            giovani: giovani,
+            ospiti: ospiti,
+            totale: uomini + donne + giovani + ospiti
+        });
+    });
+    
+    // Salva su Firebase
+    const dbRef = ref(database, `zadankai/${chiave}`);
+    
+    set(dbRef, datiDaSalvare)
+        .then(() => {
+            alert('Dati salvati con successo su Firebase!');
+            console.log('Dati salvati:', datiDaSalvare);
+            
+            // Reset del form
+            document.getElementById('gruppiContainer').style.display = 'none';
+            document.getElementById('anno').value = '';
+            document.getElementById('mese').value = '';
+        })
+        .catch((error) => {
+            console.error('Errore nel salvataggio:', error);
+            alert('Errore nel salvataggio dei dati: ' + error.message);
+        });
 }
