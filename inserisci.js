@@ -149,6 +149,22 @@ function salvasuFirebase(e) {
     const data = Object.fromEntries(formData.entries());
     const key = `${data.anno}-${data.mese}-${data.gruppo}`;
 
+    // Popup di conferma prima del salvataggio
+    const conferma = confirm(
+        `Confermi il salvataggio dei dati per:\n\n` +
+        `📅 Anno: ${data.anno}\n` +
+        `📆 Mese: ${data.mese}\n` +
+        `👥 Gruppo: ${data.gruppo}\n\n` +
+        `⚠️ I dati esistenti verranno sovrascritti se presenti.\n\n` +
+        `Vuoi procedere con il salvataggio?`
+    );
+    
+    // Se l'utente annulla, interrompi il salvataggio
+    if (!conferma) {
+        console.log('Salvataggio annullato dall\'utente');
+        return;
+    }
+
     const payload = {
         gruppo: data.gruppo,
         zadankai: {
@@ -173,7 +189,8 @@ function salvasuFirebase(e) {
             D: parseInt(data.zadankai_o_d) || 0,
             GU: parseInt(data.zadankai_o_gu) || 0,
             GD: parseInt(data.zadankai_o_gd) || 0
-          }
+          },
+          totaleGenerale: parseInt(data.zadankai_totale_generale) || 0
         },
         praticanti: {
           membri: {
@@ -187,27 +204,40 @@ function salvasuFirebase(e) {
             D: parseInt(data.praticanti_s_d) || 0,
             GU: parseInt(data.praticanti_s_gu) || 0,
             GD: parseInt(data.praticanti_s_gd) || 0
-          }
-        }
+          },
+          totaleGenerale: parseInt(data.praticanti_totale_generale) || 0
+        },
+        timestamp: new Date().toISOString(),
+        ultimaModifica: new Date().toLocaleString('it-IT')
     };
 
-    // Salva su Firebase
-    const dbRef = ref(database, `zadankai/${key}`);
-    
-    set(dbRef, payload)
+    // Mostra un indicatore di caricamento
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvataggio in corso...';
+    submitBtn.disabled = true;
+
+    set(ref(database, `zadankai/${key}`), payload)
         .then(() => {
-            console.log('Dati salvati:', payload);
-            document.getElementById('messaggio-successo').classList.remove('d-none');
+            console.log('Dati salvati con successo');
+            alert('✅ Dati salvati con successo nel database!');
             
-            // Reset del form dopo 3 secondi
-            //setTimeout(() => {
-            //    document.getElementById('dati-form').reset();
-            //    document.getElementById('messaggio-successo').classList.add('d-none');
-            //}, 3000);
+            // Reset del form
+            e.target.reset();
+            
+            // Ripopola i dropdown
+            document.getElementById('anno').value = data.anno;
+            document.getElementById('mese').value = data.mese;
+            document.getElementById('gruppo').value = data.gruppo;
         })
         .catch((error) => {
             console.error('Errore nel salvataggio:', error);
-            alert('Errore nel salvataggio dei dati: ' + error.message);
+            alert('❌ Errore nel salvataggio dei dati. Riprova.');
+        })
+        .finally(() => {
+            // Ripristina il pulsante
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         });
 }
 
