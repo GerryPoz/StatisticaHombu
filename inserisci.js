@@ -80,7 +80,8 @@ function inizializzaApp() {
     // Event listeners
     document.getElementById('dati-form').addEventListener('submit', salvasuFirebase);
     document.getElementById('logoutBtn').addEventListener('click', logout);
-    // Event listeners per caricare dati esistenti
+    
+    // AGGIUNGI QUESTI EVENT LISTENERS PER IL CARICAMENTO DATI ESISTENTI
     document.getElementById('anno').addEventListener('change', caricaDatiEsistenti);
     document.getElementById('mese').addEventListener('change', caricaDatiEsistenti);
     document.getElementById('gruppo').addEventListener('change', caricaDatiEsistenti);
