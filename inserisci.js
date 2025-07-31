@@ -234,32 +234,31 @@ function caricaDatiEsistenti() {
                 if (data.zadankai) {
                     // Membri
                     if (data.zadankai.membri) {
-                        document.querySelector('input[name="zadankai_m_u"]').value = data.zadankai.membri.u || 0;
-                        document.querySelector('input[name="zadankai_m_d"]').value = data.zadankai.membri.d || 0;
-                        document.querySelector('input[name="zadankai_m_gu"]').value = data.zadankai.membri.gu || 0;
-                        document.querySelector('input[name="zadankai_m_gd"]').value = data.zadankai.membri.gd || 0;
-                        document.querySelector('input[name="zadankai_m_fut"]').value = data.zadankai.membri.fut || 0;
-                        document.querySelector('input[name="zadankai_m_stu"]').value = data.zadankai.membri.stu || 0;
+                        document.querySelector('input[name="zadankai_m_u"]').value = data.zadankai.membri.U || 0;
+                        document.querySelector('input[name="zadankai_m_d"]').value = data.zadankai.membri.D || 0;
+                        document.querySelector('input[name="zadankai_m_gu"]').value = data.zadankai.membri.GU || 0;
+                        document.querySelector('input[name="zadankai_m_gd"]').value = data.zadankai.membri.GD || 0;
+                        document.querySelector('input[name="zadankai_m_fut"]').value = data.zadankai.membri.FUT || 0;
+                        document.querySelector('input[name="zadankai_m_stu"]').value = data.zadankai.membri.STU || 0;
                     }
                     
                     // Simpatizzanti
                     if (data.zadankai.simpatizzanti) {
-                        document.querySelector('input[name="zadankai_s_u"]').value = data.zadankai.simpatizzanti.u || 0;
-                        document.querySelector('input[name="zadankai_s_d"]').value = data.zadankai.simpatizzanti.d || 0;
-                        document.querySelector('input[name="zadankai_s_gu"]').value = data.zadankai.simpatizzanti.gu || 0;
-                        document.querySelector('input[name="zadankai_s_gd"]').value = data.zadankai.simpatizzanti.gd || 0;
-                        document.querySelector('input[name="zadankai_s_fut"]').value = data.zadankai.simpatizzanti.fut || 0;
-                        document.querySelector('input[name="zadankai_s_stu"]').value = data.zadankai.simpatizzanti.stu || 0;
+                        document.querySelector('input[name="zadankai_s_u"]').value = data.zadankai.simpatizzanti.U || 0;
+                        document.querySelector('input[name="zadankai_s_d"]').value = data.zadankai.simpatizzanti.D || 0;
+                        document.querySelector('input[name="zadankai_s_gu"]').value = data.zadankai.simpatizzanti.GU || 0;
+                        document.querySelector('input[name="zadankai_s_gd"]').value = data.zadankai.simpatizzanti.GD || 0;
+                        document.querySelector('input[name="zadankai_s_fut"]').value = data.zadankai.simpatizzanti.FUT || 0;
+                        document.querySelector('input[name="zadankai_s_stu"]').value = data.zadankai.simpatizzanti.STU || 0;
                     }
                     
                     // Ospiti
                     if (data.zadankai.ospiti) {
-                        document.querySelector('input[name="zadankai_o_u"]').value = data.zadankai.ospiti.u || 0;
-                        document.querySelector('input[name="zadankai_o_d"]').value = data.zadankai.ospiti.d || 0;
-                        document.querySelector('input[name="zadankai_o_gu"]').value = data.zadankai.ospiti.gu || 0;
-                        document.querySelector('input[name="zadankai_o_gd"]').value = data.zadankai.ospiti.gd || 0;
-                        document.querySelector('input[name="zadankai_o_fut"]').value = data.zadankai.ospiti.fut || 0;
-                        document.querySelector('input[name="zadankai_o_stu"]').value = data.zadankai.ospiti.stu || 0;
+                        document.querySelector('input[name="zadankai_o_u"]').value = data.zadankai.ospiti.U || 0;
+                        document.querySelector('input[name="zadankai_o_d"]').value = data.zadankai.ospiti.D || 0;
+                        document.querySelector('input[name="zadankai_o_gu"]').value = data.zadankai.ospiti.GU || 0;
+                        document.querySelector('input[name="zadankai_o_gd"]').value = data.zadankai.ospiti.GD || 0;
+                        // Nota: ospiti non ha FUT e STU nel salvataggio attuale
                     }
                 }
                 
@@ -267,18 +266,18 @@ function caricaDatiEsistenti() {
                 if (data.praticanti) {
                     // Membri
                     if (data.praticanti.membri) {
-                        document.querySelector('input[name="praticanti_m_u"]').value = data.praticanti.membri.u || 0;
-                        document.querySelector('input[name="praticanti_m_d"]').value = data.praticanti.membri.d || 0;
-                        document.querySelector('input[name="praticanti_m_gu"]').value = data.praticanti.membri.gu || 0;
-                        document.querySelector('input[name="praticanti_m_gd"]').value = data.praticanti.membri.gd || 0;
+                        document.querySelector('input[name="praticanti_m_u"]').value = data.praticanti.membri.U || 0;
+                        document.querySelector('input[name="praticanti_m_d"]').value = data.praticanti.membri.D || 0;
+                        document.querySelector('input[name="praticanti_m_gu"]').value = data.praticanti.membri.GU || 0;
+                        document.querySelector('input[name="praticanti_m_gd"]').value = data.praticanti.membri.GD || 0;
                     }
                     
                     // Simpatizzanti
                     if (data.praticanti.simpatizzanti) {
-                        document.querySelector('input[name="praticanti_s_u"]').value = data.praticanti.simpatizzanti.u || 0;
-                        document.querySelector('input[name="praticanti_s_d"]').value = data.praticanti.simpatizzanti.d || 0;
-                        document.querySelector('input[name="praticanti_s_gu"]').value = data.praticanti.simpatizzanti.gu || 0;
-                        document.querySelector('input[name="praticanti_s_gd"]').value = data.praticanti.simpatizzanti.gd || 0;
+                        document.querySelector('input[name="praticanti_s_u"]').value = data.praticanti.simpatizzanti.U || 0;
+                        document.querySelector('input[name="praticanti_s_d"]').value = data.praticanti.simpatizzanti.D || 0;
+                        document.querySelector('input[name="praticanti_s_gu"]').value = data.praticanti.simpatizzanti.GU || 0;
+                        document.querySelector('input[name="praticanti_s_gd"]').value = data.praticanti.simpatizzanti.GD || 0;
                     }
                 }
                 
