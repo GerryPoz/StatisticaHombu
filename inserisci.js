@@ -149,12 +149,19 @@ function salvasuFirebase(e) {
     const data = Object.fromEntries(formData.entries());
     const key = `${data.anno}-${data.mese}-${data.gruppo}`;
 
-    // Popup di conferma prima del salvataggio
+    // Calcola i totali per il popup
+    const totaleZadankai = parseInt(data.zadankai_totale_generale) || 0;
+    const totalePraticanti = parseInt(data.praticanti_totale_generale) || 0;
+
+    // Popup di conferma con totali
     const conferma = confirm(
         `Confermi il salvataggio dei dati per:\n\n` +
         `📅 Anno: ${data.anno}\n` +
         `📆 Mese: ${data.mese}\n` +
         `👥 Gruppo: ${data.gruppo}\n\n` +
+        `📊 RIEPILOGO TOTALI:\n` +
+        `🗣️ Totale Zadankai: ${totaleZadankai}\n` +
+        `🙏 Totale Praticanti: ${totalePraticanti}\n\n` +
         `⚠️ I dati esistenti verranno sovrascritti se presenti.\n\n` +
         `Vuoi procedere con il salvataggio?`
     );
@@ -190,7 +197,7 @@ function salvasuFirebase(e) {
             GU: parseInt(data.zadankai_o_gu) || 0,
             GD: parseInt(data.zadankai_o_gd) || 0
           },
-          totaleGenerale: parseInt(data.zadankai_totale_generale) || 0
+          totaleGenerale: totaleZadankai
         },
         praticanti: {
           membri: {
@@ -205,7 +212,7 @@ function salvasuFirebase(e) {
             GU: parseInt(data.praticanti_s_gu) || 0,
             GD: parseInt(data.praticanti_s_gd) || 0
           },
-          totaleGenerale: parseInt(data.praticanti_totale_generale) || 0
+          totaleGenerale: totalePraticanti
         },
         timestamp: new Date().toISOString(),
         ultimaModifica: new Date().toLocaleString('it-IT')
@@ -220,7 +227,7 @@ function salvasuFirebase(e) {
     set(ref(database, `zadankai/${key}`), payload)
         .then(() => {
             console.log('Dati salvati con successo');
-            alert('✅ Dati salvati con successo nel database!');
+            alert(`✅ Dati salvati con successo!\n\n📊 Zadankai: ${totaleZadankai}\n🙏 Praticanti: ${totalePraticanti}`);
             
             // Reset del form
             e.target.reset();
