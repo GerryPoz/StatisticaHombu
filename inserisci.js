@@ -195,10 +195,10 @@ function salvasuFirebase(e) {
             document.getElementById('messaggio-successo').classList.remove('d-none');
             
             // Reset del form dopo 3 secondi
-            setTimeout(() => {
-                document.getElementById('dati-form').reset();
-                document.getElementById('messaggio-successo').classList.add('d-none');
-            }, 3000);
+            //setTimeout(() => {
+            //    document.getElementById('dati-form').reset();
+            //    document.getElementById('messaggio-successo').classList.add('d-none');
+            //}, 3000);
         })
         .catch((error) => {
             console.error('Errore nel salvataggio:', error);
