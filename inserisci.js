@@ -1,295 +1,218 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-import { firebaseConfig } from "./firebase-config.js";
+// Importa i moduli Firebase necessari
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { firebaseConfig } from './firebase-config.js';
 
+// Inizializza Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const database = getDatabase(app);
 const auth = getAuth(app);
 
-// Verifica autenticazione
-onAuthStateChanged(auth, (user) => {
-  const loadingScreen = document.getElementById('loading-screen');
-  
-  if (user) {
-    console.log('Utente autenticato:', user.email);
-    if (loadingScreen) {
-      loadingScreen.style.display = 'none';
-    }
-    inizializzaApp();
-  } else {
-    console.log('Utente non autenticato, reindirizzamento...');
-    window.location.href = 'index.html';
-  }
+// Verifica autenticazione all'avvio
+document.addEventListener("DOMContentLoaded", () => {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
+    
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log('Utente autenticato:', user.email);
+            loadingScreen.classList.add('d-none');
+            mainContent.classList.remove('d-none');
+            inizializzaApp();
+        } else {
+            console.log('Utente non autenticato, reindirizzamento...');
+            window.location.href = 'index.html';
+        }
+    });
 });
 
-// Logout
-function logout() {
-  auth.signOut().then(() => {
-    window.location.href = 'index.html';
-  }).catch((error) => {
-    console.error('Errore durante il logout:', error);
-  });
-}
-
-// Rendi la funzione logout globale
-window.logout = logout;
-
+// Funzione per inizializzare l'applicazione
 function inizializzaApp() {
-  // Aspetta che il DOM sia completamente caricato
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupApp);
-  } else {
-    setupApp();
-  }
+    // Popola Anno
+    const anno = new Date().getFullYear();
+    document.getElementById("anno").innerHTML = `
+        <option value="${anno}" selected>${anno}</option>
+        <option value="${anno + 1}">${anno + 1}</option>
+    `;
+
+    // Popola Mese
+    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+    document.getElementById("mese").innerHTML = '<option value="">–</option>' + mesi.map(m => `<option>${m}</option>`).join("");
+
+    // Popola Gruppo da gruppi.json
+    fetch("gruppi.json")
+        .then(res => res.json())
+        .then(data => {
+            const gruppi = [];
+            for (const capitolo of Object.values(data["HOMBU 9"])) {
+                for (const settore of Object.values(capitolo)) {
+                    gruppi.push(...settore);
+                }
+            }
+            document.getElementById("gruppo").innerHTML = '<option value="">–</option>' + gruppi.map(g => `<option>${g}</option>`).join("");
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento dei gruppi:', error);
+            alert('Errore nel caricamento dei dati dei gruppi');
+        });
+    
+    // Blocca caratteri non numerici, incolla e rotella del mouse
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener("keypress", e => {
+            if (!/[0-9]/.test(e.key)) e.preventDefault();
+        });
+        input.addEventListener("paste", e => {
+            const pasted = (e.clipboardData || window.clipboardData).getData("text");
+            if (!/^\d+$/.test(pasted)) e.preventDefault();
+        });
+        input.addEventListener("wheel", e => e.target.blur());
+    });
+
+    // Attiva i calcoli in tempo reale
+    document.querySelectorAll('#zadankai-table input[type="number"]').forEach(input => {
+        input.addEventListener("input", calcolaTotaliZadankai);
+    });
+    document.querySelectorAll('#praticanti-table input[type="number"]').forEach(input => {
+        input.addEventListener("input", calcolaTotaliPraticanti);
+    });
+
+    // Event listeners
+    document.getElementById('dati-form').addEventListener('submit', salvasuFirebase);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
 }
 
-function setupApp() {
-  // Popola gli anni (dal 2020 al 2030)
-  const annoSelect = document.getElementById("anno");
-  if (annoSelect) {
-    for (let anno = 2020; anno <= 2030; anno++) {
-      const option = document.createElement("option");
-      option.value = anno;
-      option.textContent = anno;
-      annoSelect.appendChild(option);
-    }
-  }
-
-  // Popola i mesi
-  const mesi = [
-    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-  ];
-  const meseSelect = document.getElementById("mese");
-  if (meseSelect) {
-    mesi.forEach((mese, index) => {
-      const option = document.createElement("option");
-      option.value = mese;
-      option.textContent = mese;
-      meseSelect.appendChild(option);
+// Funzione per il logout
+function logout() {
+    signOut(auth).then(() => {
+        console.log('Logout effettuato');
+        window.location.href = 'index.html';
+    }).catch((error) => {
+        console.error('Errore durante il logout:', error);
+        alert('Errore durante il logout');
     });
-  }
+}
 
-  // Carica i gruppi da gruppi.json
-  fetch("gruppi.json")
-    .then(response => response.json())
-    .then(data => {
-      const gruppoSelect = document.getElementById("gruppo");
-      if (gruppoSelect) {
-        const hombuData = data["HOMBU 9"];
-        
-        if (hombuData) {
-          Object.keys(hombuData).forEach(capitolo => {
-            const settori = hombuData[capitolo];
-            Object.keys(settori).forEach(settore => {
-              const gruppi = settori[settore];
-              gruppi.forEach(gruppo => {
-                const option = document.createElement("option");
-                option.value = gruppo.nome;
-                option.textContent = gruppo.nome;
-                gruppoSelect.appendChild(option);
-              });
-            });
-          });
-        }
-      }
-    })
-    .catch(error => console.error("Errore nel caricamento dei gruppi:", error));
+// Calcolo totali Zadankai
+function calcolaTotaliZadankai() {
+    const sezioni = ["m", "s", "o"];
+    let totaleGenerale = 0;
 
-  // Funzioni per calcolare i totali
-  function calcolaTotaliZadankai() {
-    const campi = [
-      "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd", "zadankai_m_fut", "zadankai_m_stu",
-      "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd", "zadankai_s_fut", "zadankai_s_stu",
-      "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd"
-    ];
-    
-    let totale = 0;
-    campi.forEach(campo => {
-      const valore = parseInt(document.getElementById(campo)?.value || 0);
-      totale += valore;
+    sezioni.forEach(sezione => {
+        const u = +document.querySelector(`[name="zadankai_${sezione}_u"]`).value || 0;
+        const d = +document.querySelector(`[name="zadankai_${sezione}_d"]`).value || 0;
+        const gu = +document.querySelector(`[name="zadankai_${sezione}_gu"]`).value || 0;
+        const gd = +document.querySelector(`[name="zadankai_${sezione}_gd"]`).value || 0;
+        const somma = u + d + gu + gd;
+        document.querySelector(`[name="zadankai_${sezione}_tot"]`).value = somma;
+        totaleGenerale += somma;
     });
-    
-    const totaleElement = document.getElementById("zadankai_totale");
-    if (totaleElement) {
-      totaleElement.value = totale;
-    }
-  }
 
-  function calcolaTotaliPraticanti() {
-    const campi = [
-      "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
-      "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
-    ];
-    
-    let totale = 0;
-    campi.forEach(campo => {
-      const valore = parseInt(document.getElementById(campo)?.value || 0);
-      totale += valore;
+    document.querySelector(`[name="zadankai_totale_generale"]`).value = totaleGenerale;
+}
+
+// Calcolo totali Praticanti
+function calcolaTotaliPraticanti() {
+    const sezioni = ["m", "s"];
+    let totaleGenerale = 0;
+
+    sezioni.forEach(sezione => {
+        const u = +document.querySelector(`[name="praticanti_${sezione}_u"]`).value || 0;
+        const d = +document.querySelector(`[name="praticanti_${sezione}_d"]`).value || 0;
+        const gu = +document.querySelector(`[name="praticanti_${sezione}_gu"]`).value || 0;
+        const gd = +document.querySelector(`[name="praticanti_${sezione}_gd"]`).value || 0;
+        const somma = u + d + gu + gd;
+        document.querySelector(`[name="praticanti_${sezione}_tot"]`).value = somma;
+        totaleGenerale += somma;
     });
+
+    document.querySelector(`[name="praticanti_totale_generale"]`).value = totaleGenerale;
+}
+
+// Salvataggio su Firebase
+function salvasuFirebase(e) {
+    e.preventDefault();
     
-    const totaleElement = document.getElementById("praticanti_totale");
-    if (totaleElement) {
-      totaleElement.value = totale;
-    }
-  }
-
-  // Event listeners per il calcolo automatico dei totali
-  const zadankaiInputs = document.querySelectorAll('#zadankai-table input[type="number"]');
-  zadankaiInputs.forEach(input => {
-    input.addEventListener('input', calcolaTotaliZadankai);
-  });
-  
-  const praticantiInputs = document.querySelectorAll('#praticanti-table input[type="number"]');
-  praticantiInputs.forEach(input => {
-    input.addEventListener('input', calcolaTotaliPraticanti);
-  });
-
-  // Gestione del form con la struttura originale
-  const form = document.getElementById("dati-form");
-  if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      
-      // Verifica autenticazione prima del salvataggio
-      if (!auth.currentUser) {
-        alert("❌ Devi essere autenticato per salvare i dati.");
+    // Verifica autenticazione prima di salvare
+    if (!auth.currentUser) {
+        alert('Devi essere autenticato per salvare i dati');
         window.location.href = 'index.html';
         return;
-      }
+    }
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    const key = `${data.anno}-${data.mese}-${data.gruppo}`;
 
-      const data = new FormData(e.target);
-      const anno = data.get("anno");
-      const mese = data.get("mese");
-      const gruppo = data.get("gruppo");
-      const key = `${anno}${String(new Date(Date.parse(mese + " 1, 2020")).getMonth() + 1).padStart(2, "0")}_${gruppo}`;
-
-      // Struttura dati identica al file originale
-      const payload = {
-        anno,
-        mese,
-        gruppo,
+    const payload = {
+        gruppo: data.gruppo,
+        anno: data.anno,
+        mese: data.mese,
+        dataInserimento: new Date().toISOString(),
+        utente: auth.currentUser.email,
         zadankai: {
-          membri: {
-            U: +data.get("zadankai_m_u") || 0,
-            D: +data.get("zadankai_m_d") || 0,
-            GU: +data.get("zadankai_m_gu") || 0,
-            GD: +data.get("zadankai_m_gd") || 0,
-            FUT: +data.get("zadankai_m_fut") || 0,
-            STU: +data.get("zadankai_m_stu") || 0
-          },
-          simpatizzanti: {
-            U: +data.get("zadankai_s_u") || 0,
-            D: +data.get("zadankai_s_d") || 0,
-            GU: +data.get("zadankai_s_gu") || 0,
-            GD: +data.get("zadankai_s_gd") || 0,
-            FUT: +data.get("zadankai_s_fut") || 0,
-            STU: +data.get("zadankai_s_stu") || 0
-          },
-          ospiti: {
-            U: +data.get("zadankai_o_u") || 0,
-            D: +data.get("zadankai_o_d") || 0,
-            GU: +data.get("zadankai_o_gu") || 0,
-            GD: +data.get("zadankai_o_gd") || 0
-          }
+            membri: {
+                u: +data.zadankai_m_u || 0,
+                d: +data.zadankai_m_d || 0,
+                gu: +data.zadankai_m_gu || 0,
+                gd: +data.zadankai_m_gd || 0,
+                tot: +data.zadankai_m_tot || 0,
+                fut: +data.zadankai_m_fut || 0,
+                stu: +data.zadankai_m_stu || 0
+            },
+            simpatizzanti: {
+                u: +data.zadankai_s_u || 0,
+                d: +data.zadankai_s_d || 0,
+                gu: +data.zadankai_s_gu || 0,
+                gd: +data.zadankai_s_gd || 0,
+                tot: +data.zadankai_s_tot || 0,
+                fut: +data.zadankai_s_fut || 0,
+                stu: +data.zadankai_s_stu || 0
+            },
+            ospiti: {
+                u: +data.zadankai_o_u || 0,
+                d: +data.zadankai_o_d || 0,
+                gu: +data.zadankai_o_gu || 0,
+                gd: +data.zadankai_o_gd || 0,
+                tot: +data.zadankai_o_tot || 0
+            },
+            totaleGenerale: +data.zadankai_totale_generale || 0
         },
         praticanti: {
-          membri: {
-            U: +data.get("praticanti_m_u") || 0,
-            D: +data.get("praticanti_m_d") || 0,
-            GU: +data.get("praticanti_m_gu") || 0,
-            GD: +data.get("praticanti_m_gd") || 0
-          },
-          simpatizzanti: {
-            U: +data.get("praticanti_s_u") || 0,
-            D: +data.get("praticanti_s_d") || 0,
-            GU: +data.get("praticanti_s_gu") || 0,
-            GD: +data.get("praticanti_s_gd") || 0
-          }
+            membri: {
+                u: +data.praticanti_m_u || 0,
+                d: +data.praticanti_m_d || 0,
+                gu: +data.praticanti_m_gu || 0,
+                gd: +data.praticanti_m_gd || 0,
+                tot: +data.praticanti_m_tot || 0
+            },
+            simpatizzanti: {
+                u: +data.praticanti_s_u || 0,
+                d: +data.praticanti_s_d || 0,
+                gu: +data.praticanti_s_gu || 0,
+                gd: +data.praticanti_s_gd || 0,
+                tot: +data.praticanti_s_tot || 0
+            },
+            totaleGenerale: +data.praticanti_totale_generale || 0
         }
-      };
+    };
 
-      set(ref(db, `zadankai/${key}`), payload)
+    // Salva su Firebase
+    const dbRef = ref(database, `zadankai/${key}`);
+    
+    set(dbRef, payload)
         .then(() => {
-          const successElement = document.getElementById("messaggio-successo");
-          if (successElement) {
-            successElement.style.display = "block";
-            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-          }
+            console.log('Dati salvati:', payload);
+            document.getElementById('messaggio-successo').classList.remove('d-none');
+            
+            // Reset del form dopo 3 secondi
+            setTimeout(() => {
+                document.getElementById('dati-form').reset();
+                document.getElementById('messaggio-successo').classList.add('d-none');
+            }, 3000);
         })
-        .catch(err => alert("❌ Errore nel salvataggio: " + err.message));
-    });
-  }
-
-  // Gestione del popup di conferma
-  const salvaBtn = document.getElementById("salvaBtn");
-  if (salvaBtn) {
-    salvaBtn.addEventListener("click", function () {
-      const anno = document.getElementById("anno").value;
-      const mese = document.getElementById("mese").value;
-      const gruppo = document.getElementById("gruppo").value;
-
-      const campi = [
-        "zadankai_m_u", "zadankai_m_d", "zadankai_m_gu", "zadankai_m_gd",
-        "zadankai_m_fut", "zadankai_m_stu",
-        "zadankai_s_u", "zadankai_s_d", "zadankai_s_gu", "zadankai_s_gd",
-        "zadankai_s_fut", "zadankai_s_stu",
-        "zadankai_o_u", "zadankai_o_d", "zadankai_o_gu", "zadankai_o_gd",
-        "praticanti_m_u", "praticanti_m_d", "praticanti_m_gu", "praticanti_m_gd",
-        "praticanti_s_u", "praticanti_s_d", "praticanti_s_gu", "praticanti_s_gd"
-      ];
-
-      const tuttiVuoti = campi.every(id => {
-        const element = document.getElementById(id);
-        const val = element ? element.value.trim() : "";
-        return val === "" || val === "0";
-      });
-
-      if (!anno || !mese || !gruppo) {
-        alert("⚠️ Seleziona anno, mese e gruppo.");
-        return;
-      }
-
-      if (tuttiVuoti) {
-        alert("⚠️ Nessun dato inserito: compila almeno una casella!");
-        return;
-      }
-
-      const riepilogoElement = document.getElementById("riepilogoTesto");
-      if (riepilogoElement) {
-        riepilogoElement.innerText = `📅 ${mese} ${anno}\n👥 Gruppo: ${gruppo}`;
-      }
-      
-      const popupElement = document.getElementById("popupConferma");
-      if (popupElement) {
-        popupElement.style.display = "flex";
-      }
-    });
-  }
-
-  const confermaBtn = document.getElementById("confermaBtn");
-  if (confermaBtn) {
-    confermaBtn.addEventListener("click", function () {
-      const popupElement = document.getElementById("popupConferma");
-      if (popupElement) {
-        popupElement.style.display = "none";
-      }
-      
-      const form = document.getElementById("dati-form");
-      if (form) {
-        form.requestSubmit();
-      }
-    });
-  }
-
-  const annullaBtn = document.getElementById("annullaBtn");
-  if (annullaBtn) {
-    annullaBtn.addEventListener("click", function () {
-      const popupElement = document.getElementById("popupConferma");
-      if (popupElement) {
-        popupElement.style.display = "none";
-      }
-    });
-  }
+        .catch((error) => {
+            console.error('Errore nel salvataggio:', error);
+            alert('Errore nel salvataggio dei dati: ' + error.message);
+        });
 }
