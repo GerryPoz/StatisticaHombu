@@ -167,53 +167,73 @@ input[type="number"] {
     font-size: 1rem;
   }
   
-  /* Miglioramenti specifici per la tabella zadankai */
-  #zadankai-table input[type="number"] {
-    width: 50px !important;
-    font-size: 0.75rem !important;
-    padding: 0.25rem !important;
-  }
-  
-  #zadankai-table th,
-  #zadankai-table td {
-    padding: 0.3rem 0.1rem !important;
-    font-size: 0.7rem !important;
-    text-align: center;
-  }
-  
-  #zadankai-table th {
-    font-size: 0.65rem !important;
-  }
-  
-  /* Assicura che tutti gli input siano visibili */
+  /* Miglioramento dello scroll per la tabella zadankai */
   .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Mantieni le dimensioni standard per tutti gli input */
+  input[type="number"].form-control {
+    width: 70px !important;
+    text-align: center;
+    font-weight: 600;
+    min-width: 70px; /* Impedisce il restringimento */
+  }
+  
+  /* Assicura che le celle abbiano una larghezza minima */
+  #zadankai-table th,
+  #zadankai-table td {
+    min-width: 80px;
+    white-space: nowrap;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+  
+  /* Stile per indicare che la tabella è scrollabile */
+  .table-responsive::after {
+    content: "← Scorri per vedere tutte le colonne →";
+    display: block;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #6c757d;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+  }
+  
+  /* Nascondi il messaggio di scroll quando non necessario */
+  .table-responsive:not([scrollWidth]) .table-responsive::after {
+    display: none;
   }
   
   input[type="number"].form-control-sm {
-    width: 50px;
-    font-size: 0.75rem;
+    width: 70px;
+    font-size: 0.8rem;
   }
   
   .table th,
   .table td {
-    padding: 0.4rem 0.2rem;
-    font-size: 0.8rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
   }
 }
 
 @media (max-width: 576px) {
-  /* Per schermi molto piccoli */
-  #zadankai-table input[type="number"] {
-    width: 45px !important;
-    font-size: 0.7rem !important;
+  /* Per schermi molto piccoli, mantieni le stesse dimensioni */
+  .table-responsive {
+    margin: 0 -15px; /* Estendi fino ai bordi dello schermo */
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
   
-  #zadankai-table th,
-  #zadankai-table td {
-    padding: 0.2rem 0.05rem !important;
-    font-size: 0.65rem !important;
+  /* Aggiungi un'ombra per indicare lo scroll */
+  .table-responsive {
+    background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.1) 100%);
   }
   
   .modal-dialog {
@@ -224,6 +244,24 @@ input[type="number"] {
     max-width: none;
   }
 }
+
+/* Stile per lo scroll indicator */
+.scroll-indicator {
+  position: relative;
+}
+
+.scroll-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Effetti hover per le righe della tabella */
 .table tbody tr:hover {
   background-color: rgba(0,123,255,0.05);
