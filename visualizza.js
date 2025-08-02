@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 // 🔹 Configurazione bordi centralizzata
 const BORDER_CONFIG = {
@@ -801,5 +801,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+});
+
+// funzione logout
+function logout() {
+    const auth = getAuth();
+    signOut(auth).then(() => {
+        console.log('Logout effettuato');
+        window.location.href = 'index.html';
+    }).catch((error) => {
+        console.error('Errore durante il logout:', error);
+        alert('Errore durante il logout');
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      console.log("✅ Utente autenticato:", user.email);
+      caricaDati();
+      
+      // Aggiungi event listener per il pulsante logout
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+    } else {
+      console.warn("⛔ Nessun utente loggato, reindirizzo...");
+      window.location.href = "index.html";
+    }
+  });
 });
 
