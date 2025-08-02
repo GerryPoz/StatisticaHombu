@@ -4,8 +4,9 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -13,44 +14,52 @@ body {
 
 /* Personalizzazioni Bootstrap */
 .card {
-  border: none;
-  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
 }
 
 .card-header {
-  border-radius: 15px 15px 0 0 !important;
-  border-bottom: 2px solid rgba(255,255,255,0.1);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: calc(0.375rem - 1px);
+  border-top-right-radius: calc(0.375rem - 1px);
+}
+
+.card-body {
+  flex: 1 1 auto;
+  padding: 1.25rem;
 }
 
 /* Input personalizzati */
 .form-control {
-  border-radius: 8px;
-  border: 2px solid #e9ecef;
-  transition: all 0.3s ease;
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .form-control:focus {
-  border-color: #007bff;
+  border-color: #80bdff;
   box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
-  transform: scale(1.02);
 }
 
 .form-control-sm {
-  font-size: 0.9rem;
-  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
 }
 
 /* Input numerici nelle tabelle */
 input[type="number"].form-control-sm {
   width: 70px;
   text-align: center;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Rimuove le freccette dai campi numerici */
@@ -66,50 +75,44 @@ input[type="number"] {
 
 /* Tabelle */
 .table {
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th, .table td {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  text-align: center;
 }
 
 .table th {
+  background-color: #f8f9fa;
   font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  padding: 1rem 0.5rem;
-}
-
-.table td {
-  padding: 0.75rem 0.5rem;
-  vertical-align: middle;
 }
 
 /* Pulsanti */
 .btn {
-  border-radius: 25px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border: none;
-  padding: 0.75rem 2rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  padding: 0.375rem 0.75rem;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
 }
 
 .btn-lg {
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
 }
 
-/* Animazioni */
+/* Animazioni più sobrie */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -118,38 +121,50 @@ input[type="number"] {
 }
 
 .card {
-  animation: fadeInUp 0.6s ease-out;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 /* Modal personalizzato */
 .modal-content {
-  border-radius: 15px;
-  border: none;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
 }
 
 .modal-header {
-  border-radius: 15px 15px 0 0;
-  border-bottom: 2px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid #dee2e6;
 }
 
 .modal-footer {
-  border-radius: 0 0 15px 15px;
-  border-top: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid #dee2e6;
 }
 
 /* Badge personalizzati */
 .badge {
-  border-radius: 20px;
-  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
   font-weight: 500;
 }
 
 /* Alert personalizzati */
 .alert {
-  border-radius: 10px;
-  border: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
 }
 
 /* Responsive per dispositivi mobili */
@@ -163,8 +178,8 @@ input[type="number"] {
   }
   
   .btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1.125rem;
   }
   
   /* Miglioramento dello scroll per la tabella zadankai */
@@ -172,16 +187,15 @@ input[type="number"] {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 0.375rem;
   }
   
   /* Mantieni le dimensioni standard per tutti gli input */
   input[type="number"].form-control {
     width: 70px !important;
     text-align: center;
-    font-weight: 600;
-    min-width: 70px; /* Impedisce il restringimento */
+    font-weight: 500;
+    min-width: 70px;
   }
   
   /* Assicura che le celle abbiano una larghezza minima */
@@ -190,7 +204,7 @@ input[type="number"] {
     min-width: 80px;
     white-space: nowrap;
     padding: 0.5rem 0.25rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
   }
   
   /* Stile per indicare che la tabella è scrollabile */
@@ -205,35 +219,24 @@ input[type="number"] {
     border-top: 1px solid #dee2e6;
   }
   
-  /* Nascondi il messaggio di scroll quando non necessario */
-  .table-responsive:not([scrollWidth]) .table-responsive::after {
-    display: none;
-  }
-  
   input[type="number"].form-control-sm {
     width: 70px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
   }
   
   .table th,
   .table td {
     padding: 0.5rem 0.25rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
   }
 }
 
 @media (max-width: 576px) {
-  /* Per schermi molto piccoli, mantieni le stesse dimensioni */
   .table-responsive {
-    margin: 0 -15px; /* Estendi fino ai bordi dello schermo */
+    margin: 0 -15px;
     border-radius: 0;
     border-left: none;
     border-right: none;
-  }
-  
-  /* Aggiungi un'ombra per indicare lo scroll */
-  .table-responsive {
-    background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.1) 100%);
   }
   
   .modal-dialog {
@@ -245,52 +248,34 @@ input[type="number"] {
   }
 }
 
-/* Stile per lo scroll indicator */
-.scroll-indicator {
-  position: relative;
-}
-
-.scroll-indicator::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20px;
-  height: 100%;
-  background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
-  pointer-events: none;
-  z-index: 1;
-}
-
 /* Effetti hover per le righe della tabella */
 .table tbody tr:hover {
-  background-color: rgba(0,123,255,0.05);
-  transform: scale(1.01);
-  transition: all 0.2s ease;
+  background-color: rgba(0,0,0,0.025);
+  transition: background-color 0.15s ease;
 }
 
 /* Stili per i totali */
 input[readonly] {
-  background-color: #f8f9fa !important;
-  font-weight: bold;
+  background-color: #e9ecef !important;
+  font-weight: 600;
   color: #495057;
 }
 
-/* Soluzione semplificata - totali con sfondo scuro e testo bianco */
+/* Totali con sfondo più sobrio */
 .bg-primary input[readonly],
 .table-primary input[readonly] {
-  background-color: #212529 !important;
+  background-color: #495057 !important;
   color: #ffffff !important;
-  border: 2px solid #495057 !important;
-  font-weight: bold !important;
+  border: 1px solid #6c757d !important;
+  font-weight: 600 !important;
 }
 
 .bg-success input[readonly],
 .table-success input[readonly] {
-  background-color: #212529 !important;
+  background-color: #495057 !important;
   color: #ffffff !important;
-  border: 2px solid #495057 !important;
-  font-weight: bold !important;
+  border: 1px solid #6c757d !important;
+  font-weight: 600 !important;
 }
 
 /* Loading spinner */
@@ -301,9 +286,9 @@ input[readonly] {
 
 /* Toast personalizzati */
 .toast {
-  border-radius: 10px;
-  border: none;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
 }
 
 /* Scrollbar personalizzata */
@@ -313,23 +298,26 @@ input[readonly] {
 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
+  background: #c1c1c1;
+  border-radius: 4px;
 }
 
-/* Regole pe aggiornamento Login al database */
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 
+/* Regole per aggiornamento Login al database */
 .loading-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(248, 249, 250, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -340,25 +328,58 @@ input[readonly] {
     text-align: center;
     padding: 2rem;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid #dee2e6;
 }
 
 .header-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-color: #f8f9fa;
+    color: #495057;
     padding: 1rem;
-    border-radius: 10px;
+    border-radius: 0.375rem;
     margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
 }
 
 .gruppo-card {
-    transition: transform 0.2s;
+    transition: transform 0.15s ease;
 }
 
 .gruppo-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+
+/* Stili per le categorie come in visualizza.css */
+tr.zadankai td {
+  background-color: #fff3cd !important;
+}
+
+tr.praticanti td {
+  background-color: #d1ecf1 !important;
+}
+
+/* Stili per i gruppi */
+td.nome-gruppo {
+  background-color: #FFFD55 !important;
+  font-weight: bold;
+  border-left: 4px solid #ffc107 !important;
+}
+
+/* Effetto hover per le righe dei gruppi */
+.nome-gruppo:hover {
+  background-color: #ffeaa7 !important;
+  transform: translateX(2px);
+  transition: all 0.3s ease;
+}
+
+/* Miglioramento visivo per le categorie */
+tr.zadankai:hover td {
+  background-color: #fff8e1 !important;
+  transition: background-color 0.2s ease;
+}
+
+tr.praticanti:hover td {
+  background-color: #e3f2fd !important;
+  transition: background-color 0.2s ease;
 }
