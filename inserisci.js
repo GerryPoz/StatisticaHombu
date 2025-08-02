@@ -373,7 +373,7 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
     };
 
     // Invia l'email
-    emailjs.send('TUO_SERVICE_ID', 'TUO_TEMPLATE_ID', templateParams)
+    emailjs.send('service_0ldevwc', 'template_vzuiz3q', templateParams)
         .then((response) => {
             console.log('Email inviata con successo:', response.status, response.text);
         })
