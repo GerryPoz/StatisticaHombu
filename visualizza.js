@@ -787,22 +787,6 @@ function stampa() {
 }
 
 // Inizializza l'applicazione
-//document.addEventListener("DOMContentLoaded", caricaDati);
-document.addEventListener("DOMContentLoaded", () => {
-  const auth = getAuth();
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      console.log("✅ Utente autenticato:", user.email);
-      caricaDati();
-    } else {
-      console.warn("⛔ Nessun utente loggato, reindirizzo...");
-      window.location.href = "index.html";
-    }
-  });
-
-});
-
 // funzione logout
 function logout() {
     const auth = getAuth();
