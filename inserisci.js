@@ -223,10 +223,14 @@ function salvasuFirebase(e) {
     set(ref(database, `zadankai/${key}`), payload)
         .then(() => {
             console.log('Dati salvati con successo');
+            
+            // INVIO EMAIL DOPO IL SALVATAGGIO RIUSCITO
+            inviaEmailNotifica(data, totaleZadankai, totalePraticanti);
+            
             alert(`✅ Dati salvati con successo!\n\n📊 Zadankai: ${totaleZadankai}\n🙏 Praticanti: ${totalePraticanti}`);
             
             // Reset del form
-            e.target.reset();
+            //e.target.reset();
             
             // Ripopola i dropdown
             document.getElementById('anno').value = data.anno;
@@ -333,5 +337,48 @@ function caricaDatiEsistenti() {
         })
         .catch((error) => {
             console.error('Errore nel caricamento dei dati:', error);
+        });
+}
+
+// NUOVA FUNZIONE PER INVIARE EMAIL
+function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
+    // Parametri per il template email
+    const templateParams = {
+        to_email: 'destinatario@email.com', // Sostituisci con l'email del destinatario
+        from_name: auth.currentUser.email, // Email dell'utente autenticato
+        anno: data.anno,
+        mese: data.mese,
+        gruppo: data.gruppo,
+        totale_zadankai: totaleZadankai,
+        totale_praticanti: totalePraticanti,
+        data_invio: new Date().toLocaleString('it-IT'),
+        // Dettagli Zadankai
+        zadankai_membri_u: data.zadankai_m_u || 0,
+        zadankai_membri_d: data.zadankai_m_d || 0,
+        zadankai_membri_gu: data.zadankai_m_gu || 0,
+        zadankai_membri_gd: data.zadankai_m_gd || 0,
+        zadankai_simpatizzanti_u: data.zadankai_s_u || 0,
+        zadankai_simpatizzanti_d: data.zadankai_s_d || 0,
+        zadankai_simpatizzanti_gu: data.zadankai_s_gu || 0,
+        zadankai_simpatizzanti_gd: data.zadankai_s_gd || 0,
+        // Dettagli Praticanti
+        praticanti_membri_u: data.praticanti_m_u || 0,
+        praticanti_membri_d: data.praticanti_m_d || 0,
+        praticanti_membri_gu: data.praticanti_m_gu || 0,
+        praticanti_membri_gd: data.praticanti_m_gd || 0,
+        praticanti_simpatizzanti_u: data.praticanti_s_u || 0,
+        praticanti_simpatizzanti_d: data.praticanti_s_d || 0,
+        praticanti_simpatizzanti_gu: data.praticanti_s_gu || 0,
+        praticanti_simpatizzanti_gd: data.praticanti_s_gd || 0
+    };
+
+    // Invia l'email
+    emailjs.send('TUO_SERVICE_ID', 'TUO_TEMPLATE_ID', templateParams)
+        .then((response) => {
+            console.log('Email inviata con successo:', response.status, response.text);
+        })
+        .catch((error) => {
+            console.error('Errore nell\'invio dell\'email:', error);
+            // Non mostrare errore all'utente per non interrompere il flusso
         });
 }
