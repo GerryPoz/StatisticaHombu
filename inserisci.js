@@ -196,8 +196,7 @@ function salvasuFirebase(e) {
             D: parseInt(data.zadankai_o_d) || 0,
             GU: parseInt(data.zadankai_o_gu) || 0,
             GD: parseInt(data.zadankai_o_gd) || 0
-          },
-          totaleGenerale: totaleZadankai
+          }
         },
         praticanti: {
           membri: {
@@ -211,11 +210,8 @@ function salvasuFirebase(e) {
             D: parseInt(data.praticanti_s_d) || 0,
             GU: parseInt(data.praticanti_s_gu) || 0,
             GD: parseInt(data.praticanti_s_gd) || 0
-          },
-          totaleGenerale: totalePraticanti
-        },
-        timestamp: new Date().toISOString(),
-        ultimaModifica: new Date().toLocaleString('it-IT')
+          }
+        }
     };
 
     // Mostra un indicatore di caricamento
