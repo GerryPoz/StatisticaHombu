@@ -344,7 +344,7 @@ function caricaDatiEsistenti() {
 function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
     // Parametri per il template email
     const templateParams = {
-        to_email: 'destinatario@email.com', // Sostituisci con l'email del destinatario
+        to_email: 'servizipliplo@gmail.com', // Sostituisci con l'email del destinatario
         from_name: auth.currentUser.email, // Email dell'utente autenticato
         anno: data.anno,
         mese: data.mese,
