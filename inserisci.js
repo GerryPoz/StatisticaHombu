@@ -296,7 +296,6 @@ function caricaDatiEsistenti() {
                         document.querySelector('input[name="zadankai_o_d"]').value = data.zadankai.ospiti.D || 0;
                         document.querySelector('input[name="zadankai_o_gu"]').value = data.zadankai.ospiti.GU || 0;
                         document.querySelector('input[name="zadankai_o_gd"]').value = data.zadankai.ospiti.GD || 0;
-                        // Nota: ospiti non ha FUT e STU nel salvataggio attuale
                     }
                 }
                 
@@ -327,17 +326,53 @@ function caricaDatiEsistenti() {
                 alert('Dati esistenti caricati per la modifica!');
             } else {
                 console.log('Nessun dato esistente trovato per questa combinazione');
-                // Pulisci il form se non ci sono dati esistenti
-                document.getElementById('dati-form').reset();
+                
+                // MODIFICA: Reset solo della tabella ZADANKAI, mantieni i dati PRATICANTI
+                resetTabellaZadankai();
+                
                 // Ripristina i valori di anno, mese e gruppo
                 document.getElementById('anno').value = anno;
                 document.getElementById('mese').value = mese;
                 document.getElementById('gruppo').value = gruppo;
+                
+                // Ricalcola solo i totali zadankai
+                calcolaTotaliZadankai();
             }
         })
         .catch((error) => {
             console.error('Errore nel caricamento dei dati:', error);
         });
+}
+
+// NUOVA FUNZIONE: Reset solo tabella Zadankai
+function resetTabellaZadankai() {
+    // Reset campi ZADANKAI - Membri
+    document.querySelector('input[name="zadankai_m_u"]').value = '';
+    document.querySelector('input[name="zadankai_m_d"]').value = '';
+    document.querySelector('input[name="zadankai_m_gu"]').value = '';
+    document.querySelector('input[name="zadankai_m_gd"]').value = '';
+    document.querySelector('input[name="zadankai_m_fut"]').value = '';
+    document.querySelector('input[name="zadankai_m_stu"]').value = '';
+    
+    // Reset campi ZADANKAI - Simpatizzanti
+    document.querySelector('input[name="zadankai_s_u"]').value = '';
+    document.querySelector('input[name="zadankai_s_d"]').value = '';
+    document.querySelector('input[name="zadankai_s_gu"]').value = '';
+    document.querySelector('input[name="zadankai_s_gd"]').value = '';
+    document.querySelector('input[name="zadankai_s_fut"]').value = '';
+    document.querySelector('input[name="zadankai_s_stu"]').value = '';
+    
+    // Reset campi ZADANKAI - Ospiti
+    document.querySelector('input[name="zadankai_o_u"]').value = '';
+    document.querySelector('input[name="zadankai_o_d"]').value = '';
+    document.querySelector('input[name="zadankai_o_gu"]').value = '';
+    document.querySelector('input[name="zadankai_o_gd"]').value = '';
+    
+    // Reset totali ZADANKAI
+    document.querySelector('input[name="zadankai_m_tot"]').value = '';
+    document.querySelector('input[name="zadankai_s_tot"]').value = '';
+    document.querySelector('input[name="zadankai_o_tot"]').value = '';
+    document.querySelector('input[name="zadankai_totale_generale"]').value = '';
 }
 
 // NUOVA FUNZIONE PER INVIARE EMAIL
