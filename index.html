@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>HOMBU 9 – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Firebase -->
+  <!-- CORRETTI: funzionano senza moduli -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body { background-color: #f0f0f0; }
+    .login-box {
+      max-width: 400px;
+      margin: auto;
+      margin-top: 80px;
+      padding: 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Accedi a HOMBU 9</h2>
+    <input type="email" id="email" class="form-control mb-2" placeholder="Email" />
+    <input type="password" id="password" class="form-control mb-3" placeholder="Password" />
+    <button id="login-btn" class="btn btn-primary w-100">Login</button>
+    <div id="login-error" class="text-danger mt-3 text-center"></div>
+  </div>
+
+  <!-- Firebase config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGoVq0-DvyqUUH4aDCfOFZP2NobclIg_o",
+      authDomain: "hombu-8630c.firebaseapp.com",
+      projectId: "hombu-8630c",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+  </script>
+
+  <!-- Login logic -->
+  <script>
+    document.getElementById("login-btn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          window.location.href = "index1.html"; // Pagina post-login
+        })
+        .catch(error => {
+          document.getElementById("login-error").textContent = error.message;
+        });
+    });
+  </script>
+</body>
+</html>
