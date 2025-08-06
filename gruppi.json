@@ -2,10 +2,10 @@
   "HOMBU 9": {
     "Capitolo Asti": {
       "Settore Fukyo": [
-        "AURORA", "COLLINE", "KANSAI", "SOLE", "TORREPREZIOSA", "VITTORIA"
+        "AURORA", "COLLINE", "KANSAI", "SOLE", "TORRE_PREZIOSA", "VITTORIA"
       ],
       "Settore Invictus": [
-        "ALFIERI", "CESARE PAVESE", "RINASCIMENTO"
+        "ALFIERI", "CESARE_PAVESE", "RINASCIMENTO"
       ]
     },
     "Capitolo Casale/Crescentino": {
