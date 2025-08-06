@@ -366,3 +366,54 @@ function resetTabellaZadankai() {
     document.querySelector('input[name="zadankai_o_tot"]').value = '';
     document.querySelector('input[name="zadankai_totale_generale"]').value = '';
 }
+
+// FUNZIONE PER INVIARE EMAIL DI BACKUP
+function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
+    // Parametri per il template email
+    const templateParams = {
+        to_email: 'servizipliplo@gmail.com', // Email del destinatario per il backup
+        from_name: auth.currentUser.email, // Email dell'utente autenticato
+        anno: data.anno,
+        mese: data.mese,
+        gruppo: data.gruppo,
+        totale_zadankai: totaleZadankai,
+        totale_praticanti: totalePraticanti,
+        data_invio: new Date().toLocaleString('it-IT'),
+        // Dettagli Zadankai
+        zadankai_membri_u: data.zadankai_m_u || 0,
+        zadankai_membri_d: data.zadankai_m_d || 0,
+        zadankai_membri_gu: data.zadankai_m_gu || 0,
+        zadankai_membri_gd: data.zadankai_m_gd || 0,
+        zadankai_membri_fut: data.zadankai_m_fut || 0,
+        zadankai_membri_stu: data.zadankai_m_stu || 0,
+        zadankai_simpatizzanti_u: data.zadankai_s_u || 0,
+        zadankai_simpatizzanti_d: data.zadankai_s_d || 0,
+        zadankai_simpatizzanti_gu: data.zadankai_s_gu || 0,
+        zadankai_simpatizzanti_gd: data.zadankai_s_gd || 0,
+        zadankai_simpatizzanti_fut: data.zadankai_s_fut || 0,
+        zadankai_simpatizzanti_stu: data.zadankai_s_stu || 0,
+        zadankai_ospiti_u: data.zadankai_o_u || 0,
+        zadankai_ospiti_d: data.zadankai_o_d || 0,
+        zadankai_ospiti_gu: data.zadankai_o_gu || 0,
+        zadankai_ospiti_gd: data.zadankai_o_gd || 0,
+        // Dettagli Praticanti
+        praticanti_membri_u: data.praticanti_m_u || 0,
+        praticanti_membri_d: data.praticanti_m_d || 0,
+        praticanti_membri_gu: data.praticanti_m_gu || 0,
+        praticanti_membri_gd: data.praticanti_m_gd || 0,
+        praticanti_simpatizzanti_u: data.praticanti_s_u || 0,
+        praticanti_simpatizzanti_d: data.praticanti_s_d || 0,
+        praticanti_simpatizzanti_gu: data.praticanti_s_gu || 0,
+        praticanti_simpatizzanti_gd: data.praticanti_s_gd || 0
+    };
+
+    // Invia l'email
+    emailjs.send('service_0ldevwc', 'template_vzuiz3q', templateParams)
+        .then((response) => {
+            console.log('Email di backup inviata con successo:', response.status, response.text);
+        })
+        .catch((error) => {
+            console.error('Errore nell\'invio dell\'email di backup:', error);
+            // Non mostrare errore all'utente per non interrompere il flusso
+        });
+}
