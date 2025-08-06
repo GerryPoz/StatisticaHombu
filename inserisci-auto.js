@@ -78,9 +78,13 @@ function inizializzaApp(gruppoUtente) {
     document.getElementById('dati-form').addEventListener('submit', salvasuFirebase);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     
-    // Event listeners per il caricamento dati esistenti
-    document.getElementById('anno').addEventListener('change', caricaDatiEsistenti);
-    document.getElementById('mese').addEventListener('change', caricaDatiEsistenti);
+    // Event listeners per il caricamento dati esistenti con piccolo ritardo
+    document.getElementById('anno').addEventListener('change', () => {
+        setTimeout(caricaDatiEsistenti, 100);
+    });
+    document.getElementById('mese').addEventListener('change', () => {
+        setTimeout(caricaDatiEsistenti, 100);
+    });
 }
 
 // Funzione per il logout
@@ -250,12 +254,15 @@ function caricaDatiEsistenti() {
     const mese = document.getElementById('mese').value;
     const gruppo = document.getElementById('gruppo').value;
     
+    console.log('Tentativo caricamento dati:', { anno, mese, gruppo }); // Debug
+    
     // Verifica che tutti i campi siano selezionati
     if (!anno || !mese || !gruppo) {
         return;
     }
-    
+
     const key = `${anno}-${mese}-${gruppo}`;
+    console.log('Chiave di ricerca:', key); // Debug
     const dbRef = ref(database, `zadankai/${key}`);
     
     get(dbRef)
