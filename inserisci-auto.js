@@ -219,10 +219,14 @@ function salvasuFirebase(e) {
     set(ref(database, `zadankai/${key}`), payload)
         .then(() => {
             console.log('Dati salvati con successo');
+            
+            // INVIO EMAIL DI BACKUP DOPO IL SALVATAGGIO RIUSCITO
+            inviaEmailNotifica(data, totaleZadankai, totalePraticanti);
+            
             alert(`✅ Dati salvati con successo!\n\n📊 Zadankai: ${totaleZadankai}\n🙏 Praticanti: ${totalePraticanti}`);
             
             // Reset del form
-            e.target.reset();
+            //e.target.reset();
             
             // Ripopola i dropdown e il gruppo
             document.getElementById('anno').value = data.anno;
