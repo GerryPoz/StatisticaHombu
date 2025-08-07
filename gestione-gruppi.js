@@ -1,12 +1,7 @@
-// Importa la configurazione Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
-
-// Configurazione Firebase
-const firebaseConfig = {
-    // La configurazione verrà caricata dal file config.json
-};
+import { firebaseConfig } from './firebase-config.js';
 
 let app, auth, database;
 let strutturaGruppi = {};
@@ -18,17 +13,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         const response = await fetch('config.json');
         const config = await response.json();
         
-        // Inizializza Firebase
-        app = initializeApp(config);
-        auth = getAuth(app);
-        database = getDatabase(app);
-        
-        // Verifica autenticazione
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                inizializzaApp();
-            } else {
-                window.location.href = 'index.html';
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Inizializza Firebase con la configurazione importata
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                database = getDatabase(app);
+                
+                // Verifica autenticazione
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        inizializzaApp();
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Errore inizializzazione:', error);
+                alert('Errore durante l\'inizializzazione dell\'applicazione');
             }
         });
         
