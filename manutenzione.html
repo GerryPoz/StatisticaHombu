@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manutenzione - HOMBU 9</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .maintenance-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin: 2rem;
+        }
+        .maintenance-icon {
+            font-size: 5rem;
+            color: #667eea;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .maintenance-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+        }
+        .maintenance-subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .maintenance-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #667eea;
+        }
+        .contact-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+        .btn-home {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 65%;
+            border-radius: 3px;
+            animation: progress 3s ease-in-out infinite;
+        }
+        @keyframes progress {
+            0%, 100% { width: 65%; }
+            50% { width: 85%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="maintenance-icon">
+            <i class="fas fa-tools"></i>
+        </div>
+        
+        <h1 class="maintenance-title">Sito in Manutenzione</h1>
+        
+        <p class="maintenance-subtitle">
+            Il sistema statistiche <strong>HOMBU 9</strong> è temporaneamente non disponibile per lavori di manutenzione e aggiornamenti.
+        </p>
+        
+        <div class="maintenance-details">
+            <h5><i class="fas fa-clock text-primary me-2"></i>Tempo stimato</h5>
+            <p class="mb-2">I lavori dovrebbero essere completati entro poche ore.</p>
+            
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <small class="text-muted">Progresso stimato: 65%</small>
+        </div>
+        
+        <div class="row text-center mt-4">
+            <div class="col-md-4">
+                <i class="fas fa-database text-primary fs-3 mb-2"></i>
+                <h6>Aggiornamento Database</h6>
+                <small class="text-muted">Ottimizzazione strutture dati</small>
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-shield-alt text-success fs-3 mb-2"></i>
+                <h6>Sicurezza</h6>
+                <small class="text-muted">Implementazione nuove protezioni</small>
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-rocket text-warning fs-3 mb-2"></i>
+                <h6>Performance</h6>
+                <small class="text-muted">Miglioramento velocità</small>
+            </div>
+        </div>
+        
+        <div class="contact-info">
+            <h6><i class="fas fa-envelope text-primary me-2"></i>Hai bisogno di assistenza?</h6>
+            <p class="mb-3">Per urgenze o informazioni contatta l'amministratore del sistema.</p>
+            
+            <a href="index.html" class="btn-home">
+                <i class="fas fa-home me-2"></i>Torna alla Home
+            </a>
+        </div>
+        
+        <div class="mt-4">
+            <small class="text-muted">
+                <i class="fas fa-sync-alt me-1"></i>
+                Ultimo aggiornamento: <span id="lastUpdate"></span>
+            </small>
+        </div>
+    </div>
+    
+    <script>
+        // Aggiorna l'orario dell'ultimo aggiornamento
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('it-IT');
+        
+        // Auto-refresh ogni 5 minuti
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
