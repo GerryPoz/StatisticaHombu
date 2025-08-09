@@ -49,7 +49,7 @@ async function caricaDatiStorici() {
     try {
         console.log('Caricamento dati storici...');
         
-        // Carica dati zadankai
+        // Carica dati zadankai dal database reale
         const zadankaiRef = ref(database, 'zadankai');
         const zadankaiSnapshot = await get(zadankaiRef);
         
@@ -57,20 +57,70 @@ async function caricaDatiStorici() {
             const zadankaiData = zadankaiSnapshot.val();
             console.log('Dati zadankai caricati:', Object.keys(zadankaiData).length, 'record');
             
-            // Elabora dati zadankai
-            Object.entries(zadankaiData).forEach(([id, record]) => {
-                if (record.data && record.gruppo) {
-                    datiStorici.push({
-                        id: id,
-                        data: record.data,
-                        gruppo: record.gruppo,
-                        settore: record.settore || '',
-                        capitolo: record.capitolo || '',
-                        tipo: 'zadankai',
-                        categoria: 'membri',
-                        valore: parseInt(record.membri) || 0,
-                        ospiti: parseInt(record.ospiti) || 0,
-                        simpatizzanti: parseInt(record.simpatizzanti) || 0
+            // Elabora dati zadankai dal database reale
+            Object.entries(zadankaiData).forEach(([chiave, sezioni]) => {
+                // La chiave è nel formato: anno-mese-gruppo
+                const [anno, mese, gruppo] = chiave.split('-');
+                
+                if (!anno || !mese || !gruppo) return;
+                
+                // Converti mese da nome a numero per creare una data valida
+                const mesiMap = {
+                    'Gennaio': '01', 'Febbraio': '02', 'Marzo': '03', 'Aprile': '04',
+                    'Maggio': '05', 'Giugno': '06', 'Luglio': '07', 'Agosto': '08',
+                    'Settembre': '09', 'Ottobre': '10', 'Novembre': '11', 'Dicembre': '12'
+                };
+                
+                const meseNumero = mesiMap[mese] || '01';
+                const dataRecord = `${anno}-${meseNumero}-01`;
+                
+                // Processa dati zadankai
+                if (sezioni.zadankai) {
+                    Object.entries(sezioni.zadankai).forEach(([categoria, dati]) => {
+                        const totale = (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0) + (dati.FUT || 0) + (dati.STU || 0);
+                        
+                        datiStorici.push({
+                            id: `${chiave}_zadankai_${categoria}`,
+                            data: dataRecord,
+                            gruppo: gruppo,
+                            settore: gruppoToCapitolo[gruppo] || '',
+                            capitolo: gruppoToCapitolo[gruppo] || '',
+                            tipo: 'zadankai',
+                            categoria: categoria,
+                            valore: totale,
+                            dettagli: {
+                                U: dati.U || 0,
+                                D: dati.D || 0,
+                                GU: dati.GU || 0,
+                                GD: dati.GD || 0,
+                                FUT: dati.FUT || 0,
+                                STU: dati.STU || 0
+                            }
+                        });
+                    });
+                }
+                
+                // Processa dati praticanti
+                if (sezioni.praticanti) {
+                    Object.entries(sezioni.praticanti).forEach(([categoria, dati]) => {
+                        const totale = (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0);
+                        
+                        datiStorici.push({
+                            id: `${chiave}_praticanti_${categoria}`,
+                            data: dataRecord,
+                            gruppo: gruppo,
+                            settore: gruppoToCapitolo[gruppo] || '',
+                            capitolo: gruppoToCapitolo[gruppo] || '',
+                            tipo: 'praticanti',
+                            categoria: categoria,
+                            valore: totale,
+                            dettagli: {
+                                U: dati.U || 0,
+                                D: dati.D || 0,
+                                GU: dati.GU || 0,
+                                GD: dati.GD || 0
+                            }
+                        });
                     });
                 }
             });
@@ -80,28 +130,41 @@ async function caricaDatiStorici() {
         try {
             const response = await fetch('gruppi.json');
             const gruppiData = await response.json();
-            gruppiDisponibili = gruppiData.gruppi || [];
             
-            // Crea mappa gruppo -> capitolo
-            gruppiDisponibili.forEach(gruppo => {
-                gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
-            });
+            // Estrai gruppi dalla struttura HOMBU 9
+            if (gruppiData['HOMBU 9']) {
+                const struttura = gruppiData['HOMBU 9'];
+                gruppiDisponibili = [];
+                
+                Object.entries(struttura).forEach(([capitolo, settori]) => {
+                    Object.entries(settori).forEach(([settore, gruppi]) => {
+                        gruppi.forEach(gruppo => {
+                            gruppiDisponibili.push({
+                                nome: gruppo,
+                                capitolo: capitolo,
+                                settore: settore
+                            });
+                            gruppoToCapitolo[gruppo] = capitolo;
+                        });
+                    });
+                });
+            }
             
             console.log('Gruppi caricati:', gruppiDisponibili.length);
         } catch (error) {
             console.error('Errore caricamento gruppi:', error);
         }
         
-        console.log('Dati storici totali:', datiStorici.length);
+        console.log('Dati storici totali caricati:', datiStorici.length);
         
         if (datiStorici.length === 0) {
-            console.log('Nessun dato trovato, genero dati di esempio');
-            generaDatiEsempio();
+            console.log('Nessun dato trovato nel database');
+            alert('Nessun dato trovato nel database. Verificare la connessione e i dati.');
         }
         
     } catch (error) {
         console.error('Errore durante il caricamento dei dati:', error);
-        generaDatiEsempio();
+        alert('Errore durante il caricamento dei dati: ' + error.message);
     }
 }
 
