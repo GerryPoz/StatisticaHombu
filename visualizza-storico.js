@@ -1,13 +1,14 @@
 // Importa la configurazione Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { firebaseConfig } from './firebase-config.js';
 
 let app, auth, database;
 let datiStorici = [];
 let gruppiDisponibili = [];
 let chartInstances = {};
+let gruppoToCapitolo = {};
 
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', async function() {
@@ -52,121 +53,168 @@ async function inizializzaApp() {
 // Carica dati storici da Firebase
 async function caricaDatiStorici() {
     try {
-        const snapshot = await get(ref(database, 'dati_storici'));
-        if (snapshot.exists()) {
-            datiStorici = Object.entries(snapshot.val()).map(([key, value]) => ({
-                id: key,
-                ...value,
-                data: new Date(value.data)
-            }));
+        // Carica struttura gruppi
+        const gruppiResponse = await fetch('gruppi.json');
+        const gruppiData = await gruppiResponse.json();
+        const struttura = gruppiData["HOMBU 9"];
+        
+        // Mappa gruppo -> capitolo
+        gruppiDisponibili = [];
+        for (const [capitolo, settori] of Object.entries(struttura)) {
+            for (const [settore, gruppi] of Object.entries(settori)) {
+                gruppi.forEach(gruppo => {
+                    gruppoToCapitolo[gruppo] = { capitolo, settore };
+                    gruppiDisponibili.push({
+                        nome: gruppo,
+                        capitolo: capitolo,
+                        settore: settore
+                    });
+                });
+            }
         }
         
-        // Carica anche i gruppi attuali per riferimento
-        const gruppiSnapshot = await get(ref(database, 'gruppi'));
-        if (gruppiSnapshot.exists()) {
-            gruppiDisponibili = Object.values(gruppiSnapshot.val());
+        // Carica dati zadankai da Firebase
+        const snapshot = await get(child(ref(database), "zadankai"));
+        
+        if (snapshot.exists()) {
+            const dati = snapshot.val();
+            datiStorici = [];
+            
+            // Elabora i dati da Firebase
+            for (const key in dati) {
+                const [anno, mese, gruppo] = key.split("-");
+                const sezioni = dati[key];
+                
+                // Crea una data dal mese e anno
+                const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+                const meseIndex = mesiOrdine.indexOf(mese);
+                const data = new Date(parseInt(anno), meseIndex, 1);
+                
+                // Calcola totali per zadankai
+                if (sezioni.zadankai) {
+                    let totaleZadankai = 0;
+                    for (const categoria in sezioni.zadankai) {
+                        const r = sezioni.zadankai[categoria];
+                        const totaleCategoria = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0) + (r.FUT || 0) + (r.STU || 0);
+                        totaleZadankai += totaleCategoria;
+                    }
+                    
+                    datiStorici.push({
+                        id: `${key}_zadankai`,
+                        data: data,
+                        gruppo: gruppo,
+                        settore: gruppoToCapitolo[gruppo]?.settore || 'N/A',
+                        capitolo: gruppoToCapitolo[gruppo]?.capitolo || 'N/A',
+                        valore: totaleZadankai,
+                        tipo: 'zadankai',
+                        dettagli: sezioni.zadankai,
+                        anno: anno,
+                        mese: mese
+                    });
+                }
+                
+                // Calcola totali per praticanti
+                if (sezioni.praticanti) {
+                    let totalePraticanti = 0;
+                    for (const categoria in sezioni.praticanti) {
+                        const r = sezioni.praticanti[categoria];
+                        const totaleCategoria = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0);
+                        totalePraticanti += totaleCategoria;
+                    }
+                    
+                    datiStorici.push({
+                        id: `${key}_praticanti`,
+                        data: data,
+                        gruppo: gruppo,
+                        settore: gruppoToCapitolo[gruppo]?.settore || 'N/A',
+                        capitolo: gruppoToCapitolo[gruppo]?.capitolo || 'N/A',
+                        valore: totalePraticanti,
+                        tipo: 'praticanti',
+                        dettagli: sezioni.praticanti,
+                        anno: anno,
+                        mese: mese
+                    });
+                }
+            }
+        } else {
+            console.log('Nessun dato trovato in Firebase');
+            datiStorici = [];
         }
         
     } catch (error) {
         console.error('Errore caricamento dati:', error);
-        // Dati di esempio per testing
+        // Fallback ai dati di esempio se Firebase non è disponibile
         generaDatiEsempio();
     }
 }
 
-// Genera dati di esempio per testing
-function generaDatiEsempio() {
-    const gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C', 'Gruppo D'];
-    const settori = ['Settore 1', 'Settore 2', 'Settore 3'];
-    const capitoli = ['Capitolo Nord', 'Capitolo Sud', 'Capitolo Centro'];
-    
-    datiStorici = [];
-    
-    // Genera dati per gli ultimi 24 mesi
-    for (let i = 24; i >= 0; i--) {
-        const data = new Date();
-        data.setMonth(data.getMonth() - i);
-        
-        gruppiEsempio.forEach((gruppo, index) => {
-            datiStorici.push({
-                id: `${data.getTime()}_${index}`,
-                data: data,
-                gruppo: gruppo,
-                settore: settori[index % settori.length],
-                capitolo: capitoli[index % capitoli.length],
-                valore: Math.floor(Math.random() * 100) + 50 + (i * 2), // Trend crescente
-                tipo: 'presenze'
-            });
-        });
-    }
-    
-    gruppiDisponibili = gruppiEsempio.map(nome => ({ nome }));
-}
+// ... existing code ...
 
 // Inizializza filtri
 function inizializzaFiltri() {
     const gruppiSelect = document.getElementById('gruppiSelect');
     gruppiSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
     
+    // Raggruppa per capitolo
+    const capitoli = {};
     gruppiDisponibili.forEach(gruppo => {
-        const option = document.createElement('option');
-        option.value = gruppo.nome;
-        option.textContent = gruppo.nome;
-        gruppiSelect.appendChild(option);
-    });
-}
-
-// Inizializza date picker
-function inizializzaDatePicker() {
-    $('#daterange').daterangepicker({
-        startDate: moment().subtract(12, 'months'),
-        endDate: moment(),
-        locale: {
-            format: 'DD/MM/YYYY',
-            separator: ' - ',
-            applyLabel: 'Applica',
-            cancelLabel: 'Annulla',
-            fromLabel: 'Da',
-            toLabel: 'A',
-            customRangeLabel: 'Personalizzato',
-            weekLabel: 'S',
-            daysOfWeek: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
-            monthNames: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                        'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-        },
-        ranges: {
-            'Ultimi 30 giorni': [moment().subtract(29, 'days'), moment()],
-            'Ultimi 3 mesi': [moment().subtract(3, 'months'), moment()],
-            'Ultimi 6 mesi': [moment().subtract(6, 'months'), moment()],
-            'Ultimo anno': [moment().subtract(12, 'months'), moment()],
-            'Anno corrente': [moment().startOf('year'), moment()]
+        if (!capitoli[gruppo.capitolo]) {
+            capitoli[gruppo.capitolo] = [];
         }
+        capitoli[gruppo.capitolo].push(gruppo);
     });
+    
+    // Crea optgroup per capitolo
+    Object.keys(capitoli).sort().forEach(capitolo => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = capitolo;
+        
+        capitoli[capitolo].sort((a, b) => a.nome.localeCompare(b.nome)).forEach(gruppo => {
+            const option = document.createElement('option');
+            option.value = gruppo.nome;
+            option.textContent = `${gruppo.nome} (${gruppo.settore})`;
+            optgroup.appendChild(option);
+        });
+        
+        gruppiSelect.appendChild(optgroup);
+    });
+    
+    // Aggiungi filtro per tipo di dato
+    const tipoSelect = document.createElement('select');
+    tipoSelect.id = 'tipoSelect';
+    tipoSelect.className = 'form-select';
+    tipoSelect.innerHTML = `
+        <option value="tutti">Tutti i tipi</option>
+        <option value="zadankai">Solo Zadankai</option>
+        <option value="praticanti">Solo Praticanti</option>
+    `;
+    
+    // Inserisci il filtro tipo dopo il filtro gruppi
+    const gruppiContainer = gruppiSelect.parentElement;
+    const tipoContainer = document.createElement('div');
+    tipoContainer.className = 'col-md-2';
+    tipoContainer.innerHTML = '<label class="form-label">Tipo Dato</label>';
+    tipoContainer.appendChild(tipoSelect);
+    
+    gruppiContainer.parentElement.insertBefore(tipoContainer, gruppiContainer.nextSibling);
 }
 
-// Applica filtri default
-function applicaFiltriDefault() {
-    const filtri = {
-        dataInizio: moment().subtract(12, 'months').toDate(),
-        dataFine: moment().toDate(),
-        gruppi: ['tutti'],
-        aggregazione: 'mensile'
-    };
-    
-    elaboraDati(filtri);
-}
+// ... existing code ...
 
 // Applica filtri
 function applicaFiltri() {
     const dateRange = $('#daterange').data('daterangepicker');
     const gruppiSelezionati = Array.from(document.getElementById('gruppiSelect').selectedOptions)
         .map(option => option.value);
+    const tipoSelezionato = document.getElementById('tipoSelect')?.value || 'tutti';
     const aggregazione = document.getElementById('aggregazione').value;
     
     const filtri = {
         dataInizio: dateRange.startDate.toDate(),
         dataFine: dateRange.endDate.toDate(),
         gruppi: gruppiSelezionati,
+        tipo: tipoSelezionato,
         aggregazione: aggregazione
     };
     
@@ -192,77 +240,39 @@ function elaboraDati(filtri) {
         );
     }
     
+    // Filtra per tipo
+    if (filtri.tipo !== 'tutti') {
+        datiFiltrati = datiFiltrati.filter(dato => 
+            dato.tipo === filtri.tipo
+        );
+    }
+    
     // Aggrega dati
     const datiAggregati = aggregaDati(datiFiltrati, filtri.aggregazione);
     
     // Aggiorna visualizzazioni
-    aggiornaDashboard(datiAggregati, filtri);
+    aggiornaDashboard(datiAggregati, filtri, datiFiltrati);
     aggiornaGrafici(datiAggregati, filtri);
     aggiornaTabella(datiFiltrati);
     aggiornaAnalisi(datiAggregati, filtri);
 }
 
-// Aggrega dati per periodo
-function aggregaDati(dati, tipoAggregazione) {
-    const gruppi = {};
-    
-    dati.forEach(dato => {
-        let chiavePeriodo;
-        
-        switch (tipoAggregazione) {
-            case 'mensile':
-                chiavePeriodo = `${dato.data.getFullYear()}-${String(dato.data.getMonth() + 1).padStart(2, '0')}`;
-                break;
-            case 'trimestrale':
-                const trimestre = Math.floor(dato.data.getMonth() / 3) + 1;
-                chiavePeriodo = `${dato.data.getFullYear()}-T${trimestre}`;
-                break;
-            case 'annuale':
-                chiavePeriodo = dato.data.getFullYear().toString();
-                break;
-        }
-        
-        if (!gruppi[dato.gruppo]) {
-            gruppi[dato.gruppo] = {};
-        }
-        
-        if (!gruppi[dato.gruppo][chiavePeriodo]) {
-            gruppi[dato.gruppo][chiavePeriodo] = {
-                valore: 0,
-                count: 0,
-                periodo: chiavePeriodo
-            };
-        }
-        
-        gruppi[dato.gruppo][chiavePeriodo].valore += dato.valore;
-        gruppi[dato.gruppo][chiavePeriodo].count++;
-    });
-    
-    // Calcola medie
-    Object.keys(gruppi).forEach(gruppo => {
-        Object.keys(gruppi[gruppo]).forEach(periodo => {
-            gruppi[gruppo][periodo].media = 
-                gruppi[gruppo][periodo].valore / gruppi[gruppo][periodo].count;
-        });
-    });
-    
-    return gruppi;
-}
+// ... existing code ...
 
 // Aggiorna dashboard
-function aggiornaDashboard(datiAggregati, filtri) {
+function aggiornaDashboard(datiAggregati, filtri, datiFiltrati) {
     const statsCards = document.getElementById('statsCards');
     statsCards.innerHTML = '';
     
     // Calcola statistiche generali
-    const stats = calcolaStatistiche(datiAggregati);
+    const stats = calcolaStatistiche(datiAggregati, datiFiltrati);
     
     // Card statistiche
     const cardStats = [
         { titolo: 'Gruppi Attivi', valore: stats.gruppiAttivi, icona: 'users', colore: 'primary' },
         { titolo: 'Media Generale', valore: stats.mediaGenerale.toFixed(1), icona: 'chart-line', colore: 'success' },
-        { titolo: 'Trend Generale', valore: stats.trendGenerale, icona: stats.trendGenerale > 0 ? 'arrow-up' : 'arrow-down', colore: stats.trendGenerale > 0 ? 'success' : 'danger' },
-        { titolo: 'Variabilità', valore: stats.variabilita.toFixed(1), icona: 'wave-square', colore: 'info' }
+        { titolo: 'Totale Periodo', valore: stats.totaleGenerale, icona: 'calculator', colore: 'info' },
+        { titolo: 'Trend Generale', valore: `${stats.trendGenerale > 0 ? '+' : ''}${stats.trendGenerale.toFixed(1)}%`, icona: stats.trendGenerale > 0 ? 'arrow-up' : 'arrow-down', colore: stats.trendGenerale > 0 ? 'success' : 'danger' }
     ];
     
     cardStats.forEach(stat => {
@@ -277,13 +287,39 @@ function aggiornaDashboard(datiAggregati, filtri) {
         `;
         statsCards.appendChild(card);
     });
+    
+    // Mostra breakdown per tipo se necessario
+    if (filtri.tipo === 'tutti') {
+        const breakdownZadankai = datiFiltrati.filter(d => d.tipo === 'zadankai').reduce((sum, d) => sum + d.valore, 0);
+        const breakdownPraticanti = datiFiltrati.filter(d => d.tipo === 'praticanti').reduce((sum, d) => sum + d.valore, 0);
+        
+        const breakdownCard = document.createElement('div');
+        breakdownCard.className = 'col-12 mt-3';
+        breakdownCard.innerHTML = `
+            <div class="period-comparison">
+                <h6><i class="fas fa-chart-pie me-2"></i>Breakdown per Tipo</h6>
+                <div class="row">
+                    <div class="col-6 text-center">
+                        <h4>${breakdownZadankai}</h4>
+                        <p class="mb-0">Zadankai</p>
+                    </div>
+                    <div class="col-6 text-center">
+                        <h4>${breakdownPraticanti}</h4>
+                        <p class="mb-0">Praticanti</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        statsCards.appendChild(breakdownCard);
+    }
 }
 
 // Calcola statistiche
-function calcolaStatistiche(datiAggregati) {
+function calcolaStatistiche(datiAggregati, datiFiltrati) {
     const gruppi = Object.keys(datiAggregati);
     let valoriTotali = [];
     let trendTotale = 0;
+    let totaleGenerale = 0;
     
     gruppi.forEach(gruppo => {
         const periodi = Object.keys(datiAggregati[gruppo]).sort();
@@ -295,202 +331,26 @@ function calcolaStatistiche(datiAggregati) {
         if (valori.length > 1) {
             const primo = valori[0];
             const ultimo = valori[valori.length - 1];
-            trendTotale += ((ultimo - primo) / primo) * 100;
+            if (primo > 0) {
+                trendTotale += ((ultimo - primo) / primo) * 100;
+            }
         }
     });
     
-    const mediaGenerale = valoriTotali.reduce((a, b) => a + b, 0) / valoriTotali.length;
-    const varianza = valoriTotali.reduce((acc, val) => acc + Math.pow(val - mediaGenerale, 2), 0) / valoriTotali.length;
-    const variabilita = Math.sqrt(varianza);
+    // Calcola totale generale
+    totaleGenerale = datiFiltrati.reduce((sum, dato) => sum + dato.valore, 0);
+    
+    const mediaGenerale = valoriTotali.length > 0 ? valoriTotali.reduce((a, b) => a + b, 0) / valoriTotali.length : 0;
     
     return {
         gruppiAttivi: gruppi.length,
-        mediaGenerale: mediaGenerale || 0,
-        trendGenerale: trendTotale / gruppi.length || 0,
-        variabilita: variabilita || 0
+        mediaGenerale: mediaGenerale,
+        trendGenerale: gruppi.length > 0 ? trendTotale / gruppi.length : 0,
+        totaleGenerale: totaleGenerale
     };
 }
 
-// Aggiorna grafici
-function aggiornaGrafici(datiAggregati, filtri) {
-    const tipoVis = document.getElementById('tipoVis').value;
-    
-    switch (tipoVis) {
-        case 'linee':
-            creaGraficoLinee(datiAggregati);
-            break;
-        case 'barre':
-            creaGraficoBarre(datiAggregati);
-            break;
-        case 'heatmap':
-            creaHeatmap(datiAggregati);
-            break;
-    }
-    
-    creaGraficoConfronto(datiAggregati);
-}
-
-// Crea grafico a linee
-function creaGraficoLinee(datiAggregati) {
-    const ctx = document.getElementById('mainChart').getContext('2d');
-    
-    if (chartInstances.main) {
-        chartInstances.main.destroy();
-    }
-    
-    const datasets = [];
-    const colori = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
-    
-    Object.keys(datiAggregati).forEach((gruppo, index) => {
-        const periodi = Object.keys(datiAggregati[gruppo]).sort();
-        const valori = periodi.map(p => datiAggregati[gruppo][p].media);
-        
-        datasets.push({
-            label: gruppo,
-            data: valori,
-            borderColor: colori[index % colori.length],
-            backgroundColor: colori[index % colori.length] + '20',
-            tension: 0.4,
-            fill: false
-        });
-    });
-    
-    const labels = Object.keys(datiAggregati[Object.keys(datiAggregati)[0]] || {}).sort();
-    
-    chartInstances.main = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Andamento Temporale per Gruppo'
-                },
-                legend: {
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Valore'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Periodo'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Crea grafico a barre
-function creaGraficoBarre(datiAggregati) {
-    const ctx = document.getElementById('mainChart').getContext('2d');
-    
-    if (chartInstances.main) {
-        chartInstances.main.destroy();
-    }
-    
-    // Calcola medie per gruppo
-    const gruppi = Object.keys(datiAggregati);
-    const medie = gruppi.map(gruppo => {
-        const valori = Object.values(datiAggregati[gruppo]).map(p => p.media);
-        return valori.reduce((a, b) => a + b, 0) / valori.length;
-    });
-    
-    chartInstances.main = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: gruppi,
-            datasets: [{
-                label: 'Media Periodo',
-                data: medie,
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Confronto Medie per Gruppo'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Valore Medio'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Crea grafico di confronto
-function creaGraficoConfronto(datiAggregati) {
-    const ctx = document.getElementById('comparisonChart').getContext('2d');
-    
-    if (chartInstances.comparison) {
-        chartInstances.comparison.destroy();
-    }
-    
-    // Prendi gli ultimi 6 periodi per il confronto
-    const tuttiPeriodi = new Set();
-    Object.values(datiAggregati).forEach(gruppo => {
-        Object.keys(gruppo).forEach(periodo => tuttiPeriodi.add(periodo));
-    });
-    
-    const periodiOrdinati = Array.from(tuttiPeriodi).sort().slice(-6);
-    const gruppi = Object.keys(datiAggregati);
-    const colori = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
-    
-    const datasets = gruppi.map((gruppo, index) => ({
-        label: gruppo,
-        data: periodiOrdinati.map(periodo => 
-            datiAggregati[gruppo][periodo]?.media || 0
-        ),
-        backgroundColor: colori[index % colori.length] + '80',
-        borderColor: colori[index % colori.length],
-        borderWidth: 1
-    }));
-    
-    chartInstances.comparison = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: periodiOrdinati,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Confronto Ultimi Periodi'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
+// ... existing code ...
 
 // Aggiorna tabella
 function aggiornaTabella(dati) {
@@ -503,108 +363,111 @@ function aggiornaTabella(dati) {
     datiOrdinati.forEach((dato, index) => {
         const row = document.createElement('tr');
         
-        // Calcola variazione rispetto al record precedente dello stesso gruppo
+        // Calcola variazione rispetto al record precedente dello stesso gruppo e tipo
         let variazione = '';
-        if (index < datiOrdinati.length - 1) {
-            const precedente = datiOrdinati.find((d, i) => 
-                i > index && d.gruppo === dato.gruppo
-            );
-            if (precedente) {
-                const diff = dato.valore - precedente.valore;
+        const precedente = datiOrdinati.find((d, i) => 
+            i > index && d.gruppo === dato.gruppo && d.tipo === dato.tipo
+        );
+        
+        if (precedente) {
+            const diff = dato.valore - precedente.valore;
+            if (precedente.valore > 0) {
                 const percentuale = ((diff / precedente.valore) * 100).toFixed(1);
                 variazione = `${diff > 0 ? '+' : ''}${diff} (${percentuale}%)`;
+            } else {
+                variazione = `${diff > 0 ? '+' : ''}${diff}`;
             }
         }
         
         row.innerHTML = `
             <td>${dato.data.toLocaleDateString('it-IT')}</td>
             <td>${dato.gruppo}</td>
-            <td>${dato.settore || '-'}</td>
-            <td>${dato.capitolo || '-'}</td>
-            <td>${dato.valore}</td>
+            <td>${dato.settore}</td>
+            <td>${dato.capitolo}</td>
+            <td>
+                <span class="badge bg-${dato.tipo === 'zadankai' ? 'primary' : 'secondary'}">
+                    ${dato.tipo.toUpperCase()}
+                </span>
+                ${dato.valore}
+            </td>
             <td class="${variazione.startsWith('+') ? 'trend-up' : variazione.startsWith('-') ? 'trend-down' : ''}">
                 ${variazione || '-'}
             </td>
-            <td>${dato.note || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-info" onclick="mostraDettagli('${dato.id}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
         `;
         
         tbody.appendChild(row);
     });
 }
 
-// Aggiorna analisi
-function aggiornaAnalisi(datiAggregati, filtri) {
-    aggiornaTrendAnalysis(datiAggregati);
-    aggiornaSeasonalityAnalysis(datiAggregati);
-    aggiornaCorrelationAnalysis(datiAggregati);
-}
-
-// Trend Analysis
-function aggiornaTrendAnalysis(datiAggregati) {
-    const container = document.getElementById('trendAnalysis');
-    container.innerHTML = '';
+// Mostra dettagli di un record
+function mostraDettagli(id) {
+    const dato = datiStorici.find(d => d.id === id);
+    if (!dato) return;
     
-    Object.keys(datiAggregati).forEach(gruppo => {
-        const periodi = Object.keys(datiAggregati[gruppo]).sort();
-        const valori = periodi.map(p => datiAggregati[gruppo][p].media);
-        
-        if (valori.length > 1) {
-            const primo = valori[0];
-            const ultimo = valori[valori.length - 1];
-            const trend = ((ultimo - primo) / primo) * 100;
-            
-            const trendElement = document.createElement('div');
-            trendElement.className = 'mb-2';
-            trendElement.innerHTML = `
-                <strong>${gruppo}:</strong>
-                <span class="${trend > 0 ? 'trend-up' : 'trend-down'}">
-                    ${trend > 0 ? '+' : ''}${trend.toFixed(1)}%
-                    <i class="fas fa-${trend > 0 ? 'arrow-up' : 'arrow-down'} ms-1"></i>
-                </span>
-            `;
-            container.appendChild(trendElement);
-        }
+    let dettagliHtml = `
+        <h5>${dato.gruppo} - ${dato.mese} ${dato.anno}</h5>
+        <p><strong>Tipo:</strong> ${dato.tipo.toUpperCase()}</p>
+        <p><strong>Totale:</strong> ${dato.valore}</p>
+        <hr>
+        <h6>Dettagli:</h6>
+    `;
+    
+    for (const [categoria, valori] of Object.entries(dato.dettagli)) {
+        dettagliHtml += `
+            <div class="mb-2">
+                <strong>${categoria.toUpperCase()}:</strong><br>
+                <small>
+                    U: ${valori.U || 0}, D: ${valori.D || 0}, 
+                    GU: ${valori.GU || 0}, GD: ${valori.GD || 0}
+                    ${valori.FUT !== undefined ? `, FUT: ${valori.FUT || 0}` : ''}
+                    ${valori.STU !== undefined ? `, STU: ${valori.STU || 0}` : ''}
+                </small>
+            </div>
+        `;
+    }
+    
+    // Crea e mostra modal
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dettagli Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ${dettagliHtml}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
     });
 }
 
-// Seasonality Analysis
-function aggiornaSeasonalityAnalysis(datiAggregati) {
-    const container = document.getElementById('seasonalityAnalysis');
-    container.innerHTML = '<p class="text-muted">Analisi stagionalità in sviluppo...</p>';
-}
+// ... existing code ...
 
-// Correlation Analysis
-function aggiornaCorrelationAnalysis(datiAggregati) {
-    const container = document.getElementById('correlationAnalysis');
-    container.innerHTML = '<p class="text-muted">Analisi correlazioni in sviluppo...</p>';
-}
-
-// Cambia visualizzazione
-function cambiaVisualizzazione() {
-    applicaFiltri();
-}
-
-// Mostra/nascondi loading
-function mostraLoading(show) {
-    const spinner = document.getElementById('loadingSpinner');
-    const dashboard = document.getElementById('dashboardSection');
-    
-    if (show) {
-        spinner.style.display = 'block';
-        dashboard.style.opacity = '0.5';
-    } else {
-        spinner.style.display = 'none';
-        dashboard.style.opacity = '1';
-    }
-}
-
-// Funzioni di esportazione
+// Funzioni di esportazione aggiornate
 function esportaCSV() {
-    const dati = datiStorici;
-    let csv = 'Data,Gruppo,Settore,Capitolo,Valore,Note\n';
+    let csv = 'Data,Gruppo,Settore,Capitolo,Tipo,Valore,Anno,Mese\n';
     
-    dati.forEach(dato => {
-        csv += `${dato.data.toLocaleDateString('it-IT')},"${dato.gruppo}","${dato.settore || ''}","${dato.capitolo || ''}",${dato.valore},"${dato.note || ''}"\n`;
+    datiStorici.forEach(dato => {
+        csv += `${dato.data.toLocaleDateString('it-IT')},"${dato.gruppo}","${dato.settore}","${dato.capitolo}","${dato.tipo}",${dato.valore},"${dato.anno}","${dato.mese}"\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -618,10 +481,12 @@ function esportaExcel() {
     const dati = datiStorici.map(dato => ({
         Data: dato.data.toLocaleDateString('it-IT'),
         Gruppo: dato.gruppo,
-        Settore: dato.settore || '',
-        Capitolo: dato.capitolo || '',
+        Settore: dato.settore,
+        Capitolo: dato.capitolo,
+        Tipo: dato.tipo.toUpperCase(),
         Valore: dato.valore,
-        Note: dato.note || ''
+        Anno: dato.anno,
+        Mese: dato.mese
     }));
     
     const ws = XLSX.utils.json_to_sheet(dati);
@@ -630,40 +495,11 @@ function esportaExcel() {
     XLSX.writeFile(wb, `storico_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
-function esportaPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    doc.setFontSize(16);
-    doc.text('Report Storico', 20, 20);
-    
-    doc.setFontSize(12);
-    doc.text(`Generato il: ${new Date().toLocaleDateString('it-IT')}`, 20, 30);
-    
-    // Aggiungi statistiche principali
-    let y = 50;
-    doc.text('Statistiche Principali:', 20, y);
-    y += 10;
-    
-    const stats = calcolaStatistiche({});
-    doc.text(`Gruppi attivi: ${stats.gruppiAttivi}`, 30, y);
-    y += 8;
-    doc.text(`Media generale: ${stats.mediaGenerale.toFixed(1)}`, 30, y);
-    
-    doc.save(`report_storico_${new Date().toISOString().split('T')[0]}.pdf`);
-}
-
-// Logout
-function logout() {
-    signOut(auth).then(() => {
-        window.location.href = 'index.html';
-    }).catch((error) => {
-        console.error('Errore logout:', error);
-    });
-}
+// ... existing code ...
 
 // Esponi funzioni globali
 window.esportaCSV = esportaCSV;
 window.esportaExcel = esportaExcel;
 window.esportaPDF = esportaPDF;
 window.logout = logout;
+window.mostraDettagli = mostraDettagli;
