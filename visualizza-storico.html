@@ -27,10 +27,17 @@
             padding: 50px;
         }
         
-        .info-section {
+        .filter-section {
             background: #f8f9fa;
             border-radius: 10px;
             padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-section {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -54,8 +61,39 @@
     <div class="container mt-4">
         <!-- Info Section -->
         <div class="info-section">
-            <h5><i class="fas fa-info-circle me-2"></i>Andamento Annuale</h5>
-            <p class="mb-0">Visualizzazione automatica degli ultimi 12 mesi (dal mese corrente)</p>
+            <h6><i class="fas fa-info-circle me-2"></i>Andamento Automatico Ultimi 12 Mesi</h6>
+            <small>Visualizzazione dal mese corrente ai 12 mesi precedenti</small>
+        </div>
+
+        <!-- Filtri -->
+        <div class="filter-section">
+            <h6><i class="fas fa-filter me-2"></i>Filtri di Visualizzazione</h6>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="capitoloFiltro" class="form-label">Capitolo</label>
+                    <select id="capitoloFiltro" class="form-select">
+                        <option value="tutti">Tutti i capitoli</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="settoreFiltro" class="form-label">Settore</label>
+                    <select id="settoreFiltro" class="form-select">
+                        <option value="tutti">Tutti i settori</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="gruppoFiltro" class="form-label">Gruppo</label>
+                    <select id="gruppoFiltro" class="form-select">
+                        <option value="tutti">Tutti i gruppi</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button id="applicaFiltri" class="btn btn-primary d-block w-100" onclick="applicaFiltri()">
+                        <i class="fas fa-sync-alt me-1"></i>Aggiorna
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Loading Spinner -->
@@ -68,7 +106,7 @@
 
         <!-- Grafico Andamento Temporale -->
         <div class="chart-container">
-            <h5><i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi</h5>
+            <h5 id="titoloGrafico"><i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - Tutti</h5>
             <canvas id="mainChart" width="400" height="300"></canvas>
         </div>
     </div>
