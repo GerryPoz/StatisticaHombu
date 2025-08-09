@@ -172,14 +172,44 @@ function calcolaStatistiche() {
     document.getElementById('mediaGruppi').textContent = mediaGruppi;
 }
 
-// Esporta la struttura in JSON
+// Esporta la struttura in CSV
 function esportaStruttura() {
-    const dataStr = JSON.stringify(strutturaGruppi, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    let csvContent = 'Capitolo,Settore,Gruppo,Posizione\n';
+    
+    Object.keys(strutturaGruppi).forEach(hombuKey => {
+        const hombu = strutturaGruppi[hombuKey];
+        
+        Object.keys(hombu).forEach(capitoloKey => {
+            const capitolo = hombu[capitoloKey];
+            
+            Object.keys(capitolo).forEach(settoreKey => {
+                const settore = capitolo[settoreKey];
+                
+                if (Array.isArray(settore) && settore.length > 0) {
+                    settore.forEach((gruppo, index) => {
+                        // Escape delle virgole nei nomi se presenti
+                        const capitoloEscaped = `"${capitoloKey.replace(/"/g, '""')}"`;
+                        const settoreEscaped = `"${settoreKey.replace(/"/g, '""')}"`;
+                        const gruppoEscaped = `"${gruppo.replace(/"/g, '""')}"`;
+                        
+                        csvContent += `${capitoloEscaped},${settoreEscaped},${gruppoEscaped},${index + 1}\n`;
+                    });
+                } else {
+                    // Settore senza gruppi
+                    const capitoloEscaped = `"${capitoloKey.replace(/"/g, '""')}"`;
+                    const settoreEscaped = `"${settoreKey.replace(/"/g, '""')}"`;
+                    csvContent += `${capitoloEscaped},${settoreEscaped},"Nessun gruppo",0\n`;
+                }
+            });
+        });
+    });
+    
+    // Crea e scarica il file CSV
+    const dataBlob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
     
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
-    link.download = `struttura-gruppi-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `struttura-gruppi-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
 }
 
