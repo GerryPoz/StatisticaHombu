@@ -71,39 +71,43 @@ async function caricaDatiStorici() {
                 const data = new Date(parseInt(anno), meseIndex, 1);
                 
                 // Elabora zadankai
-                for (const categoria in sezioni.zadankai) {
-                    const r = sezioni.zadankai[categoria];
-                    const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0) + (r.FUT || 0) + (r.STU || 0);
-                    
-                    datiStorici.push({
-                        id: `${key}_zadankai_${categoria}`,
-                        data: data,
-                        gruppo: gruppo,
-                        anno: anno,
-                        mese: mese,
-                        tipo: 'zadankai',
-                        categoria: categoria,
-                        valore: totale,
-                        dettagli: r
-                    });
+                if (sezioni.zadankai) {
+                    for (const categoria in sezioni.zadankai) {
+                        const r = sezioni.zadankai[categoria];
+                        const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0) + (r.FUT || 0) + (r.STU || 0);
+                        
+                        datiStorici.push({
+                            id: `${key}_zadankai_${categoria}`,
+                            data: data,
+                            gruppo: gruppo,
+                            anno: anno,
+                            mese: mese,
+                            tipo: 'zadankai',
+                            categoria: categoria,
+                            valore: totale,
+                            dettagli: r
+                        });
+                    }
                 }
                 
                 // Elabora praticanti
-                for (const categoria in sezioni.praticanti) {
-                    const r = sezioni.praticanti[categoria];
-                    const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0);
-                    
-                    datiStorici.push({
-                        id: `${key}_praticanti_${categoria}`,
-                        data: data,
-                        gruppo: gruppo,
-                        anno: anno,
-                        mese: mese,
-                        tipo: 'praticanti',
-                        categoria: categoria,
-                        valore: totale,
-                        dettagli: r
-                    });
+                if (sezioni.praticanti) {
+                    for (const categoria in sezioni.praticanti) {
+                        const r = sezioni.praticanti[categoria];
+                        const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0);
+                        
+                        datiStorici.push({
+                            id: `${key}_praticanti_${categoria}`,
+                            data: data,
+                            gruppo: gruppo,
+                            anno: anno,
+                            mese: mese,
+                            tipo: 'praticanti',
+                            categoria: categoria,
+                            valore: totale,
+                            dettagli: r
+                        });
+                    }
                 }
             }
         }
@@ -123,6 +127,7 @@ async function caricaDatiStorici() {
                             settore: settore,
                             capitolo: capitolo
                         });
+                        gruppoToCapitolo[gruppo] = { settore, capitolo };
                     });
                 }
             }
@@ -137,7 +142,48 @@ async function caricaDatiStorici() {
     }
 }
 
-// ... existing code ...
+// Genera dati di esempio
+function generaDatiEsempio() {
+    datiStorici = [];
+    gruppiDisponibili = [
+        { nome: 'Gruppo A', settore: 'Settore 1', capitolo: 'Capitolo 1' },
+        { nome: 'Gruppo B', settore: 'Settore 2', capitolo: 'Capitolo 1' },
+        { nome: 'Gruppo C', settore: 'Settore 1', capitolo: 'Capitolo 2' }
+    ];
+    
+    const mesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno'];
+    const anni = [2023, 2024];
+    const tipi = ['zadankai', 'praticanti'];
+    const categorie = ['membri', 'simpatizzanti', 'ospiti'];
+    
+    anni.forEach(anno => {
+        mesi.forEach((mese, meseIndex) => {
+            gruppiDisponibili.forEach(gruppo => {
+                tipi.forEach(tipo => {
+                    categorie.forEach(categoria => {
+                        const valore = Math.floor(Math.random() * 50) + 10;
+                        datiStorici.push({
+                            id: `${anno}-${mese}-${gruppo.nome}_${tipo}_${categoria}`,
+                            data: new Date(anno, meseIndex, 1),
+                            gruppo: gruppo.nome,
+                            anno: anno.toString(),
+                            mese: mese,
+                            tipo: tipo,
+                            categoria: categoria,
+                            valore: valore,
+                            dettagli: {
+                                U: Math.floor(valore * 0.3),
+                                D: Math.floor(valore * 0.3),
+                                GU: Math.floor(valore * 0.2),
+                                GD: Math.floor(valore * 0.2)
+                            }
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
 
 // Inizializza filtri
 function inizializzaFiltri() {
@@ -168,27 +214,68 @@ function inizializzaFiltri() {
         gruppiSelect.appendChild(optgroup);
     });
     
-    // Aggiungi filtro per tipo di dato
-    const tipoSelect = document.createElement('select');
-    tipoSelect.id = 'tipoSelect';
-    tipoSelect.className = 'form-select';
-    tipoSelect.innerHTML = `
-        <option value="tutti">Tutti i tipi</option>
-        <option value="zadankai">Solo Zadankai</option>
-        <option value="praticanti">Solo Praticanti</option>
-    `;
-    
-    // Inserisci il filtro tipo dopo il filtro gruppi
-    const gruppiContainer = gruppiSelect.parentElement;
-    const tipoContainer = document.createElement('div');
-    tipoContainer.className = 'col-md-2';
-    tipoContainer.innerHTML = '<label class="form-label">Tipo Dato</label>';
-    tipoContainer.appendChild(tipoSelect);
-    
-    gruppiContainer.parentElement.insertBefore(tipoContainer, gruppiContainer.nextSibling);
+    // Aggiungi filtro per tipo di dato se non esiste
+    if (!document.getElementById('tipoSelect')) {
+        const tipoSelect = document.createElement('select');
+        tipoSelect.id = 'tipoSelect';
+        tipoSelect.className = 'form-select';
+        tipoSelect.innerHTML = `
+            <option value="tutti">Tutti i tipi</option>
+            <option value="zadankai">Solo Zadankai</option>
+            <option value="praticanti">Solo Praticanti</option>
+        `;
+        
+        // Inserisci il filtro tipo dopo il filtro gruppi
+        const gruppiContainer = gruppiSelect.parentElement;
+        const tipoContainer = document.createElement('div');
+        tipoContainer.className = 'col-md-2';
+        tipoContainer.innerHTML = '<label class="form-label">Tipo Dato</label>';
+        tipoContainer.appendChild(tipoSelect);
+        
+        gruppiContainer.parentElement.insertBefore(tipoContainer, gruppiContainer.nextSibling);
+    }
 }
 
-// ... existing code ...
+// Inizializza date picker
+function inizializzaDatePicker() {
+    const oggi = moment();
+    const inizioAnno = moment().subtract(12, 'months');
+    
+    $('#daterange').daterangepicker({
+        startDate: inizioAnno,
+        endDate: oggi,
+        locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Applica',
+            cancelLabel: 'Annulla',
+            fromLabel: 'Da',
+            toLabel: 'A',
+            customRangeLabel: 'Personalizzato',
+            weekLabel: 'S',
+            daysOfWeek: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+            monthNames: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                        'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+            firstDay: 1
+        },
+        ranges: {
+            'Ultimi 30 giorni': [moment().subtract(29, 'days'), moment()],
+            'Ultimi 3 mesi': [moment().subtract(3, 'months'), moment()],
+            'Ultimi 6 mesi': [moment().subtract(6, 'months'), moment()],
+            'Ultimo anno': [moment().subtract(12, 'months'), moment()],
+            'Anno corrente': [moment().startOf('year'), moment()],
+            'Anno precedente': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+        }
+    });
+}
+
+// Applica filtri di default
+function applicaFiltriDefault() {
+    // Applica filtri con impostazioni di default
+    setTimeout(() => {
+        applicaFiltri();
+    }, 1000);
+}
 
 // Applica filtri
 function applicaFiltri() {
@@ -212,6 +299,39 @@ function applicaFiltri() {
         elaboraDati(filtri);
         mostraLoading(false);
     }, 500);
+}
+
+// Cambia visualizzazione
+function cambiaVisualizzazione() {
+    const tipoVis = document.getElementById('tipoVis').value;
+    
+    // Nascondi tutte le sezioni
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('graficiSection').style.display = 'none';
+    document.getElementById('tabellaSection').style.display = 'none';
+    document.getElementById('analisiSection').style.display = 'none';
+    
+    // Mostra la sezione selezionata
+    if (tipoVis === 'dashboard') {
+        document.getElementById('dashboardSection').style.display = 'block';
+    } else if (tipoVis === 'grafici') {
+        document.getElementById('graficiSection').style.display = 'block';
+    } else if (tipoVis === 'tabella') {
+        document.getElementById('tabellaSection').style.display = 'block';
+    } else if (tipoVis === 'analisi') {
+        document.getElementById('analisiSection').style.display = 'block';
+    }
+    
+    // Riapplica i filtri per aggiornare la visualizzazione
+    applicaFiltri();
+}
+
+// Mostra/nascondi loading
+function mostraLoading(mostra) {
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.style.display = mostra ? 'block' : 'none';
+    }
 }
 
 // Elabora dati secondo i filtri
@@ -245,11 +365,49 @@ function elaboraDati(filtri) {
     aggiornaAnalisi(datiAggregati, filtri);
 }
 
-// ... existing code ...
+// Aggrega dati
+function aggregaDati(dati, tipoAggregazione) {
+    const aggregati = {};
+    
+    dati.forEach(dato => {
+        let chiave;
+        
+        if (tipoAggregazione === 'mensile') {
+            chiave = `${dato.anno}-${dato.mese}`;
+        } else if (tipoAggregazione === 'trimestrale') {
+            const trimestre = Math.ceil((new Date(dato.data).getMonth() + 1) / 3);
+            chiave = `${dato.anno}-T${trimestre}`;
+        } else if (tipoAggregazione === 'annuale') {
+            chiave = dato.anno;
+        } else {
+            chiave = dato.gruppo;
+        }
+        
+        if (!aggregati[dato.gruppo]) {
+            aggregati[dato.gruppo] = {};
+        }
+        
+        if (!aggregati[dato.gruppo][chiave]) {
+            aggregati[dato.gruppo][chiave] = {
+                totale: 0,
+                count: 0,
+                media: 0
+            };
+        }
+        
+        aggregati[dato.gruppo][chiave].totale += dato.valore;
+        aggregati[dato.gruppo][chiave].count += 1;
+        aggregati[dato.gruppo][chiave].media = aggregati[dato.gruppo][chiave].totale / aggregati[dato.gruppo][chiave].count;
+    });
+    
+    return aggregati;
+}
 
 // Aggiorna dashboard
 function aggiornaDashboard(datiAggregati, filtri, datiFiltrati) {
     const statsCards = document.getElementById('statsCards');
+    if (!statsCards) return;
+    
     statsCards.innerHTML = '';
     
     // Calcola statistiche generali
@@ -338,11 +496,70 @@ function calcolaStatistiche(datiAggregati, datiFiltrati) {
     };
 }
 
-// ... existing code ...
+// Aggiorna grafici
+function aggiornaGrafici(datiAggregati, filtri) {
+    const graficiContainer = document.getElementById('graficiContainer');
+    if (!graficiContainer) return;
+    
+    graficiContainer.innerHTML = '';
+    
+    // Distruggi grafici esistenti
+    Object.values(chartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    chartInstances = {};
+    
+    // Crea grafici per ogni gruppo
+    Object.keys(datiAggregati).forEach(gruppo => {
+        const canvasContainer = document.createElement('div');
+        canvasContainer.className = 'col-md-6 mb-4';
+        
+        const canvas = document.createElement('canvas');
+        canvas.id = `chart-${gruppo.replace(/\s+/g, '-')}`;
+        
+        canvasContainer.innerHTML = `
+            <div class="chart-container">
+                <h6>${gruppo}</h6>
+            </div>
+        `;
+        canvasContainer.querySelector('.chart-container').appendChild(canvas);
+        graficiContainer.appendChild(canvasContainer);
+        
+        // Prepara dati per il grafico
+        const periodi = Object.keys(datiAggregati[gruppo]).sort();
+        const valori = periodi.map(p => datiAggregati[gruppo][p].media);
+        
+        // Crea grafico
+        const ctx = canvas.getContext('2d');
+        chartInstances[gruppo] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: periodi,
+                datasets: [{
+                    label: 'Media',
+                    data: valori,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+}
 
 // Aggiorna tabella
 function aggiornaTabella(dati) {
     const tbody = document.getElementById('storicoTableBody');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     // Ordina per data decrescente
@@ -350,6 +567,9 @@ function aggiornaTabella(dati) {
     
     datiOrdinati.forEach((dato, index) => {
         const row = document.createElement('tr');
+        
+        // Ottieni informazioni gruppo
+        const infoGruppo = gruppoToCapitolo[dato.gruppo] || { settore: 'N/A', capitolo: 'N/A' };
         
         // Calcola variazione rispetto al record precedente dello stesso gruppo e tipo
         let variazione = '';
@@ -370,8 +590,8 @@ function aggiornaTabella(dati) {
         row.innerHTML = `
             <td>${dato.data.toLocaleDateString('it-IT')}</td>
             <td>${dato.gruppo}</td>
-            <td>${dato.settore}</td>
-            <td>${dato.capitolo}</td>
+            <td>${infoGruppo.settore}</td>
+            <td>${infoGruppo.capitolo}</td>
             <td>
                 <span class="badge bg-${dato.tipo === 'zadankai' ? 'primary' : 'secondary'}">
                     ${dato.tipo.toUpperCase()}
@@ -392,6 +612,46 @@ function aggiornaTabella(dati) {
     });
 }
 
+// Aggiorna analisi
+function aggiornaAnalisi(datiAggregati, filtri) {
+    const analisiContainer = document.getElementById('analisiContainer');
+    if (!analisiContainer) return;
+    
+    analisiContainer.innerHTML = '';
+    
+    // Analisi per gruppo
+    Object.keys(datiAggregati).forEach(gruppo => {
+        const periodi = Object.keys(datiAggregati[gruppo]).sort();
+        const valori = periodi.map(p => datiAggregati[gruppo][p].media);
+        
+        if (valori.length > 1) {
+            const primo = valori[0];
+            const ultimo = valori[valori.length - 1];
+            const trend = primo > 0 ? ((ultimo - primo) / primo) * 100 : 0;
+            const media = valori.reduce((a, b) => a + b, 0) / valori.length;
+            
+            const analisiCard = document.createElement('div');
+            analisiCard.className = 'col-md-6 mb-3';
+            analisiCard.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">${gruppo}</h6>
+                        <p class="card-text">
+                            <strong>Media periodo:</strong> ${media.toFixed(1)}<br>
+                            <strong>Trend:</strong> 
+                            <span class="${trend > 0 ? 'text-success' : trend < 0 ? 'text-danger' : 'text-muted'}">
+                                ${trend > 0 ? '+' : ''}${trend.toFixed(1)}%
+                            </span><br>
+                            <strong>Periodi analizzati:</strong> ${periodi.length}
+                        </p>
+                    </div>
+                </div>
+            `;
+            analisiContainer.appendChild(analisiCard);
+        }
+    });
+}
+
 // Mostra dettagli di un record
 function mostraDettagli(id) {
     const dato = datiStorici.find(d => d.id === id);
@@ -400,23 +660,34 @@ function mostraDettagli(id) {
     let dettagliHtml = `
         <h5>${dato.gruppo} - ${dato.mese} ${dato.anno}</h5>
         <p><strong>Tipo:</strong> ${dato.tipo.toUpperCase()}</p>
+        <p><strong>Categoria:</strong> ${dato.categoria}</p>
         <p><strong>Totale:</strong> ${dato.valore}</p>
         <hr>
         <h6>Dettagli:</h6>
     `;
     
-    for (const [categoria, valori] of Object.entries(dato.dettagli)) {
-        dettagliHtml += `
-            <div class="mb-2">
-                <strong>${categoria.toUpperCase()}:</strong><br>
-                <small>
-                    U: ${valori.U || 0}, D: ${valori.D || 0}, 
-                    GU: ${valori.GU || 0}, GD: ${valori.GD || 0}
-                    ${valori.FUT !== undefined ? `, FUT: ${valori.FUT || 0}` : ''}
-                    ${valori.STU !== undefined ? `, STU: ${valori.STU || 0}` : ''}
-                </small>
-            </div>
-        `;
+    if (dato.dettagli) {
+        for (const [categoria, valori] of Object.entries(dato.dettagli)) {
+            if (typeof valori === 'object') {
+                dettagliHtml += `
+                    <div class="mb-2">
+                        <strong>${categoria.toUpperCase()}:</strong><br>
+                        <small>
+                            U: ${valori.U || 0}, D: ${valori.D || 0}, 
+                            GU: ${valori.GU || 0}, GD: ${valori.GD || 0}
+                            ${valori.FUT !== undefined ? `, FUT: ${valori.FUT || 0}` : ''}
+                            ${valori.STU !== undefined ? `, STU: ${valori.STU || 0}` : ''}
+                        </small>
+                    </div>
+                `;
+            } else {
+                dettagliHtml += `
+                    <div class="mb-2">
+                        <strong>${categoria.toUpperCase()}:</strong> ${valori}
+                    </div>
+                `;
+            }
+        }
     }
     
     // Crea e mostra modal
@@ -448,14 +719,13 @@ function mostraDettagli(id) {
     });
 }
 
-// ... existing code ...
-
-// Funzioni di esportazione aggiornate
+// Funzioni di esportazione
 function esportaCSV() {
-    let csv = 'Data,Gruppo,Settore,Capitolo,Tipo,Valore,Anno,Mese\n';
+    let csv = 'Data,Gruppo,Settore,Capitolo,Tipo,Categoria,Valore,Anno,Mese\n';
     
     datiStorici.forEach(dato => {
-        csv += `${dato.data.toLocaleDateString('it-IT')},"${dato.gruppo}","${dato.settore}","${dato.capitolo}","${dato.tipo}",${dato.valore},"${dato.anno}","${dato.mese}"\n`;
+        const infoGruppo = gruppoToCapitolo[dato.gruppo] || { settore: 'N/A', capitolo: 'N/A' };
+        csv += `${dato.data.toLocaleDateString('it-IT')},"${dato.gruppo}","${infoGruppo.settore}","${infoGruppo.capitolo}","${dato.tipo}","${dato.categoria}",${dato.valore},"${dato.anno}","${dato.mese}"\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -466,16 +736,20 @@ function esportaCSV() {
 }
 
 function esportaExcel() {
-    const dati = datiStorici.map(dato => ({
-        Data: dato.data.toLocaleDateString('it-IT'),
-        Gruppo: dato.gruppo,
-        Settore: dato.settore,
-        Capitolo: dato.capitolo,
-        Tipo: dato.tipo.toUpperCase(),
-        Valore: dato.valore,
-        Anno: dato.anno,
-        Mese: dato.mese
-    }));
+    const dati = datiStorici.map(dato => {
+        const infoGruppo = gruppoToCapitolo[dato.gruppo] || { settore: 'N/A', capitolo: 'N/A' };
+        return {
+            Data: dato.data.toLocaleDateString('it-IT'),
+            Gruppo: dato.gruppo,
+            Settore: infoGruppo.settore,
+            Capitolo: infoGruppo.capitolo,
+            Tipo: dato.tipo.toUpperCase(),
+            Categoria: dato.categoria,
+            Valore: dato.valore,
+            Anno: dato.anno,
+            Mese: dato.mese
+        };
+    });
     
     const ws = XLSX.utils.json_to_sheet(dati);
     const wb = XLSX.utils.book_new();
@@ -483,7 +757,61 @@ function esportaExcel() {
     XLSX.writeFile(wb, `storico_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
-// ... existing code ...
+function esportaPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Titolo
+    doc.setFontSize(16);
+    doc.text('Report Storico Zadankai e Praticanti', 20, 20);
+    
+    // Data generazione
+    doc.setFontSize(10);
+    doc.text(`Generato il: ${new Date().toLocaleDateString('it-IT')}`, 20, 30);
+    
+    // Statistiche generali
+    doc.setFontSize(12);
+    doc.text('Statistiche Generali:', 20, 45);
+    
+    const totaleRecords = datiStorici.length;
+    const gruppiUnici = [...new Set(datiStorici.map(d => d.gruppo))].length;
+    const totaleValore = datiStorici.reduce((sum, d) => sum + d.valore, 0);
+    
+    doc.setFontSize(10);
+    doc.text(`Totale record: ${totaleRecords}`, 20, 55);
+    doc.text(`Gruppi coinvolti: ${gruppiUnici}`, 20, 65);
+    doc.text(`Valore totale: ${totaleValore}`, 20, 75);
+    
+    // Tabella dati (primi 20 record)
+    const datiLimitati = datiStorici.slice(0, 20);
+    const headers = ['Data', 'Gruppo', 'Tipo', 'Valore'];
+    const rows = datiLimitati.map(dato => [
+        dato.data.toLocaleDateString('it-IT'),
+        dato.gruppo,
+        dato.tipo,
+        dato.valore.toString()
+    ]);
+    
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        startY: 90,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [66, 139, 202] }
+    });
+    
+    // Salva il PDF
+    doc.save(`storico_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+function logout() {
+    signOut(auth).then(() => {
+        window.location.href = 'index.html';
+    }).catch((error) => {
+        console.error('Errore durante il logout:', error);
+        alert('Errore durante il logout');
+    });
+}
 
 // Esponi funzioni globali
 window.esportaCSV = esportaCSV;
