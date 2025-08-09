@@ -27,7 +27,7 @@ function calcolaTotaleCategoria(categoria) {
     }
     
     let totale = 0;
-    ['U', 'D', 'GU', 'GD', 'FUT', 'STU'].forEach(sottoCat => {
+    ['U', 'D', 'GU', 'GD'].forEach(sottoCat => {
         if (categoria[sottoCat] !== undefined) {
             totale += parseInt(categoria[sottoCat]) || 0;
         }
