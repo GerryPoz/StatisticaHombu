@@ -53,98 +53,86 @@ async function inizializzaApp() {
 // Carica dati storici da Firebase
 async function caricaDatiStorici() {
     try {
-        // Carica struttura gruppi
-        const gruppiResponse = await fetch('gruppi.json');
-        const gruppiData = await gruppiResponse.json();
-        const struttura = gruppiData["HOMBU 9"];
-        
-        // Mappa gruppo -> capitolo
-        gruppiDisponibili = [];
-        for (const [capitolo, settori] of Object.entries(struttura)) {
-            for (const [settore, gruppi] of Object.entries(settori)) {
-                gruppi.forEach(gruppo => {
-                    gruppoToCapitolo[gruppo] = { capitolo, settore };
-                    gruppiDisponibili.push({
-                        nome: gruppo,
-                        capitolo: capitolo,
-                        settore: settore
-                    });
-                });
-            }
-        }
-        
-        // Carica dati zadankai da Firebase
-        const snapshot = await get(child(ref(database), "zadankai"));
-        
+        // Carica i dati dal nodo 'zadankai' invece che da 'dati_storici'
+        const snapshot = await get(ref(database, 'zadankai'));
         if (snapshot.exists()) {
-            const dati = snapshot.val();
+            const datiFirebase = snapshot.val();
             datiStorici = [];
             
             // Elabora i dati da Firebase
-            for (const key in dati) {
-                const [anno, mese, gruppo] = key.split("-");
-                const sezioni = dati[key];
+            for (const key in datiFirebase) {
+                const [anno, mese, gruppo] = key.split('-');
+                const sezioni = datiFirebase[key];
                 
                 // Crea una data dal mese e anno
-                const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-                                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+                const mesiOrdine = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                                   'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
                 const meseIndex = mesiOrdine.indexOf(mese);
                 const data = new Date(parseInt(anno), meseIndex, 1);
                 
-                // Calcola totali per zadankai
-                if (sezioni.zadankai) {
-                    let totaleZadankai = 0;
-                    for (const categoria in sezioni.zadankai) {
-                        const r = sezioni.zadankai[categoria];
-                        const totaleCategoria = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0) + (r.FUT || 0) + (r.STU || 0);
-                        totaleZadankai += totaleCategoria;
-                    }
+                // Elabora zadankai
+                for (const categoria in sezioni.zadankai) {
+                    const r = sezioni.zadankai[categoria];
+                    const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0) + (r.FUT || 0) + (r.STU || 0);
                     
                     datiStorici.push({
-                        id: `${key}_zadankai`,
+                        id: `${key}_zadankai_${categoria}`,
                         data: data,
                         gruppo: gruppo,
-                        settore: gruppoToCapitolo[gruppo]?.settore || 'N/A',
-                        capitolo: gruppoToCapitolo[gruppo]?.capitolo || 'N/A',
-                        valore: totaleZadankai,
-                        tipo: 'zadankai',
-                        dettagli: sezioni.zadankai,
                         anno: anno,
-                        mese: mese
+                        mese: mese,
+                        tipo: 'zadankai',
+                        categoria: categoria,
+                        valore: totale,
+                        dettagli: r
                     });
                 }
                 
-                // Calcola totali per praticanti
-                if (sezioni.praticanti) {
-                    let totalePraticanti = 0;
-                    for (const categoria in sezioni.praticanti) {
-                        const r = sezioni.praticanti[categoria];
-                        const totaleCategoria = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0);
-                        totalePraticanti += totaleCategoria;
-                    }
+                // Elabora praticanti
+                for (const categoria in sezioni.praticanti) {
+                    const r = sezioni.praticanti[categoria];
+                    const totale = (r.U || 0) + (r.D || 0) + (r.GU || 0) + (r.GD || 0);
                     
                     datiStorici.push({
-                        id: `${key}_praticanti`,
+                        id: `${key}_praticanti_${categoria}`,
                         data: data,
                         gruppo: gruppo,
-                        settore: gruppoToCapitolo[gruppo]?.settore || 'N/A',
-                        capitolo: gruppoToCapitolo[gruppo]?.capitolo || 'N/A',
-                        valore: totalePraticanti,
-                        tipo: 'praticanti',
-                        dettagli: sezioni.praticanti,
                         anno: anno,
-                        mese: mese
+                        mese: mese,
+                        tipo: 'praticanti',
+                        categoria: categoria,
+                        valore: totale,
+                        dettagli: r
                     });
                 }
             }
-        } else {
-            console.log('Nessun dato trovato in Firebase');
-            datiStorici = [];
+        }
+        
+        // Carica anche i gruppi dal file JSON
+        try {
+            const gruppiResponse = await fetch('gruppi.json');
+            const gruppiData = await gruppiResponse.json();
+            const struttura = gruppiData["HOMBU 9"];
+            
+            gruppiDisponibili = [];
+            for (const [capitolo, settori] of Object.entries(struttura)) {
+                for (const [settore, gruppi] of Object.entries(settori)) {
+                    gruppi.forEach(gruppo => {
+                        gruppiDisponibili.push({
+                            nome: gruppo,
+                            settore: settore,
+                            capitolo: capitolo
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Errore caricamento gruppi:', error);
         }
         
     } catch (error) {
         console.error('Errore caricamento dati:', error);
-        // Fallback ai dati di esempio se Firebase non è disponibile
+        // Dati di esempio per testing
         generaDatiEsempio();
     }
 }
