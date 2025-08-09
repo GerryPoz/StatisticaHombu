@@ -1,48 +1,4 @@
-// Import Firebase modules
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
-import { firebaseConfig } from './firebase-config.js';
-
-// Variabili globali
-let app, auth, database;
-let datiStorici = [];
-let gruppiDisponibili = [];
-let chartInstances = {};
-let gruppoToCapitolo = {};
-
-// Inizializzazione
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        await inizializzaApp();
-        console.log('App inizializzata con successo');
-    } catch (error) {
-        console.error('Errore durante l\'inizializzazione:', error);
-        alert('Errore durante l\'inizializzazione dell\'applicazione');
-    }
-});
-
-// Inizializza l'applicazione
-async function inizializzaApp() {
-    // Inizializza Firebase
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    database = getDatabase(app);
-    
-    // Verifica autenticazione
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log('Utente autenticato:', user.email);
-            await caricaDatiStorici();
-            inizializzaFiltri();
-            inizializzaDatePicker();
-            applicaFiltriDefault();
-        } else {
-            console.log('Utente non autenticato');
-            window.location.href = 'login.html';
-        }
-    });
-}
+// ... existing code ...
 
 // Carica dati storici da Firebase
 async function caricaDatiStorici() {
@@ -77,8 +33,6 @@ async function caricaDatiStorici() {
                 // Processa dati zadankai
                 if (sezioni.zadankai) {
                     Object.entries(sezioni.zadankai).forEach(([categoria, dati]) => {
-                        const totale = (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0) + (dati.FUT || 0) + (dati.STU || 0);
-                        
                         datiStorici.push({
                             id: `${chiave}_zadankai_${categoria}`,
                             data: dataRecord,
@@ -87,7 +41,12 @@ async function caricaDatiStorici() {
                             capitolo: gruppoToCapitolo[gruppo] || '',
                             tipo: 'zadankai',
                             categoria: categoria,
-                            valore: totale,
+                            membri: (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0),
+                            simpatizzanti: 0,
+                            ospiti: 0,
+                            futuro: dati.FUT || 0,
+                            studenti: dati.STU || 0,
+                            valore: (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0) + (dati.FUT || 0) + (dati.STU || 0),
                             dettagli: {
                                 U: dati.U || 0,
                                 D: dati.D || 0,
@@ -103,8 +62,6 @@ async function caricaDatiStorici() {
                 // Processa dati praticanti
                 if (sezioni.praticanti) {
                     Object.entries(sezioni.praticanti).forEach(([categoria, dati]) => {
-                        const totale = (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0);
-                        
                         datiStorici.push({
                             id: `${chiave}_praticanti_${categoria}`,
                             data: dataRecord,
@@ -113,7 +70,12 @@ async function caricaDatiStorici() {
                             capitolo: gruppoToCapitolo[gruppo] || '',
                             tipo: 'praticanti',
                             categoria: categoria,
-                            valore: totale,
+                            membri: (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0),
+                            simpatizzanti: 0,
+                            ospiti: 0,
+                            futuro: 0,
+                            studenti: 0,
+                            valore: (dati.U || 0) + (dati.D || 0) + (dati.GU || 0) + (dati.GD || 0),
                             dettagli: {
                                 U: dati.U || 0,
                                 D: dati.D || 0,
@@ -126,41 +88,7 @@ async function caricaDatiStorici() {
             });
         }
         
-        // Carica gruppi da gruppi.json
-        try {
-            const response = await fetch('gruppi.json');
-            const gruppiData = await response.json();
-            
-            // Estrai gruppi dalla struttura HOMBU 9
-            if (gruppiData['HOMBU 9']) {
-                const struttura = gruppiData['HOMBU 9'];
-                gruppiDisponibili = [];
-                
-                Object.entries(struttura).forEach(([capitolo, settori]) => {
-                    Object.entries(settori).forEach(([settore, gruppi]) => {
-                        gruppi.forEach(gruppo => {
-                            gruppiDisponibili.push({
-                                nome: gruppo,
-                                capitolo: capitolo,
-                                settore: settore
-                            });
-                            gruppoToCapitolo[gruppo] = capitolo;
-                        });
-                    });
-                });
-            }
-            
-            console.log('Gruppi caricati:', gruppiDisponibili.length);
-        } catch (error) {
-            console.error('Errore caricamento gruppi:', error);
-        }
-        
-        console.log('Dati storici totali caricati:', datiStorici.length);
-        
-        if (datiStorici.length === 0) {
-            console.log('Nessun dato trovato nel database');
-            alert('Nessun dato trovato nel database. Verificare la connessione e i dati.');
-        }
+        // ... existing code per caricamento gruppi ...
         
     } catch (error) {
         console.error('Errore durante il caricamento dei dati:', error);
@@ -168,141 +96,34 @@ async function caricaDatiStorici() {
     }
 }
 
-// Genera dati di esempio
-function generaDatiEsempio() {
-    console.log('Generazione dati di esempio...');
-    
-    const gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C'];
-    const oggi = new Date();
-    
-    for (let i = 0; i < 30; i++) {
-        const data = new Date(oggi);
-        data.setDate(data.getDate() - i);
-        
-        gruppiEsempio.forEach(gruppo => {
-            datiStorici.push({
-                id: `esempio_${i}_${gruppo}`,
-                data: data.toISOString().split('T')[0],
-                gruppo: gruppo,
-                settore: 'Settore ' + (Math.floor(Math.random() * 3) + 1),
-                capitolo: 'Capitolo ' + gruppo.slice(-1),
-                tipo: 'zadankai',
-                categoria: 'membri',
-                valore: Math.floor(Math.random() * 50) + 10,
-                ospiti: Math.floor(Math.random() * 10),
-                simpatizzanti: Math.floor(Math.random() * 5)
-            });
-        });
-    }
-    
-    gruppiDisponibili = gruppiEsempio.map(nome => ({ nome, capitolo: 'Capitolo ' + nome.slice(-1) }));
-    console.log('Dati di esempio generati:', datiStorici.length, 'record');
-}
-
-// Inizializza filtri
-function inizializzaFiltri() {
-    const gruppoSelect = document.getElementById('gruppoFiltro');
-    if (gruppoSelect) {
-        gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
-        
-        gruppiDisponibili.forEach(gruppo => {
-            const option = document.createElement('option');
-            option.value = gruppo.nome;
-            option.textContent = gruppo.nome;
-            gruppoSelect.appendChild(option);
-        });
-    }
-    
-    // Event listener per il pulsante applica filtri
-    const applicaBtn = document.getElementById('applicaFiltri');
-    if (applicaBtn) {
-        applicaBtn.addEventListener('click', applicaFiltri);
-    }
-}
-
-// Inizializza DatePicker
-function inizializzaDatePicker() {
-    const periodoInput = document.getElementById('periodo');
-    if (periodoInput && typeof $ !== 'undefined') {
-        $(periodoInput).daterangepicker({
-            startDate: moment().subtract(12, 'months'),
-            endDate: moment(),
-            locale: {
-                format: 'DD/MM/YYYY',
-                separator: ' - ',
-                applyLabel: 'Applica',
-                cancelLabel: 'Annulla',
-                fromLabel: 'Da',
-                toLabel: 'A',
-                customRangeLabel: 'Personalizzato',
-                weekLabel: 'S',
-                daysOfWeek: ['Do', 'Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa'],
-                monthNames: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                           'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
-                firstDay: 1
-            },
-            ranges: {
-                'Ultimi 7 giorni': [moment().subtract(6, 'days'), moment()],
-                'Ultimi 30 giorni': [moment().subtract(29, 'days'), moment()],
-                'Questo mese': [moment().startOf('month'), moment().endOf('month')],
-                'Mese scorso': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                'Ultimi 3 mesi': [moment().subtract(3, 'months'), moment()],
-                'Ultimi 12 mesi': [moment().subtract(12, 'months'), moment()]
-            }
-        });
-    }
-}
-
-// Applica filtri di default
-function applicaFiltriDefault() {
-    setTimeout(() => {
-        applicaFiltri();
-    }, 1000);
-}
+// ... existing code ...
 
 // Applica filtri
 function applicaFiltri() {
-    const periodoInput = document.getElementById('periodo');
-    const gruppoSelect = document.getElementById('gruppoFiltro');
-    const aggregazioneSelect = document.getElementById('aggregazione');
-    
-    let dataInizio, dataFine;
-    
-    // Gestisci date
-    if (periodoInput && $(periodoInput).data('daterangepicker')) {
-        const dateRange = $(periodoInput).data('daterangepicker');
-        dataInizio = dateRange.startDate.toDate();
-        dataFine = dateRange.endDate.toDate();
-    } else {
-        // Default: ultimi 12 mesi
-        dataFine = new Date();
-        dataInizio = new Date();
-        dataInizio.setFullYear(dataInizio.getFullYear() - 1);
-    }
-    
-    const filtri = {
-        dataInizio: dataInizio,
-        dataFine: dataFine,
-        gruppo: gruppoSelect ? gruppoSelect.value : 'tutti',
-        aggregazione: aggregazioneSelect ? aggregazioneSelect.value : 'mensile'
-    };
-    
-    console.log('Applicazione filtri:', filtri);
     mostraLoading(true);
     
     setTimeout(() => {
+        const periodo = $('#periodo').data('daterangepicker');
+        const gruppo = document.getElementById('gruppoFiltro').value;
+        const tipo = document.getElementById('tipoFiltro').value;
+        const categoria = document.getElementById('categoriaFiltro').value;
+        const aggregazione = document.getElementById('aggregazione').value;
+        
+        const filtri = {
+            dataInizio: periodo ? periodo.startDate.toDate() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            dataFine: periodo ? periodo.endDate.toDate() : new Date(),
+            gruppo: gruppo,
+            tipo: tipo,
+            categoria: categoria,
+            aggregazione: aggregazione
+        };
+        
         elaboraDati(filtri);
         mostraLoading(false);
     }, 500);
 }
 
-// Mostra/nascondi loading
-function mostraLoading(mostra) {
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) {
-        spinner.style.display = mostra ? 'block' : 'none';
-    }
-}
+// ... existing code ...
 
 // Elabora dati
 function elaboraDati(filtri) {
@@ -313,14 +134,15 @@ function elaboraDati(filtri) {
         const dataRecord = new Date(record.data);
         const dentroRange = dataRecord >= filtri.dataInizio && dataRecord <= filtri.dataFine;
         const gruppoOk = filtri.gruppo === 'tutti' || record.gruppo === filtri.gruppo;
+        const tipoOk = filtri.tipo === 'tutto' || record.tipo === filtri.tipo;
         
-        return dentroRange && gruppoOk;
+        return dentroRange && gruppoOk && tipoOk;
     });
     
     console.log('Dati filtrati:', datiFiltrati.length);
     
     // Aggrega dati
-    const datiAggregati = aggregaDati(datiFiltrati, filtri.aggregazione);
+    const datiAggregati = aggregaDati(datiFiltrati, filtri.aggregazione, filtri.categoria);
     
     // Aggiorna visualizzazioni
     aggiornaGrafici(datiAggregati, filtri);
@@ -328,7 +150,7 @@ function elaboraDati(filtri) {
 }
 
 // Aggrega dati
-function aggregaDati(dati, tipoAggregazione) {
+function aggregaDati(dati, tipoAggregazione, categoriaFiltro) {
     const aggregati = {};
     
     dati.forEach(record => {
@@ -365,15 +187,44 @@ function aggregaDati(dati, tipoAggregazione) {
         if (!aggregati[record.gruppo][chiavePeriodo]) {
             aggregati[record.gruppo][chiavePeriodo] = {
                 totale: 0,
-                count: 0,
-                media: 0
+                membri: 0,
+                simpatizzanti: 0,
+                ospiti: 0,
+                futuro: 0,
+                studenti: 0
             };
         }
         
-        aggregati[record.gruppo][chiavePeriodo].totale += record.valore;
-        aggregati[record.gruppo][chiavePeriodo].count += 1;
-        aggregati[record.gruppo][chiavePeriodo].media = 
-            aggregati[record.gruppo][chiavePeriodo].totale / aggregati[record.gruppo][chiavePeriodo].count;
+        // Aggrega in base alla categoria selezionata
+        switch (categoriaFiltro) {
+            case 'totale':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.valore;
+                break;
+            case 'membri':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.membri;
+                break;
+            case 'simpatizzanti':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.simpatizzanti;
+                break;
+            case 'ospiti':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.ospiti;
+                break;
+            case 'futuro':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.futuro;
+                break;
+            case 'studenti':
+                aggregati[record.gruppo][chiavePeriodo].totale += record.studenti;
+                break;
+            default:
+                aggregati[record.gruppo][chiavePeriodo].totale += record.valore;
+        }
+        
+        // Mantieni anche i dettagli per categoria
+        aggregati[record.gruppo][chiavePeriodo].membri += record.membri;
+        aggregati[record.gruppo][chiavePeriodo].simpatizzanti += record.simpatizzanti;
+        aggregati[record.gruppo][chiavePeriodo].ospiti += record.ospiti;
+        aggregati[record.gruppo][chiavePeriodo].futuro += record.futuro;
+        aggregati[record.gruppo][chiavePeriodo].studenti += record.studenti;
     });
     
     return aggregati;
@@ -416,7 +267,7 @@ function aggiornaGrafici(datiAggregati, filtri) {
     
     Object.keys(datiAggregati).forEach((gruppo, index) => {
         const valori = periodiOrdinati.map(periodo => {
-            return datiAggregati[gruppo][periodo] ? datiAggregati[gruppo][periodo].media : 0;
+            return datiAggregati[gruppo][periodo] ? datiAggregati[gruppo][periodo].totale : 0;
         });
         
         datasets.push({
@@ -428,6 +279,15 @@ function aggiornaGrafici(datiAggregati, filtri) {
             fill: false
         });
     });
+    
+    const categoriaLabel = {
+        'totale': 'Totale Gruppo',
+        'membri': 'Membri',
+        'simpatizzanti': 'Simpatizzanti',
+        'ospiti': 'Ospiti',
+        'futuro': 'Futuro',
+        'studenti': 'Studenti'
+    };
     
     chartInstances.main = new Chart(ctx, {
         type: 'line',
@@ -441,7 +301,7 @@ function aggiornaGrafici(datiAggregati, filtri) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Andamento Temporale per Gruppo'
+                    text: `Totali Mensili - ${categoriaLabel[filtri.categoria] || 'Totale'}`
                 },
                 legend: {
                     display: true,
@@ -453,7 +313,7 @@ function aggiornaGrafici(datiAggregati, filtri) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Valore Medio'
+                        text: 'Totale'
                     }
                 },
                 x: {
@@ -470,133 +330,63 @@ function aggiornaGrafici(datiAggregati, filtri) {
 // Aggiorna tabella
 function aggiornaTabella(dati) {
     const tbody = document.getElementById('storicoTableBody');
-    if (!tbody) {
-        console.error('Tbody storicoTableBody non trovato');
-        return;
-    }
+    if (!tbody) return;
     
     tbody.innerHTML = '';
     
-    // Ordina dati per data decrescente
+    if (dati.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nessun dato trovato</td></tr>';
+        return;
+    }
+    
+    // Ordina per data decrescente
     const datiOrdinati = dati.sort((a, b) => new Date(b.data) - new Date(a.data));
     
     datiOrdinati.forEach((record, index) => {
-        const row = tbody.insertRow();
+        const dataFormattata = new Date(record.data).toLocaleDateString('it-IT');
         
-        // Calcola variazione
+        // Calcola variazione rispetto al record precedente dello stesso gruppo
         let variazione = '';
         if (index < datiOrdinati.length - 1) {
-            const recordPrecedente = datiOrdinati[index + 1];
-            if (recordPrecedente.gruppo === record.gruppo) {
+            const recordPrecedente = datiOrdinati.find((r, i) => 
+                i > index && r.gruppo === record.gruppo && r.tipo === record.tipo && r.categoria === record.categoria
+            );
+            if (recordPrecedente) {
                 const diff = record.valore - recordPrecedente.valore;
-                const percentuale = recordPrecedente.valore > 0 ? 
-                    ((diff / recordPrecedente.valore) * 100).toFixed(1) : 0;
-                variazione = `${diff > 0 ? '+' : ''}${diff} (${percentuale}%)`;
+                if (diff > 0) {
+                    variazione = `<span class="text-success">+${diff}</span>`;
+                } else if (diff < 0) {
+                    variazione = `<span class="text-danger">${diff}</span>`;
+                } else {
+                    variazione = '<span class="text-muted">0</span>';
+                }
             }
         }
         
-        // Determina categoria
-        let categoria = 'Membri';
-        if (record.ospiti > 0) categoria = 'Ospiti';
-        if (record.simpatizzanti > 0) categoria = 'Simpatizzanti';
+        const badgeClass = record.tipo === 'zadankai' ? 'bg-primary' : 'bg-success';
         
-        row.innerHTML = `
-            <td>${new Date(record.data).toLocaleDateString('it-IT')}</td>
-            <td>${record.gruppo}</td>
-            <td>${record.settore}</td>
-            <td>${record.capitolo}</td>
-            <td>${record.tipo}</td>
-            <td><span class="badge bg-primary">${categoria}</span></td>
-            <td>${record.valore}</td>
-            <td>${variazione}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="mostraDettagli('${record.id}')">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </td>
+        const row = `
+            <tr>
+                <td>${dataFormattata}</td>
+                <td>${record.gruppo}</td>
+                <td>${record.settore}</td>
+                <td>${record.capitolo}</td>
+                <td><span class="badge ${badgeClass}">${record.tipo}</span></td>
+                <td><span class="badge badge-categoria bg-secondary">${record.categoria}</span></td>
+                <td>${record.membri}</td>
+                <td>${record.simpatizzanti}</td>
+                <td>${record.ospiti}</td>
+                <td><strong>${record.valore}</strong></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="mostraDettagli('${record.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
         `;
-    });
-}
-
-// Mostra dettagli
-function mostraDettagli(id) {
-    const record = datiStorici.find(r => r.id === id);
-    if (record) {
-        alert(`Dettagli record:\n\nData: ${record.data}\nGruppo: ${record.gruppo}\nValore: ${record.valore}\nOspiti: ${record.ospiti || 0}\nSimpatizzanti: ${record.simpatizzanti || 0}`);
-    }
-}
-
-// Esporta CSV
-function esportaCSV() {
-    const headers = ['Data', 'Gruppo', 'Settore', 'Capitolo', 'Tipo', 'Valore', 'Ospiti', 'Simpatizzanti'];
-    const csvContent = [headers.join(',')];
-    
-    datiStorici.forEach(record => {
-        const row = [
-            record.data,
-            record.gruppo,
-            record.settore,
-            record.capitolo,
-            record.tipo,
-            record.valore,
-            record.ospiti || 0,
-            record.simpatizzanti || 0
-        ];
-        csvContent.push(row.join(','));
-    });
-    
-    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'storico_dati.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
-
-// Esporta Excel
-function esportaExcel() {
-    const ws = XLSX.utils.json_to_sheet(datiStorici);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Storico');
-    XLSX.writeFile(wb, 'storico_dati.xlsx');
-}
-
-// Esporta PDF
-function esportaPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    doc.setFontSize(16);
-    doc.text('Storico Dati Statistiche', 20, 20);
-    
-    let y = 40;
-    datiStorici.slice(0, 20).forEach(record => {
-        doc.setFontSize(10);
-        doc.text(`${record.data} - ${record.gruppo}: ${record.valore}`, 20, y);
-        y += 10;
         
-        if (y > 280) {
-            doc.addPage();
-            y = 20;
-        }
-    });
-    
-    doc.save('storico_dati.pdf');
-}
-
-// Logout
-function logout() {
-    signOut(auth).then(() => {
-        window.location.href = 'login.html';
-    }).catch((error) => {
-        console.error('Errore durante il logout:', error);
+        tbody.innerHTML += row;
     });
 }
 
-// Esponi funzioni globalmente
-window.esportaCSV = esportaCSV;
-window.esportaExcel = esportaExcel;
-window.esportaPDF = esportaPDF;
-window.logout = logout;
-window.mostraDettagli = mostraDettagli;
+// ... existing code ...
