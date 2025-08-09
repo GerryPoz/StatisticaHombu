@@ -21,6 +21,21 @@ function convertiMeseInNumero(nomeMese) {
     return mesi[nomeMese.toLowerCase()] || 1;
 }
 
+function calcolaTotaleCategoria(categoria) {
+    if (!categoria || typeof categoria !== 'object') {
+        return 0;
+    }
+    
+    let totale = 0;
+    ['U', 'D', 'GU', 'GD', 'FUT', 'STU'].forEach(sottoCat => {
+        if (categoria[sottoCat] !== undefined) {
+            totale += parseInt(categoria[sottoCat]) || 0;
+        }
+    });
+    
+    return totale;
+}
+
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', async function() {
     try {
@@ -56,7 +71,6 @@ async function inizializzaApp() {
     });
 }
 
-// Carica dati storici da Firebase
 async function caricaDatiStorici() {
     try {
         console.log('Caricamento dati storici...');
@@ -99,10 +113,10 @@ async function caricaDatiStorici() {
                     const zadankai = sezioni.zadankai;
                     console.log('Dati zadankai per', gruppo, ':', zadankai);
                     
-                    // Membri Zadankai
-                    if (zadankai.membri !== undefined) {
-                        const membri = parseInt(zadankai.membri) || 0;
-                        console.log('Aggiungendo membri zadankai:', membri);
+                    // Membri Zadankai - somma tutte le sottocategorie
+                    if (zadankai.membri) {
+                        const membri = calcolaTotaleCategoria(zadankai.membri);
+                        console.log('Aggiungendo membri zadankai:', membri, 'Dettaglio:', zadankai.membri);
                         datiStorici.push({
                             id: `${chiave}-zadankai-membri`,
                             data: data,
@@ -115,39 +129,37 @@ async function caricaDatiStorici() {
                         });
                     }
                     
-                    // Presenze Zadankai
-                    if (zadankai.presenze !== undefined) {
-                        const presenze = parseInt(zadankai.presenze) || 0;
-                        console.log('Aggiungendo presenze zadankai:', presenze);
-                        datiStorici.push({
-                            id: `${chiave}-zadankai-presenze`,
-                            data: data,
-                            gruppo: gruppo,
-                            settore: settore,
-                            capitolo: capitolo,
-                            tipo: 'zadankai',
-                            categoria: 'presenze',
-                            valore: presenze
-                        });
-                    }
+                    // Presenze Zadankai - calcola come somma di membri + simpatizzanti + ospiti
+                    const presenzeTotali = calcolaTotaleCategoria(zadankai.membri) + 
+                                         calcolaTotaleCategoria(zadankai.simpatizzanti) + 
+                                         calcolaTotaleCategoria(zadankai.ospiti);
+                    
+                    console.log('Aggiungendo presenze zadankai:', presenzeTotali);
+                    datiStorici.push({
+                        id: `${chiave}-zadankai-presenze`,
+                        data: data,
+                        gruppo: gruppo,
+                        settore: settore,
+                        capitolo: capitolo,
+                        tipo: 'zadankai',
+                        categoria: 'presenze',
+                        valore: presenzeTotali
+                    });
                 }
                 
                 // Elabora sezione praticanti
                 if (sezioni.praticanti) {
                     const praticanti = sezioni.praticanti;
                     console.log('Dati praticanti per', gruppo, ':', praticanti);
-                    let totalePraticanti = 0;
                     
-                    // Somma tutte le categorie di praticanti
-                    ['membri', 'simpatizzanti', 'ospiti', 'futuro', 'studenti'].forEach(cat => {
-                        if (praticanti[cat] !== undefined) {
-                            const valore = parseInt(praticanti[cat]) || 0;
-                            totalePraticanti += valore;
-                            console.log(`Aggiungendo ${cat}:`, valore, 'Totale corrente:', totalePraticanti);
-                        }
-                    });
+                    // Calcola totale praticanti sommando membri e simpatizzanti
+                    const totalePraticanti = calcolaTotaleCategoria(praticanti.membri) + 
+                                            calcolaTotaleCategoria(praticanti.simpatizzanti);
                     
-                    console.log('Totale praticanti calcolato:', totalePraticanti);
+                    console.log('Totale praticanti calcolato:', totalePraticanti, 
+                              'Membri:', calcolaTotaleCategoria(praticanti.membri),
+                              'Simpatizzanti:', calcolaTotaleCategoria(praticanti.simpatizzanti));
+                    
                     datiStorici.push({
                         id: `${chiave}-praticanti-totale`,
                         data: data,
