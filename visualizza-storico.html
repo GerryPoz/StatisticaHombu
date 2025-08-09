@@ -8,45 +8,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" rel="stylesheet">
     <style>
-        .dashboard-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
         .chart-container {
             background: white;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            height: 400px; /* Altezza fissa per i contenitori dei grafici */
+            height: 400px;
             position: relative;
         }
         
         .chart-container canvas {
-            max-height: 350px !important; /* Altezza massima per i canvas */
+            max-height: 350px !important;
         }
         
-        /* Altezza specifica per la tabella */
-        .chart-container:has(#storicoTable) {
-            height: auto;
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             max-height: 600px;
             overflow-y: auto;
         }
@@ -58,14 +39,6 @@
             margin-bottom: 20px;
         }
         
-        .trend-up {
-            color: #28a745;
-        }
-        
-        .trend-down {
-            color: #dc3545;
-        }
-        
         .loading-spinner {
             display: none;
             text-align: center;
@@ -73,14 +46,6 @@
         }
         
         .export-buttons {
-            margin-bottom: 20px;
-        }
-        
-        .period-comparison {
-            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 15px;
             margin-bottom: 20px;
         }
     </style>
@@ -93,43 +58,33 @@
                 <i class="fas fa-chart-line me-2"></i>Visualizza Storico
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="index.html">
-                    <i class="fas fa-home me-1"></i>Home
-                </a>
-                <a class="nav-link" href="#" onclick="logout()">
+                <button class="btn btn-outline-light" onclick="logout()">
                     <i class="fas fa-sign-out-alt me-1"></i>Logout
-                </a>
+                </button>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid mt-4">
+    <div class="container mt-4">
         <!-- Filtri -->
         <div class="filter-section">
-            <h5><i class="fas fa-filter me-2"></i>Filtri e Controlli</h5>
+            <h5><i class="fas fa-filter me-2"></i>Filtri</h5>
             <div class="row">
-                <div class="col-md-3">
-                    <label class="form-label">Periodo</label>
-                    <input type="text" id="daterange" class="form-control" placeholder="Seleziona periodo">
+                <div class="col-md-4">
+                    <label for="periodo" class="form-label">Periodo</label>
+                    <input type="text" id="periodo" class="form-control" placeholder="Seleziona periodo">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Gruppi</label>
-                    <select id="gruppiSelect" class="form-select" multiple>
+                    <label for="gruppoFiltro" class="form-label">Gruppo</label>
+                    <select id="gruppoFiltro" class="form-select">
                         <option value="tutti">Tutti i gruppi</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Visualizzazione</label>
-                    <select id="tipoVis" class="form-select">
-                        <option value="linee">Grafici a linee</option>
-                        <option value="barre">Grafici a barre</option>
-                        <option value="tabella">Tabella</option>
-                        <option value="heatmap">Heatmap</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Aggregazione</label>
+                <div class="col-md-3">
+                    <label for="aggregazione" class="form-label">Aggregazione</label>
                     <select id="aggregazione" class="form-select">
+                        <option value="giornaliera">Giornaliera</option>
+                        <option value="settimanale">Settimanale</option>
                         <option value="mensile">Mensile</option>
                         <option value="trimestrale">Trimestrale</option>
                         <option value="annuale">Annuale</option>
@@ -165,67 +120,14 @@
             <p class="mt-2">Elaborazione dati in corso...</p>
         </div>
 
-        <!-- Dashboard Statistiche -->
-        <div id="dashboardSection">
-            <div class="dashboard-card">
-                <h4><i class="fas fa-chart-pie me-2"></i>Dashboard Riepilogativo</h4>
-                <div class="row" id="statsCards">
-                    <!-- Le card statistiche verranno generate dinamicamente -->
-                </div>
-            </div>
-
-            <!-- Confronto Periodi -->
-            <div class="period-comparison" id="confrontoPeriodi" style="display: none;">
-                <h5><i class="fas fa-balance-scale me-2"></i>Confronto con Periodo Precedente</h5>
-                <div class="row" id="confrontoStats">
-                    <!-- Statistiche di confronto -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Visualizzazioni -->
-        <div class="row">
-            <!-- Grafici -->
-            <div class="col-lg-8">
-                <div class="chart-container">
-                    <h5 id="chartTitle"><i class="fas fa-chart-line me-2"></i>Andamento Temporale</h5>
-                    <canvas id="mainChart" width="400" height="200"></canvas>
-                </div>
-                
-                <!-- Grafico Secondario -->
-                <div class="chart-container">
-                    <h5><i class="fas fa-chart-bar me-2"></i>Confronto Gruppi</h5>
-                    <canvas id="comparisonChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-            
-            <!-- Analisi e Insights -->
-            <div class="col-lg-4">
-                <div class="stat-card">
-                    <h5><i class="fas fa-trending-up me-2"></i>Trend Analysis</h5>
-                    <div id="trendAnalysis">
-                        <!-- Analisi trend -->
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <h5><i class="fas fa-calendar-alt me-2"></i>Stagionalità</h5>
-                    <div id="seasonalityAnalysis">
-                        <!-- Analisi stagionalità -->
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <h5><i class="fas fa-link me-2"></i>Correlazioni</h5>
-                    <div id="correlationAnalysis">
-                        <!-- Analisi correlazioni -->
-                    </div>
-                </div>
-            </div>
+        <!-- Grafico Andamento Temporale -->
+        <div class="chart-container">
+            <h5><i class="fas fa-chart-line me-2"></i>Andamento Temporale</h5>
+            <canvas id="mainChart" width="400" height="200"></canvas>
         </div>
 
         <!-- Tabella Dettagliata -->
-        <div class="chart-container">
+        <div class="table-container">
             <h5><i class="fas fa-table me-2"></i>Dati Dettagliati</h5>
             <div class="table-responsive">
                 <table id="storicoTable" class="table table-striped table-hover">
