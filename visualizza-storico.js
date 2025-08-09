@@ -12,6 +12,15 @@ let chartInstance = null;
 let gruppoToCapitolo = {};
 let gruppoToSettore = {};
 
+function convertiMeseInNumero(nomeMese) {
+    const mesi = {
+        'gennaio': 1, 'febbraio': 2, 'marzo': 3, 'aprile': 4,
+        'maggio': 5, 'giugno': 6, 'luglio': 7, 'agosto': 8,
+        'settembre': 9, 'ottobre': 10, 'novembre': 11, 'dicembre': 12
+    };
+    return mesi[nomeMese.toLowerCase()] || 1;
+}
+
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', async function() {
     try {
@@ -66,12 +75,10 @@ async function caricaDatiStorici() {
         if (zadankaiSnapshot.exists()) {
             const zadankaiData = zadankaiSnapshot.val();
             console.log('Dati zadankai trovati:', Object.keys(zadankaiData).length, 'record');
-            console.log('Chiavi trovate:', Object.keys(zadankaiData));
             
             // Elabora dati zadankai dal database reale
             Object.entries(zadankaiData).forEach(([chiave, sezioni]) => {
                 console.log('Elaborando chiave:', chiave, 'Sezioni:', sezioni);
-                
                 const [anno, mese, gruppo] = chiave.split('-');
                 
                 if (!anno || !mese || !gruppo) {
@@ -79,7 +86,9 @@ async function caricaDatiStorici() {
                     return;
                 }
                 
-                const data = new Date(parseInt(anno), parseInt(mese) - 1, 1);
+                // Converti il mese da nome a numero
+                const numeroMese = convertiMeseInNumero(mese);
+                const data = new Date(parseInt(anno), numeroMese - 1, 1);
                 const capitolo = gruppoToCapitolo[gruppo] || 'Sconosciuto';
                 const settore = gruppoToSettore[gruppo] || 'Sconosciuto';
                 
@@ -92,8 +101,8 @@ async function caricaDatiStorici() {
                     
                     // Membri Zadankai
                     if (zadankai.membri !== undefined) {
-                        const valore = parseInt(zadankai.membri) || 0;
-                        console.log('Aggiungendo membri zadankai:', valore);
+                        const membri = parseInt(zadankai.membri) || 0;
+                        console.log('Aggiungendo membri zadankai:', membri);
                         datiStorici.push({
                             id: `${chiave}-zadankai-membri`,
                             data: data,
@@ -102,14 +111,14 @@ async function caricaDatiStorici() {
                             capitolo: capitolo,
                             tipo: 'zadankai',
                             categoria: 'membri',
-                            valore: valore
+                            valore: membri
                         });
                     }
                     
                     // Presenze Zadankai
                     if (zadankai.presenze !== undefined) {
-                        const valore = parseInt(zadankai.presenze) || 0;
-                        console.log('Aggiungendo presenze zadankai:', valore);
+                        const presenze = parseInt(zadankai.presenze) || 0;
+                        console.log('Aggiungendo presenze zadankai:', presenze);
                         datiStorici.push({
                             id: `${chiave}-zadankai-presenze`,
                             data: data,
@@ -118,7 +127,7 @@ async function caricaDatiStorici() {
                             capitolo: capitolo,
                             tipo: 'zadankai',
                             categoria: 'presenze',
-                            valore: valore
+                            valore: presenze
                         });
                     }
                 }
@@ -127,18 +136,18 @@ async function caricaDatiStorici() {
                 if (sezioni.praticanti) {
                     const praticanti = sezioni.praticanti;
                     console.log('Dati praticanti per', gruppo, ':', praticanti);
-                    
                     let totalePraticanti = 0;
                     
                     // Somma tutte le categorie di praticanti
                     ['membri', 'simpatizzanti', 'ospiti', 'futuro', 'studenti'].forEach(cat => {
                         if (praticanti[cat] !== undefined) {
-                            totalePraticanti += parseInt(praticanti[cat]) || 0;
+                            const valore = parseInt(praticanti[cat]) || 0;
+                            totalePraticanti += valore;
+                            console.log(`Aggiungendo ${cat}:`, valore, 'Totale corrente:', totalePraticanti);
                         }
                     });
                     
                     console.log('Totale praticanti calcolato:', totalePraticanti);
-                    
                     datiStorici.push({
                         id: `${chiave}-praticanti-totale`,
                         data: data,
@@ -151,11 +160,9 @@ async function caricaDatiStorici() {
                     });
                 }
             });
-        } else {
-            console.log('Nessun dato zadankai trovato nel database');
         }
         
-        // Se non ci sono dati reali, genera sempre dati di esempio
+        // Se non ci sono dati reali, genera dati di esempio
         if (datiStorici.length === 0) {
             console.log('Nessun dato reale trovato, generazione dati di esempio...');
             generaDatiEsempio();
@@ -168,9 +175,7 @@ async function caricaDatiStorici() {
     } catch (error) {
         console.error('Errore durante il caricamento dei dati:', error);
         mostraLoading(false);
-        
-        // Fallback a dati di esempio in caso di errore
-        console.log('Fallback a dati di esempio...');
+        // Fallback ai dati di esempio in caso di errore
         generaDatiEsempio();
     }
 }
