@@ -36,7 +36,10 @@ async function inizializzaApp() {
             console.log('Utente autenticato:', user.email);
             await caricaDatiStorici();
             inizializzaFiltri();
-            applicaFiltri();
+            // Applica filtri automaticamente dopo il caricamento
+            setTimeout(() => {
+                applicaFiltri();
+            }, 1000);
         } else {
             console.log('Utente non autenticato');
             window.location.href = 'login.html';
@@ -63,9 +66,12 @@ async function caricaDatiStorici() {
         if (zadankaiSnapshot.exists()) {
             const zadankaiData = zadankaiSnapshot.val();
             console.log('Dati zadankai trovati:', Object.keys(zadankaiData).length, 'record');
+            console.log('Chiavi trovate:', Object.keys(zadankaiData));
             
             // Elabora dati zadankai dal database reale
             Object.entries(zadankaiData).forEach(([chiave, sezioni]) => {
+                console.log('Elaborando chiave:', chiave, 'Sezioni:', sezioni);
+                
                 const [anno, mese, gruppo] = chiave.split('-');
                 
                 if (!anno || !mese || !gruppo) {
@@ -77,12 +83,17 @@ async function caricaDatiStorici() {
                 const capitolo = gruppoToCapitolo[gruppo] || 'Sconosciuto';
                 const settore = gruppoToSettore[gruppo] || 'Sconosciuto';
                 
+                console.log('Data elaborata:', data, 'Gruppo:', gruppo, 'Capitolo:', capitolo, 'Settore:', settore);
+                
                 // Elabora sezione zadankai
                 if (sezioni.zadankai) {
                     const zadankai = sezioni.zadankai;
+                    console.log('Dati zadankai per', gruppo, ':', zadankai);
                     
                     // Membri Zadankai
                     if (zadankai.membri !== undefined) {
+                        const valore = parseInt(zadankai.membri) || 0;
+                        console.log('Aggiungendo membri zadankai:', valore);
                         datiStorici.push({
                             id: `${chiave}-zadankai-membri`,
                             data: data,
@@ -91,12 +102,14 @@ async function caricaDatiStorici() {
                             capitolo: capitolo,
                             tipo: 'zadankai',
                             categoria: 'membri',
-                            valore: parseInt(zadankai.membri) || 0
+                            valore: valore
                         });
                     }
                     
                     // Presenze Zadankai
                     if (zadankai.presenze !== undefined) {
+                        const valore = parseInt(zadankai.presenze) || 0;
+                        console.log('Aggiungendo presenze zadankai:', valore);
                         datiStorici.push({
                             id: `${chiave}-zadankai-presenze`,
                             data: data,
@@ -105,7 +118,7 @@ async function caricaDatiStorici() {
                             capitolo: capitolo,
                             tipo: 'zadankai',
                             categoria: 'presenze',
-                            valore: parseInt(zadankai.presenze) || 0
+                            valore: valore
                         });
                     }
                 }
@@ -113,6 +126,8 @@ async function caricaDatiStorici() {
                 // Elabora sezione praticanti
                 if (sezioni.praticanti) {
                     const praticanti = sezioni.praticanti;
+                    console.log('Dati praticanti per', gruppo, ':', praticanti);
+                    
                     let totalePraticanti = 0;
                     
                     // Somma tutte le categorie di praticanti
@@ -121,6 +136,8 @@ async function caricaDatiStorici() {
                             totalePraticanti += parseInt(praticanti[cat]) || 0;
                         }
                     });
+                    
+                    console.log('Totale praticanti calcolato:', totalePraticanti);
                     
                     datiStorici.push({
                         id: `${chiave}-praticanti-totale`,
@@ -134,15 +151,18 @@ async function caricaDatiStorici() {
                     });
                 }
             });
+        } else {
+            console.log('Nessun dato zadankai trovato nel database');
         }
         
-        // Se non ci sono dati reali, genera dati di esempio
+        // Se non ci sono dati reali, genera sempre dati di esempio
         if (datiStorici.length === 0) {
             console.log('Nessun dato reale trovato, generazione dati di esempio...');
             generaDatiEsempio();
         }
         
-        console.log('Dati storici caricati:', datiStorici.length);
+        console.log('Dati storici caricati totali:', datiStorici.length);
+        console.log('Primi 5 dati:', datiStorici.slice(0, 5));
         mostraLoading(false);
         
     } catch (error) {
@@ -200,6 +220,7 @@ async function caricaGruppi() {
 
 // Genera dati di esempio per test
 function generaDatiEsempio() {
+    console.log('Generazione dati di esempio...');
     datiStorici = [];
     
     const oggi = new Date();
@@ -210,6 +231,7 @@ function generaDatiEsempio() {
         
         gruppiDisponibili.forEach(gruppo => {
             // Membri Zadankai
+            const membriValue = Math.floor(Math.random() * 50) + 20;
             datiStorici.push({
                 id: `esempio-${data.getTime()}-${gruppo.nome}-zadankai-membri`,
                 data: data,
@@ -218,10 +240,11 @@ function generaDatiEsempio() {
                 capitolo: gruppo.capitolo,
                 tipo: 'zadankai',
                 categoria: 'membri',
-                valore: Math.floor(Math.random() * 50) + 20
+                valore: membriValue
             });
             
             // Presenze Zadankai
+            const presenzeValue = Math.floor(Math.random() * 40) + 15;
             datiStorici.push({
                 id: `esempio-${data.getTime()}-${gruppo.nome}-zadankai-presenze`,
                 data: data,
@@ -230,10 +253,11 @@ function generaDatiEsempio() {
                 capitolo: gruppo.capitolo,
                 tipo: 'zadankai',
                 categoria: 'presenze',
-                valore: Math.floor(Math.random() * 40) + 15
+                valore: presenzeValue
             });
             
             // Totale Praticanti
+            const praticanti = Math.floor(Math.random() * 80) + 30;
             datiStorici.push({
                 id: `esempio-${data.getTime()}-${gruppo.nome}-praticanti-totale`,
                 data: data,
@@ -242,7 +266,7 @@ function generaDatiEsempio() {
                 capitolo: gruppo.capitolo,
                 tipo: 'praticanti',
                 categoria: 'totale',
-                valore: Math.floor(Math.random() * 80) + 30
+                valore: praticanti
             });
         });
     }
@@ -255,44 +279,50 @@ function inizializzaFiltri() {
     // Popola filtro capitoli
     const capitoli = [...new Set(gruppiDisponibili.map(g => g.capitolo))].sort();
     const capitoloSelect = document.getElementById('capitoloFiltro');
-    capitoloSelect.innerHTML = '<option value="tutti">Tutti i capitoli</option>';
-    capitoli.forEach(capitolo => {
-        const option = document.createElement('option');
-        option.value = capitolo;
-        option.textContent = capitolo;
-        capitoloSelect.appendChild(option);
-    });
+    if (capitoloSelect) {
+        capitoloSelect.innerHTML = '<option value="tutti">Tutti i capitoli</option>';
+        capitoli.forEach(capitolo => {
+            const option = document.createElement('option');
+            option.value = capitolo;
+            option.textContent = capitolo;
+            capitoloSelect.appendChild(option);
+        });
+    }
     
     // Popola filtro settori
     const settori = [...new Set(gruppiDisponibili.map(g => g.settore))].sort();
     const settoreSelect = document.getElementById('settoreFiltro');
-    settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
-    settori.forEach(settore => {
-        const option = document.createElement('option');
-        option.value = settore;
-        option.textContent = settore;
-        settoreSelect.appendChild(option);
-    });
+    if (settoreSelect) {
+        settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
+        settori.forEach(settore => {
+            const option = document.createElement('option');
+            option.value = settore;
+            option.textContent = settore;
+            settoreSelect.appendChild(option);
+        });
+    }
     
     // Popola filtro gruppi
     const gruppoSelect = document.getElementById('gruppoFiltro');
-    gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
-    gruppiDisponibili.forEach(gruppo => {
-        const option = document.createElement('option');
-        option.value = gruppo.nome;
-        option.textContent = gruppo.nome;
-        gruppoSelect.appendChild(option);
-    });
+    if (gruppoSelect) {
+        gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
+        gruppiDisponibili.forEach(gruppo => {
+            const option = document.createElement('option');
+            option.value = gruppo.nome;
+            option.textContent = gruppo.nome;
+            gruppoSelect.appendChild(option);
+        });
+    }
     
     // Aggiungi event listeners per filtri dipendenti
-    capitoloSelect.addEventListener('change', aggiornaSottofiltri);
-    settoreSelect.addEventListener('change', aggiornaSottofiltri);
+    if (capitoloSelect) capitoloSelect.addEventListener('change', aggiornaSottofiltri);
+    if (settoreSelect) settoreSelect.addEventListener('change', aggiornaSottofiltri);
 }
 
 // Aggiorna sottofiltri in base alla selezione
 function aggiornaSottofiltri() {
-    const capitoloSelezionato = document.getElementById('capitoloFiltro').value;
-    const settoreSelezionato = document.getElementById('settoreFiltro').value;
+    const capitoloSelezionato = document.getElementById('capitoloFiltro')?.value || 'tutti';
+    const settoreSelezionato = document.getElementById('settoreFiltro')?.value || 'tutti';
     
     // Filtra gruppi disponibili
     let gruppiFiltrati = gruppiDisponibili;
@@ -309,30 +339,34 @@ function aggiornaSottofiltri() {
     if (capitoloSelezionato !== 'tutti') {
         const settoriDisponibili = [...new Set(gruppiFiltrati.map(g => g.settore))].sort();
         const settoreSelect = document.getElementById('settoreFiltro');
-        const valoreCorrente = settoreSelect.value;
-        
-        settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
-        settoriDisponibili.forEach(settore => {
-            const option = document.createElement('option');
-            option.value = settore;
-            option.textContent = settore;
-            if (settore === valoreCorrente) option.selected = true;
-            settoreSelect.appendChild(option);
-        });
+        if (settoreSelect) {
+            const valoreCorrente = settoreSelect.value;
+            
+            settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
+            settoriDisponibili.forEach(settore => {
+                const option = document.createElement('option');
+                option.value = settore;
+                option.textContent = settore;
+                if (settore === valoreCorrente) option.selected = true;
+                settoreSelect.appendChild(option);
+            });
+        }
     }
     
     // Aggiorna filtro gruppi
     const gruppoSelect = document.getElementById('gruppoFiltro');
-    const valoreCorrente = gruppoSelect.value;
-    
-    gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
-    gruppiFiltrati.forEach(gruppo => {
-        const option = document.createElement('option');
-        option.value = gruppo.nome;
-        option.textContent = gruppo.nome;
-        if (gruppo.nome === valoreCorrente) option.selected = true;
-        gruppoSelect.appendChild(option);
-    });
+    if (gruppoSelect) {
+        const valoreCorrente = gruppoSelect.value;
+        
+        gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
+        gruppiFiltrati.forEach(gruppo => {
+            const option = document.createElement('option');
+            option.value = gruppo.nome;
+            option.textContent = gruppo.nome;
+            if (gruppo.nome === valoreCorrente) option.selected = true;
+            gruppoSelect.appendChild(option);
+        });
+    }
 }
 
 // Mostra/nasconde loading
@@ -345,13 +379,16 @@ function mostraLoading(mostra) {
 
 // Applica filtri e aggiorna grafico
 function applicaFiltri() {
-    const capitolo = document.getElementById('capitoloFiltro').value;
-    const settore = document.getElementById('settoreFiltro').value;
-    const gruppo = document.getElementById('gruppoFiltro').value;
+    const capitolo = document.getElementById('capitoloFiltro')?.value || 'tutti';
+    const settore = document.getElementById('settoreFiltro')?.value || 'tutti';
+    const gruppo = document.getElementById('gruppoFiltro')?.value || 'tutti';
     
     console.log('Applicazione filtri:', { capitolo, settore, gruppo });
+    console.log('Dati storici disponibili:', datiStorici.length);
     
     const datiAggregati = aggregaDatiUltimi12Mesi(capitolo, settore, gruppo);
+    console.log('Dati aggregati ottenuti:', datiAggregati.length);
+    
     aggiornaGrafico(datiAggregati, { capitolo, settore, gruppo });
 }
 
@@ -360,6 +397,8 @@ function aggregaDatiUltimi12Mesi(capitolo = 'tutti', settore = 'tutti', gruppo =
     const oggi = new Date();
     const dataInizio = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1);
     const dataFine = new Date(oggi.getFullYear(), oggi.getMonth() + 1, 0);
+    
+    console.log('Periodo filtro:', dataInizio, 'a', dataFine);
     
     // Filtra dati per periodo e filtri selezionati
     let datiFiltrati = datiStorici.filter(dato => {
@@ -400,26 +439,41 @@ function aggregaDatiUltimi12Mesi(capitolo = 'tutti', settore = 'tutti', gruppo =
     // Converti in array ordinato
     const risultato = Object.values(aggregati).sort((a, b) => a.data - b.data);
     
-    console.log('Dati aggregati:', risultato.length, 'mesi');
+    console.log('Dati aggregati finali:', risultato.length, 'mesi');
+    console.log('Dettaglio aggregati:', risultato);
     return risultato;
 }
 
 // Aggiorna il grafico
 function aggiornaGrafico(datiAggregati, filtri) {
-    if (datiAggregati.length === 0) {
-        console.log('Nessun dato da visualizzare');
-        // Mostra grafico vuoto
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
+    console.log('Aggiornamento grafico con', datiAggregati.length, 'punti dati');
+    
+    const ctx = document.getElementById('mainChart');
+    if (!ctx) {
+        console.error('Elemento canvas mainChart non trovato!');
         return;
     }
-    
-    const ctx = document.getElementById('mainChart').getContext('2d');
     
     // Distruggi grafico esistente
     if (chartInstance) {
         chartInstance.destroy();
+        chartInstance = null;
+    }
+    
+    if (datiAggregati.length === 0) {
+        console.log('Nessun dato da visualizzare - mostro messaggio');
+        
+        // Mostra messaggio di nessun dato
+        const container = ctx.parentElement;
+        container.innerHTML = `
+            <h5 id="titoloGrafico"><i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - Nessun Dato</h5>
+            <div class="text-center p-5">
+                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Nessun dato disponibile per i filtri selezionati</p>
+            </div>
+            <canvas id="mainChart" width="400" height="300"></canvas>
+        `;
+        return;
     }
     
     // Prepara dati per il grafico
@@ -431,6 +485,11 @@ function aggiornaGrafico(datiAggregati, filtri) {
     const presenzeZadankaiData = datiAggregati.map(d => d.presenzeZadankai);
     const totalePraticanti = datiAggregati.map(d => d.totalePraticanti);
     
+    console.log('Labels:', labels);
+    console.log('Membri Zadankai:', membriZadankaiData);
+    console.log('Presenze Zadankai:', presenzeZadankaiData);
+    console.log('Totale Praticanti:', totalePraticanti);
+    
     // Aggiorna titolo grafico
     let titoloFiltro = 'Tutti';
     if (filtri.gruppo !== 'tutti') {
@@ -441,84 +500,91 @@ function aggiornaGrafico(datiAggregati, filtri) {
         titoloFiltro = filtri.capitolo;
     }
     
-    document.getElementById('titoloGrafico').innerHTML = 
-        `<i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - ${titoloFiltro}`;
+    const titoloElement = document.getElementById('titoloGrafico');
+    if (titoloElement) {
+        titoloElement.innerHTML = `<i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - ${titoloFiltro}`;
+    }
     
     // Crea nuovo grafico
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Membri Zadankai',
-                    data: membriZadankaiData,
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.4
-                },
-                {
-                    label: 'Presenze Zadankai',
-                    data: presenzeZadankaiData,
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.4
-                },
-                {
-                    label: 'Totale Praticanti',
-                    data: totalePraticanti,
-                    borderColor: '#ffc107',
-                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: `Andamento ${titoloFiltro}`,
-                    font: {
-                        size: 16,
-                        weight: 'bold'
+    try {
+        chartInstance = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Membri Zadankai',
+                        data: membriZadankaiData,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Presenze Zadankai',
+                        data: presenzeZadankaiData,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Totale Praticanti',
+                        data: totalePraticanti,
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
                     }
-                },
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
+                ]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
                     title: {
                         display: true,
-                        text: 'Numero'
+                        text: `Andamento ${titoloFiltro}`,
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
                     }
                 },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Mese'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Numero'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Mese'
+                        }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
             }
-        }
-    });
-    
-    console.log('Grafico aggiornato con successo');
+        });
+        
+        console.log('Grafico creato con successo!');
+        
+    } catch (error) {
+        console.error('Errore nella creazione del grafico:', error);
+    }
 }
 
 // Logout
