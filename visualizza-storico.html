@@ -6,7 +6,6 @@
     <title>Visualizza Storico - Statistica Buddismo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" rel="stylesheet">
     <style>
         .chart-container {
             background: white;
@@ -14,29 +13,12 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            height: 400px;
+            height: 500px;
             position: relative;
         }
         
         .chart-container canvas {
-            max-height: 350px !important;
-        }
-        
-        .table-container {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        
-        .filter-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            max-height: 450px !important;
         }
         
         .loading-spinner {
@@ -45,12 +27,12 @@
             padding: 50px;
         }
         
-        .export-buttons {
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 20px;
-        }
-        
-        .badge-categoria {
-            font-size: 0.8em;
+            text-align: center;
         }
     </style>
 </head>
@@ -70,69 +52,10 @@
     </nav>
 
     <div class="container mt-4">
-        <!-- Filtri -->
-        <div class="filter-section">
-            <h5><i class="fas fa-filter me-2"></i>Filtri</h5>
-            <div class="row">
-                <div class="col-md-3">
-                    <label for="periodo" class="form-label">Periodo</label>
-                    <input type="text" id="periodo" class="form-control" placeholder="Seleziona periodo">
-                </div>
-                <div class="col-md-2">
-                    <label for="gruppoFiltro" class="form-label">Gruppo</label>
-                    <select id="gruppoFiltro" class="form-select">
-                        <option value="tutti">Tutti i gruppi</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="tipoFiltro" class="form-label">Tipo</label>
-                    <select id="tipoFiltro" class="form-select">
-                        <option value="tutto">Tutto</option>
-                        <option value="zadankai">Zadankai</option>
-                        <option value="praticanti">Praticanti</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="categoriaFiltro" class="form-label">Categoria</label>
-                    <select id="categoriaFiltro" class="form-select">
-                        <option value="totale">Totale gruppo</option>
-                        <option value="membri">Membri</option>
-                        <option value="simpatizzanti">Simpatizzanti</option>
-                        <option value="ospiti">Ospiti</option>
-                        <option value="futuro">Futuro</option>
-                        <option value="studenti">Studenti</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="aggregazione" class="form-label">Aggregazione</label>
-                    <select id="aggregazione" class="form-select">
-                        <option value="giornaliera">Giornaliera</option>
-                        <option value="settimanale">Settimanale</option>
-                        <option value="mensile" selected>Mensile</option>
-                        <option value="trimestrale">Trimestrale</option>
-                        <option value="annuale">Annuale</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">&nbsp;</label>
-                    <button id="applicaFiltri" class="btn btn-primary d-block w-100">
-                        <i class="fas fa-search me-1"></i>Applica
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Export Buttons -->
-        <div class="export-buttons">
-            <button class="btn btn-success me-2" onclick="esportaCSV()">
-                <i class="fas fa-file-csv me-1"></i>Esporta CSV
-            </button>
-            <button class="btn btn-info me-2" onclick="esportaExcel()">
-                <i class="fas fa-file-excel me-1"></i>Esporta Excel
-            </button>
-            <button class="btn btn-danger" onclick="esportaPDF()">
-                <i class="fas fa-file-pdf me-1"></i>Esporta PDF
-            </button>
+        <!-- Info Section -->
+        <div class="info-section">
+            <h5><i class="fas fa-info-circle me-2"></i>Andamento Annuale</h5>
+            <p class="mb-0">Visualizzazione automatica degli ultimi 12 mesi (dal mese corrente)</p>
         </div>
 
         <!-- Loading Spinner -->
@@ -145,46 +68,15 @@
 
         <!-- Grafico Andamento Temporale -->
         <div class="chart-container">
-            <h5><i class="fas fa-chart-line me-2"></i>Andamento Temporale - Totali Mensili</h5>
-            <canvas id="mainChart" width="400" height="200"></canvas>
-        </div>
-
-        <!-- Tabella Dettagliata -->
-        <div class="table-container">
-            <h5><i class="fas fa-table me-2"></i>Dati Dettagliati</h5>
-            <div class="table-responsive">
-                <table id="storicoTable" class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Data</th>
-                            <th>Gruppo</th>
-                            <th>Settore</th>
-                            <th>Capitolo</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th>Membri</th>
-                            <th>Simpatizzanti</th>
-                            <th>Ospiti</th>
-                            <th>Totale</th>
-                            <th>Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="storicoTableBody">
-                        <!-- Dati tabella -->
-                    </tbody>
-                </table>
-            </div>
+            <h5><i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi</h5>
+            <canvas id="mainChart" width="400" height="300"></canvas>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script type="module" src="visualizza-storico.js"></script>
 </body>
 </html>
