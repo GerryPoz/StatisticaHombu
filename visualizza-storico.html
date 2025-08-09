@@ -36,6 +36,19 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: 400px; /* Altezza fissa per i contenitori dei grafici */
+            position: relative;
+        }
+        
+        .chart-container canvas {
+            max-height: 350px !important; /* Altezza massima per i canvas */
+        }
+        
+        /* Altezza specifica per la tabella */
+        .chart-container:has(#storicoTable) {
+            height: auto;
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         .filter-section {
