@@ -498,61 +498,161 @@ function calcolaStatistiche(datiAggregati, datiFiltrati) {
 
 // Aggiorna grafici
 function aggiornaGrafici(datiAggregati, filtri) {
-    const graficiContainer = document.getElementById('graficiContainer');
-    if (!graficiContainer) return;
-    
-    graficiContainer.innerHTML = '';
-    
     // Distruggi grafici esistenti
     Object.values(chartInstances).forEach(chart => {
         if (chart) chart.destroy();
     });
     chartInstances = {};
     
-    // Crea grafici per ogni gruppo
-    Object.keys(datiAggregati).forEach(gruppo => {
-        const canvasContainer = document.createElement('div');
-        canvasContainer.className = 'col-md-6 mb-4';
+    // Grafico principale - Andamento Temporale
+    const mainCanvas = document.getElementById('mainChart');
+    if (mainCanvas) {
+        const ctx = mainCanvas.getContext('2d');
         
-        const canvas = document.createElement('canvas');
-        canvas.id = `chart-${gruppo.replace(/\s+/g, '-')}`;
+        // Prepara dati per tutti i gruppi
+        const datasets = [];
+        const colori = [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)', 
+            'rgb(255, 205, 86)',
+            'rgb(75, 192, 192)',
+            'rgb(153, 102, 255)',
+            'rgb(255, 159, 64)'
+        ];
         
-        canvasContainer.innerHTML = `
-            <div class="chart-container">
-                <h6>${gruppo}</h6>
-            </div>
-        `;
-        canvasContainer.querySelector('.chart-container').appendChild(canvas);
-        graficiContainer.appendChild(canvasContainer);
+        let tuttiPeriodi = new Set();
+        Object.keys(datiAggregati).forEach(gruppo => {
+            Object.keys(datiAggregati[gruppo]).forEach(periodo => {
+                tuttiPeriodi.add(periodo);
+            });
+        });
         
-        // Prepara dati per il grafico
-        const periodi = Object.keys(datiAggregati[gruppo]).sort();
-        const valori = periodi.map(p => datiAggregati[gruppo][p].media);
+        const periodiOrdinati = Array.from(tuttiPeriodi).sort();
         
-        // Crea grafico
-        const ctx = canvas.getContext('2d');
-        chartInstances[gruppo] = new Chart(ctx, {
+        Object.keys(datiAggregati).forEach((gruppo, index) => {
+            const valori = periodiOrdinati.map(periodo => {
+                return datiAggregati[gruppo][periodo] ? datiAggregati[gruppo][periodo].media : 0;
+            });
+            
+            datasets.push({
+                label: gruppo,
+                data: valori,
+                borderColor: colori[index % colori.length],
+                backgroundColor: colori[index % colori.length] + '20',
+                tension: 0.1,
+                fill: false
+            });
+        });
+        
+        chartInstances.main = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: periodi,
-                datasets: [{
-                    label: 'Media',
-                    data: valori,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
+                labels: periodiOrdinati,
+                datasets: datasets
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Andamento Temporale per Gruppo'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valore Medio'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Periodo'
+                        }
                     }
                 }
             }
         });
-    });
+    }
+    
+    // Grafico di confronto - Confronto Gruppi
+    const comparisonCanvas = document.getElementById('comparisonChart');
+    if (comparisonCanvas) {
+        const ctx2 = comparisonCanvas.getContext('2d');
+        
+        // Calcola media per gruppo
+        const gruppiMedie = {};
+        Object.keys(datiAggregati).forEach(gruppo => {
+            const valori = Object.values(datiAggregati[gruppo]).map(p => p.media);
+            gruppiMedie[gruppo] = valori.length > 0 ? valori.reduce((a, b) => a + b, 0) / valori.length : 0;
+        });
+        
+        const gruppiNomi = Object.keys(gruppiMedie);
+        const gruppiValori = Object.values(gruppiMedie);
+        
+        chartInstances.comparison = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: gruppiNomi,
+                datasets: [{
+                    label: 'Media Periodo',
+                    data: gruppiValori,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Confronto Medie per Gruppo'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valore Medio'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Gruppi'
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // Aggiorna tabella
@@ -574,7 +674,7 @@ function aggiornaTabella(dati) {
         // Calcola variazione rispetto al record precedente dello stesso gruppo e tipo
         let variazione = '';
         const precedente = datiOrdinati.find((d, i) => 
-            i > index && d.gruppo === dato.gruppo && d.tipo === dato.tipo
+            i > index && d.gruppo === dato.gruppo && d.tipo === dato.tipo && d.categoria === dato.categoria
         );
         
         if (precedente) {
@@ -587,6 +687,18 @@ function aggiornaTabella(dati) {
             }
         }
         
+        // Determina il badge per la categoria
+        let badgeCategoria = '';
+        if (dato.categoria === 'membri') {
+            badgeCategoria = '<span class="badge bg-success">Membri</span>';
+        } else if (dato.categoria === 'simpatizzanti') {
+            badgeCategoria = '<span class="badge bg-warning">Simpatizzanti</span>';
+        } else if (dato.categoria === 'ospiti') {
+            badgeCategoria = '<span class="badge bg-info">Ospiti</span>';
+        } else {
+            badgeCategoria = `<span class="badge bg-secondary">${dato.categoria}</span>`;
+        }
+        
         row.innerHTML = `
             <td>${dato.data.toLocaleDateString('it-IT')}</td>
             <td>${dato.gruppo}</td>
@@ -596,8 +708,9 @@ function aggiornaTabella(dati) {
                 <span class="badge bg-${dato.tipo === 'zadankai' ? 'primary' : 'secondary'}">
                     ${dato.tipo.toUpperCase()}
                 </span>
-                ${dato.valore}
             </td>
+            <td>${badgeCategoria}</td>
+            <td><strong>${dato.valore}</strong></td>
             <td class="${variazione.startsWith('+') ? 'trend-up' : variazione.startsWith('-') ? 'trend-down' : ''}">
                 ${variazione || '-'}
             </td>
