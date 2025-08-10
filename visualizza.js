@@ -930,7 +930,8 @@ function esportaPdf() {
         data.cell.styles.fillColor = [240, 240, 240]; // Sfondo grigio chiaro
         data.cell.styles.lineWidth = 0.5;
         data.cell.styles.lineColor = [200, 200, 200];
-        data.cell.styles.minCellHeight = 3; // Riduce l'altezza a metà (da ~6 a 3)
+        data.cell.styles.minCellHeight = 1.5; // Riduce ulteriormente l'altezza
+        data.cell.styles.cellPadding = 0.5; // Riduce anche il padding
       }
     }
   });
