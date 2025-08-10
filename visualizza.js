@@ -921,15 +921,16 @@ function esportaPdf() {
     headStyles: { fillColor: [41, 128, 185] },
     columnStyles: {
       7: { fontStyle: 'bold' }, // Colonna Somma in grassetto
-      9: { fontStyle: 'bold' } // Colonna Totale in grassetto { fontSize: 6 } // Colonna Totale Gruppo con font più piccolo
+      9: { fontStyle: 'bold' } // Colonna Totale in grassetto
     },
     didParseCell: function(data) {
-      // Aggiungi bordo superiore più spesso per le righe vuote (separatori)
+      // Riduce l'altezza delle righe separatrici (righe vuote)
       if (data.row.index > 0 && 
           data.row.raw.every(cell => cell === "")) {
         data.cell.styles.fillColor = [240, 240, 240]; // Sfondo grigio chiaro
         data.cell.styles.lineWidth = 0.5;
         data.cell.styles.lineColor = [200, 200, 200];
+        data.cell.styles.minCellHeight = 3; // Riduce l'altezza a metà (da ~6 a 3)
       }
     }
   });
