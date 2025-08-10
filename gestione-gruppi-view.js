@@ -267,8 +267,7 @@ async function logout() {
 }
 
 // Esporta funzioni globali
-window.esportaStruttura = esportaStruttura;
-window.logout = logout;
 window.esportaExcel = esportaExcel;
 window.esportaPdf = esportaPdf;
+window.logout = logout;
 window.logout = logout;
