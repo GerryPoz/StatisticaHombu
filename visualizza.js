@@ -34,7 +34,8 @@ const filtroAnno = document.getElementById("filtro-anno");
 const filtroMese = document.getElementById("filtro-mese");
 const filtroCapitolo = document.getElementById("filtro-capitolo");
 const tbody = document.querySelector("#tabella-dati tbody");
-const btnExportCsv = document.getElementById("btn-export-csv");
+const btnExportExcel = document.getElementById("btn-export-excel");
+const btnExportPdf = document.getElementById("btn-export-pdf");
 const btnPrint = document.getElementById("btn-print");
 const chartCategorie = document.getElementById("chart-categorie");
 const chartConfronto = document.getElementById("chart-confronto");
@@ -122,7 +123,8 @@ async function caricaDati() {
     // Aggiungi event listeners
     [filtroAnno, filtroMese, filtroCapitolo].forEach(f => 
       f.addEventListener("change", aggiornaTabella));
-    btnExportCsv.addEventListener("click", esportaCsv);
+    btnExportExcel.addEventListener("click", esportaExcel);
+    btnExportPdf.addEventListener("click", esportaPdf);
     btnPrint.addEventListener("click", stampa);
 
     // Inizializza la tabella
@@ -743,8 +745,8 @@ function aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec
   });
 }
 
-// Funzione per esportare in CSV
-function esportaCsv() {
+// Funzione per esportare in Excel
+function esportaExcel() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
   const capitolo = filtroCapitolo.value;
@@ -760,25 +762,70 @@ function esportaCsv() {
     return;
   }
 
-  // Intestazioni CSV
-  let csv = "Gruppo,Categoria,Sezione,U,D,GU,GD,Somma,Futuro,Studenti\n";
-
+  // Crea i dati per Excel
+  const datiExcel = [];
+  
+  // Intestazioni
+  datiExcel.push(["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Futuro", "Studenti"]);
+  
   // Righe dati
   righeFiltrate.forEach(r => {
     const somma = r.U + r.D + r.GU + r.GD;
-    csv += `"${r.gruppo}","${r.tipo}","${r.sezione}",${r.U},${r.D},${r.GU},${r.GD},${somma},${r.FUT},${r.STU}\n`;
+    datiExcel.push([r.gruppo, r.tipo, r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU]);
   });
 
-  // Crea e scarica il file
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `dati_${capitolo}_${mese}_${anno}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  // Crea il workbook
+  const ws = XLSX.utils.aoa_to_sheet(datiExcel);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dati");
+  
+  // Scarica il file
+  XLSX.writeFile(wb, `dati_${capitolo}_${mese}_${anno}.xlsx`);
+}
+
+// Funzione per esportare in PDF
+function esportaPdf() {
+  const anno = filtroAnno.value;
+  const mese = filtroMese.value;
+  const capitolo = filtroCapitolo.value;
+
+  const righeFiltrate = righe.filter(r =>
+    r.anno === anno &&
+    r.mese === mese &&
+    gruppoToCapitolo[r.gruppo] === capitolo
+  );
+
+  if (righeFiltrate.length === 0) {
+    alert("Nessun dato da esportare");
+    return;
+  }
+
+  // Crea il documento PDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Titolo
+  doc.setFontSize(16);
+  doc.text(`Statistica ${capitolo} - ${mese} ${anno}`, 20, 20);
+  
+  // Prepara i dati per la tabella
+  const intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Futuro", "Studenti"]];
+  const righeTabella = righeFiltrate.map(r => {
+    const somma = r.U + r.D + r.GU + r.GD;
+    return [r.gruppo, r.tipo, r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
+  });
+  
+  // Crea la tabella
+  doc.autoTable({
+    head: intestazioni,
+    body: righeTabella,
+    startY: 30,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [41, 128, 185] }
+  });
+  
+  // Scarica il file
+  doc.save(`dati_${capitolo}_${mese}_${anno}.pdf`);
 }
 
 // Funzione per la stampa
