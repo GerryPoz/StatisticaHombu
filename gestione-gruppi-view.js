@@ -172,9 +172,12 @@ function calcolaStatistiche() {
     document.getElementById('mediaGruppi').textContent = mediaGruppi;
 }
 
-// Esporta la struttura in CSV
-function esportaStruttura() {
-    let csvContent = 'Capitolo,Settore,Gruppo,Posizione\n';
+// Esportazione Excel
+function esportaExcel() {
+    const dati = [];
+    
+    // Intestazioni
+    dati.push(['Capitolo', 'Settore', 'Gruppo', 'Posizione']);
     
     Object.keys(strutturaGruppi).forEach(hombuKey => {
         const hombu = strutturaGruppi[hombuKey];
@@ -187,31 +190,70 @@ function esportaStruttura() {
                 
                 if (Array.isArray(settore) && settore.length > 0) {
                     settore.forEach((gruppo, index) => {
-                        // Escape delle virgole nei nomi se presenti
-                        const capitoloEscaped = `"${capitoloKey.replace(/"/g, '""')}"`;
-                        const settoreEscaped = `"${settoreKey.replace(/"/g, '""')}"`;
-                        const gruppoEscaped = `"${gruppo.replace(/"/g, '""')}"`;
-                        
-                        csvContent += `${capitoloEscaped},${settoreEscaped},${gruppoEscaped},${index + 1}\n`;
+                        dati.push([capitoloKey, settoreKey, gruppo, index + 1]);
                     });
                 } else {
-                    // Settore senza gruppi
-                    const capitoloEscaped = `"${capitoloKey.replace(/"/g, '""')}"`;
-                    const settoreEscaped = `"${settoreKey.replace(/"/g, '""')}"`;
-                    csvContent += `${capitoloEscaped},${settoreEscaped},"Nessun gruppo",0\n`;
+                    dati.push([capitoloKey, settoreKey, 'Nessun gruppo', 0]);
                 }
             });
         });
     });
     
-    // Crea e scarica il file CSV
-    const dataBlob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+    // Crea il workbook
+    const ws = XLSX.utils.aoa_to_sheet(dati);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Struttura Gruppi');
     
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `struttura-gruppi-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+    // Scarica il file
+    XLSX.writeFile(wb, `struttura-gruppi-${new Date().toISOString().split('T')[0]}.xlsx`);
 }
+
+// Esportazione PDF
+function esportaPdf() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Titolo
+    doc.setFontSize(16);
+    doc.text('Struttura Gruppi HOMBU 9', 20, 20);
+    
+    // Prepara i dati per la tabella
+    const intestazioni = [['Capitolo', 'Settore', 'Gruppo', 'Posizione']];
+    const righe = [];
+    
+    Object.keys(strutturaGruppi).forEach(hombuKey => {
+        const hombu = strutturaGruppi[hombuKey];
+        
+        Object.keys(hombu).forEach(capitoloKey => {
+            const capitolo = hombu[capitoloKey];
+            
+            Object.keys(capitolo).forEach(settoreKey => {
+                const settore = capitolo[settoreKey];
+                
+                if (Array.isArray(settore) && settore.length > 0) {
+                    settore.forEach((gruppo, index) => {
+                        righe.push([capitoloKey, settoreKey, gruppo, index + 1]);
+                    });
+                } else {
+                    righe.push([capitoloKey, settoreKey, 'Nessun gruppo', 0]);
+                }
+            });
+        });
+    });
+    
+    // Crea la tabella
+    doc.autoTable({
+        head: intestazioni,
+        body: righe,
+        startY: 30,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [41, 128, 185] }
+    });
+    
+    // Scarica il file
+    doc.save(`struttura-gruppi-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 
 // Logout
 async function logout() {
@@ -226,4 +268,7 @@ async function logout() {
 
 // Esporta funzioni globali
 window.esportaStruttura = esportaStruttura;
+window.logout = logout;
+window.esportaExcel = esportaExcel;
+window.esportaPdf = esportaPdf;
 window.logout = logout;
