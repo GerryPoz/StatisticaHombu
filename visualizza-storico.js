@@ -613,27 +613,6 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
     
     let html = '';
     
-    // Calcola totali generali
-    let totaleGeneraleMembri = 0;
-    let totaleGeneralePresenze = 0;
-    let totaleGeneralePraticanti = 0;
-    
-    datiAggregati.forEach(dato => {
-        totaleGeneraleMembri += dato.membriZadankai;
-        totaleGeneralePresenze += dato.presenzeZadankai;
-        totaleGeneralePraticanti += dato.totalePraticanti;
-    });
-    
-    // Sezione riassunto generale
-    html += `
-        <div class="month-result" style="background: #e3f2fd; border-left: 4px solid #1976d2;">
-            <div class="month-title">📊 RIASSUNTO GENERALE (${datiAggregati.length} mesi)</div>
-            <div class="metric">👥 Totale Membri Zadankai: <span class="metric-value">${totaleGeneraleMembri}</span></div>
-            <div class="metric">✋ Totale Presenze Zadankai: <span class="metric-value">${totaleGeneralePresenze}</span></div>
-            <div class="metric">🏛️ Totale Praticanti: <span class="metric-value">${totaleGeneralePraticanti}</span></div>
-        </div>
-    `;
-    
     // Dettaglio per ogni mese
     datiAggregati.forEach(dato => {
         const dataFormatted = dato.data.toLocaleDateString('it-IT', { 
