@@ -750,6 +750,7 @@ function esportaExcel() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
   const capitolo = filtroCapitolo.value;
+  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
 
   const righeFiltrate = righe.filter(r =>
     r.anno === anno &&
@@ -766,12 +767,56 @@ function esportaExcel() {
   const datiExcel = [];
   
   // Intestazioni
-  datiExcel.push(["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Futuro", "Studenti"]);
+  datiExcel.push(["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]);
+  
+  // Raggruppa per gruppo
+  const gruppiPresenti = [...new Set(righeFiltrate.map(r => r.gruppo))];
+  gruppiPresenti.sort();
   
   // Righe dati
-  righeFiltrate.forEach(r => {
-    const somma = r.U + r.D + r.GU + r.GD;
-    datiExcel.push([r.gruppo, r.tipo, r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU]);
+  gruppiPresenti.forEach(gruppo => {
+    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+      
+      if (righeCategoria.length === 0) return;
+      
+      // Ordina sezioni ZADANKAI nell'ordine: Membri, Simpatizzanti, Ospiti
+      if (tipo === "ZADANKAI") {
+        const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+        righeCategoria.sort((a, b) =>
+          sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
+        );
+      }
+      
+      // Calcola totali categoria
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === tipo
+      );
+      
+      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleCategoria - totalePrec;
+      
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
+        const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
+        
+        // Totale gruppo solo per la prima riga della categoria
+        const totaleGruppo = index === 0 ? `${totaleCategoria} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : "";
+        
+        datiExcel.push([
+          gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
+          somma, sommaPrec, totaleGruppo, r.FUT, r.STU
+        ]);
+      });
+    });
   });
 
   // Crea il workbook
@@ -788,6 +833,7 @@ function esportaPdf() {
   const anno = filtroAnno.value;
   const mese = filtroMese.value;
   const capitolo = filtroCapitolo.value;
+  const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
 
   const righeFiltrate = righe.filter(r =>
     r.anno === anno &&
@@ -802,17 +848,63 @@ function esportaPdf() {
 
   // Crea il documento PDF
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF('landscape'); // Orientamento orizzontale per più colonne
   
   // Titolo
   doc.setFontSize(16);
   doc.text(`Statistica ${capitolo} - ${mese} ${anno}`, 20, 20);
   
+  // Raggruppa per gruppo
+  const gruppiPresenti = [...new Set(righeFiltrate.map(r => r.gruppo))];
+  gruppiPresenti.sort();
+  
   // Prepara i dati per la tabella
-  const intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Futuro", "Studenti"]];
-  const righeTabella = righeFiltrate.map(r => {
-    const somma = r.U + r.D + r.GU + r.GD;
-    return [r.gruppo, r.tipo, r.sezione, r.U, r.D, r.GU, r.GD, somma, r.FUT, r.STU];
+  const intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
+  const righeTabella = [];
+  
+  gruppiPresenti.forEach(gruppo => {
+    const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+      let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
+      
+      if (righeCategoria.length === 0) return;
+      
+      // Ordina sezioni ZADANKAI nell'ordine: Membri, Simpatizzanti, Ospiti
+      if (tipo === "ZADANKAI") {
+        const sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+        righeCategoria.sort((a, b) =>
+          sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione)
+        );
+      }
+      
+      // Calcola totali categoria
+      const totaleCategoria = righeCategoria.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      
+      const righePrec = righe.filter(r =>
+        r.anno === annoPrec &&
+        r.mese === mesePrec &&
+        r.gruppo === gruppo &&
+        r.tipo === tipo
+      );
+      
+      const totalePrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const delta = totaleCategoria - totalePrec;
+      
+      righeCategoria.forEach((r, index) => {
+        const somma = r.U + r.D + r.GU + r.GD;
+        const righePrecSezione = righePrec.filter(x => x.sezione === r.sezione);
+        const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
+        
+        // Totale gruppo solo per la prima riga della categoria
+        const totaleGruppo = index === 0 ? `${totaleCategoria} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : "";
+        
+        righeTabella.push([
+          gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
+          somma, sommaPrec, totaleGruppo, r.FUT, r.STU
+        ]);
+      });
+    });
   });
   
   // Crea la tabella
@@ -820,8 +912,12 @@ function esportaPdf() {
     head: intestazioni,
     body: righeTabella,
     startY: 30,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [41, 128, 185] }
+    styles: { fontSize: 7 }, // Font più piccolo per più colonne
+    headStyles: { fillColor: [41, 128, 185] },
+    columnStyles: {
+      7: { fontStyle: 'bold' }, // Colonna Somma in grassetto
+      9: { fontSize: 6 } // Colonna Totale Gruppo con font più piccolo
+    }
   });
   
   // Scarica il file
