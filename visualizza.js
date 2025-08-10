@@ -897,7 +897,7 @@ function esportaPdf() {
         const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
         
         // Totale gruppo solo per la prima riga della categoria
-        const totaleGruppo = index === 0 ? `${totaleCategoria} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : "";
+        const totaleGruppo = index === 0 ? `${totaleCategoria} (P: ${totalePrec}, V: ${delta >= 0 ? "+" : ""}${delta})` : "";
         
         righeTabella.push([
           gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
@@ -916,7 +916,7 @@ function esportaPdf() {
     headStyles: { fillColor: [41, 128, 185] },
     columnStyles: {
       7: { fontStyle: 'bold' }, // Colonna Somma in grassetto
-      9: { fontSize: 6 } // Colonna Totale Gruppo con font più piccolo
+      9: { fontStyle: 'bold' } // Colonna Totale in grassetto { fontSize: 6 } // Colonna Totale Gruppo con font più piccolo
     }
   });
   
