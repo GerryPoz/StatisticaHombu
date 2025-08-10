@@ -266,6 +266,10 @@ async function logout() {
     }
 }
 
+document.getElementById('btnHome')?.addEventListener('click', () => {
+    window.location.href = 'index1.html';
+});
+
 // Esporta funzioni globali
 document.addEventListener('DOMContentLoaded', function() {
     // Event listeners per i pulsanti
