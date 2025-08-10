@@ -596,12 +596,77 @@ function aggiornaGrafico(datiAggregati, filtri) {
                 }
             }
         });
-        
-        console.log('Grafico creato con successo!');
-        
+        aggiornaRisultatiTestuali(datiAggregati, filtri);
+        console.log('Grafico e risultati testuali aggiornati con successo!');
     } catch (error) {
         console.error('Errore nella creazione del grafico:', error);
     }
+}
+
+function aggiornaRisultatiTestuali(datiAggregati, filtri) {
+    const risultatiDiv = document.getElementById('risultatiTestuali');
+    
+    if (!datiAggregati || datiAggregati.length === 0) {
+        risultatiDiv.innerHTML = '<p class="text-muted">Nessun dato disponibile per i filtri selezionati.</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    // Calcola totali generali
+    let totaleGeneraleMembri = 0;
+    let totaleGeneralePresenze = 0;
+    let totaleGeneralePraticanti = 0;
+    
+    datiAggregati.forEach(dato => {
+        totaleGeneraleMembri += dato.membriZadankai;
+        totaleGeneralePresenze += dato.presenzeZadankai;
+        totaleGeneralePraticanti += dato.totalePraticanti;
+    });
+    
+    // Sezione riassunto generale
+    html += `
+        <div class="month-result" style="background: #e3f2fd; border-left: 4px solid #1976d2;">
+            <div class="month-title">📊 RIASSUNTO GENERALE (${datiAggregati.length} mesi)</div>
+            <div class="metric">👥 Totale Membri Zadankai: <span class="metric-value">${totaleGeneraleMembri}</span></div>
+            <div class="metric">✋ Totale Presenze Zadankai: <span class="metric-value">${totaleGeneralePresenze}</span></div>
+            <div class="metric">🏛️ Totale Praticanti: <span class="metric-value">${totaleGeneralePraticanti}</span></div>
+        </div>
+    `;
+    
+    // Dettaglio per ogni mese
+    datiAggregati.forEach(dato => {
+        const dataFormatted = dato.data.toLocaleDateString('it-IT', { 
+            year: 'numeric', 
+            month: 'long' 
+        });
+        
+        html += `
+            <div class="month-result">
+                <div class="month-title">📅 ${dataFormatted}</div>
+                <div class="metric">👥 Membri Zadankai: <span class="metric-value">${dato.membriZadankai}</span></div>
+                <div class="metric">✋ Presenze Zadankai: <span class="metric-value">${dato.presenzeZadankai}</span></div>
+                <div class="metric">🏛️ Totale Praticanti: <span class="metric-value">${dato.totalePraticanti}</span></div>
+            </div>
+        `;
+    });
+    
+    // Informazioni sui filtri applicati
+    const filtroInfo = [];
+    if (filtri.capitolo !== 'tutti') filtroInfo.push(`Capitolo: ${filtri.capitolo}`);
+    if (filtri.settore !== 'tutti') filtroInfo.push(`Settore: ${filtri.settore}`);
+    if (filtri.gruppo !== 'tutti') filtroInfo.push(`Gruppo: ${filtri.gruppo}`);
+    
+    if (filtroInfo.length > 0) {
+        html += `
+            <div class="month-result" style="background: #fff3e0; border-left: 4px solid #f57c00;">
+                <div class="month-title">🔍 Filtri Applicati</div>
+                <div style="color: #f57c00;">${filtroInfo.join(' • ')}</div>
+            </div>
+        `;
+    }
+    
+    risultatiDiv.innerHTML = html;
 }
 
 // Logout
