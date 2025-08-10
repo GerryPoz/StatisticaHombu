@@ -66,15 +66,10 @@ async function caricaStrutturaGruppi() {
     }
 }
 
-// Visualizza la struttura
 function visualizzaStruttura() {
     const container = document.getElementById('strutturaContainer');
-    const treeView = document.getElementById('treeView');
     
     container.innerHTML = '';
-    treeView.innerHTML = '';
-    
-    let treeText = 'HOMBU 9\n';
     
     Object.keys(strutturaGruppi).forEach(hombuKey => {
         const hombu = strutturaGruppi[hombuKey];
@@ -91,12 +86,9 @@ function visualizzaStruttura() {
             `;
             container.appendChild(capitoloDiv);
             
-            treeText += `├── ${capitoloKey}\n`;
-            
             // Settori
             Object.keys(capitolo).forEach((settoreKey, settoreIndex, settoriArray) => {
                 const settore = capitolo[settoreKey];
-                const isLastSettore = settoreIndex === settoriArray.length - 1;
                 
                 const settoreCard = document.createElement('div');
                 settoreCard.className = 'gruppo-card card mb-3';
@@ -120,24 +112,9 @@ function visualizzaStruttura() {
                 `;
                 
                 container.appendChild(settoreCard);
-                
-                // Tree view
-                const settorePrefix = isLastSettore ? '└──' : '├──';
-                treeText += `│   ${settorePrefix} ${settoreKey} (${gruppiCount} gruppi)\n`;
-                
-                if (Array.isArray(settore)) {
-                    settore.forEach((gruppo, gruppoIndex) => {
-                        const isLastGruppo = gruppoIndex === settore.length - 1;
-                        const gruppoPrefix = isLastGruppo ? '└──' : '├──';
-                        const linePrefix = isLastSettore ? '    ' : '│   ';
-                        treeText += `${linePrefix}    ${gruppoPrefix} ${gruppo}\n`;
-                    });
-                }
             });
         });
     });
-    
-    treeView.textContent = treeText;
 }
 
 // Calcola e visualizza le statistiche
