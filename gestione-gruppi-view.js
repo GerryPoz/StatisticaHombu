@@ -273,4 +273,3 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btnEsportaPdf')?.addEventListener('click', esportaPdf);
     document.getElementById('btnLogout')?.addEventListener('click', logout);
 });
-window.logout = logout;
