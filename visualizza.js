@@ -931,14 +931,6 @@ function esportaPdf() {
         data.cell.styles.lineWidth = 0.5;
         data.cell.styles.lineColor = [200, 200, 200];
       }
-      
-      // Evidenzia la prima riga di ogni gruppo
-      if (data.row.index > 0 && data.column.index === 0 && 
-          data.cell.text[0] !== "" && 
-          data.row.raw[0] !== righeTabella[data.row.index - 1]?.[0]) {
-        data.cell.styles.lineWidth = 1;
-        data.cell.styles.lineColor = [100, 100, 100];
-      }
     }
   });
   
