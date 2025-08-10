@@ -267,7 +267,10 @@ async function logout() {
 }
 
 // Esporta funzioni globali
-window.esportaExcel = esportaExcel;
-window.esportaPdf = esportaPdf;
-window.logout = logout;
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners per i pulsanti
+    document.getElementById('btnEsportaExcel')?.addEventListener('click', esportaExcel);
+    document.getElementById('btnEsportaPdf')?.addEventListener('click', esportaPdf);
+    document.getElementById('btnLogout')?.addEventListener('click', logout);
+});
 window.logout = logout;
