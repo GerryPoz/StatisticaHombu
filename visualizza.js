@@ -862,8 +862,13 @@ function esportaPdf() {
   const intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
   const righeTabella = [];
   
-  gruppiPresenti.forEach(gruppo => {
+  gruppiPresenti.forEach((gruppo, gruppoIndex) => {
     const righeGruppo = righeFiltrate.filter(r => r.gruppo === gruppo);
+    
+    // Aggiungi riga separatrice tra gruppi (tranne per il primo gruppo)
+    if (gruppoIndex > 0) {
+      righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]); // Riga vuota
+    }
     
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
       let righeCategoria = righeGruppo.filter(r => r.tipo === tipo);
@@ -897,7 +902,7 @@ function esportaPdf() {
         const sommaPrec = righePrecSezione.reduce((acc, x) => acc + x.U + x.D + x.GU + x.GD, 0);
         
         // Totale gruppo solo per la prima riga della categoria
-        const totaleGruppo = index === 0 ? `${totaleCategoria} (P: ${totalePrec}, V: ${delta >= 0 ? "+" : ""}${delta})` : "";
+        const totaleGruppo = index === 0 ? `${totaleCategoria} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : "";
         
         righeTabella.push([
           gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
@@ -907,7 +912,7 @@ function esportaPdf() {
     });
   });
   
-  // Crea la tabella
+  // Crea la tabella con separazioni personalizzate
   doc.autoTable({
     head: intestazioni,
     body: righeTabella,
@@ -917,6 +922,23 @@ function esportaPdf() {
     columnStyles: {
       7: { fontStyle: 'bold' }, // Colonna Somma in grassetto
       9: { fontStyle: 'bold' } // Colonna Totale in grassetto { fontSize: 6 } // Colonna Totale Gruppo con font più piccolo
+    },
+    didParseCell: function(data) {
+      // Aggiungi bordo superiore più spesso per le righe vuote (separatori)
+      if (data.row.index > 0 && 
+          data.row.raw.every(cell => cell === "")) {
+        data.cell.styles.fillColor = [240, 240, 240]; // Sfondo grigio chiaro
+        data.cell.styles.lineWidth = 0.5;
+        data.cell.styles.lineColor = [200, 200, 200];
+      }
+      
+      // Evidenzia la prima riga di ogni gruppo
+      if (data.row.index > 0 && data.column.index === 0 && 
+          data.cell.text[0] !== "" && 
+          data.row.raw[0] !== righeTabella[data.row.index - 1]?.[0]) {
+        data.cell.styles.lineWidth = 1;
+        data.cell.styles.lineColor = [100, 100, 100];
+      }
     }
   });
   
