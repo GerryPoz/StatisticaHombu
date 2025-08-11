@@ -283,7 +283,7 @@
             font-size: 0.9em;
         }
         
-        @media print {
+               @media print {
             body {
                 background: white;
                 padding: 0;
@@ -292,6 +292,179 @@
             .newsletter-container {
                 box-shadow: none;
                 border-radius: 0;
+            }
+        }
+        
+        /* Nuove media queries per mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .newsletter-container {
+                border-radius: 15px;
+                margin: 0;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header .subtitle {
+                font-size: 1em;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .intro {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .intro h2 {
+                font-size: 1.5em;
+            }
+            
+            .section-title {
+                font-size: 1.5em;
+                margin-bottom: 20px;
+            }
+            
+            .settore {
+                margin-bottom: 25px;
+            }
+            
+            .settore-title {
+                font-size: 1.1em;
+                padding: 8px 12px;
+                margin-bottom: 12px;
+            }
+            
+            .gruppi-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .gruppo-card {
+                padding: 15px;
+                margin-bottom: 8px;
+            }
+            
+            .gruppo-name {
+                font-size: 1em;
+                margin-bottom: 8px;
+            }
+            
+            .gruppo-stats {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .stat {
+                flex: 1;
+                min-width: 60px;
+            }
+            
+            .delta {
+                padding: 3px 6px;
+                font-size: 0.8em;
+            }
+            
+            .evento {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .evento h3 {
+                font-size: 1.3em;
+            }
+            
+            .evento-details {
+                padding: 15px;
+            }
+            
+            .evento-info {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .info-item {
+                padding: 12px;
+            }
+            
+            .incoraggiamento {
+                padding: 20px;
+            }
+            
+            .incoraggiamento h3 {
+                font-size: 1.3em;
+            }
+            
+            .quote {
+                padding: 18px;
+                font-size: 1em;
+            }
+            
+            .footer {
+                padding: 20px 15px;
+                font-size: 0.8em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .newsletter-container {
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .intro {
+                padding: 15px;
+            }
+            
+            .gruppo-card {
+                padding: 12px;
+            }
+            
+            .gruppo-stats {
+                justify-content: space-around;
+            }
+            
+            .evento {
+                padding: 15px;
+            }
+            
+            .evento-details {
+                padding: 12px;
+            }
+            
+            .incoraggiamento {
+                padding: 15px;
+            }
+            
+            .quote {
+                padding: 15px;
+                font-size: 0.95em;
             }
         }
     </style>
