@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Hombu 9 - Edizione #1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .newsletter-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2em;
+            font-weight: 300;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .intro {
+            background: linear-gradient(135deg, #f8f9ff, #e8f4fd);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .intro h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .intro p {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: #5a6c7d;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #ff6b6b;
+        }
+        
+        .settore {
+            margin-bottom: 30px;
+        }
+        
+        .settore-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .gruppi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .gruppo-card {
+            background: white;
+            border: 2px solid #f1f3f4;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .gruppo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .gruppo-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .gruppo-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-bottom: 2px;
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .delta {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .delta.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .delta.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .delta.neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .evento {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .evento h3 {
+            color: #2d3436;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .evento-details {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .evento-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #5a6c7d;
+        }
+        
+        .incoraggiamento {
+            background: linear-gradient(135deg, #a8e6cf, #88d8c0);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .incoraggiamento h3 {
+            color: #2d3436;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .quote {
+            background: rgba(255,255,255,0.9);
+            padding: 25px;
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: #2c3e50;
+            border-left: 5px solid #00b894;
+        }
+        
+        .link {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #00b894;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 0.9em;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .newsletter-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newsletter-container">
+        <div class="header">
+            <h1>🗞️ Newsletter Hombu 9</h1>
+            <div class="subtitle">Edizione #1 - "Costruiamo insieme il nostro tempo straordinario" ✨</div>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <h2>✨ Introduzione</h2>
+                <p>Cari amici dell'Hombu 9, con grande entusiasmo inauguriamo questa newsletter mensile, uno spazio per condividere i nostri progressi, ispirarci a vicenda e rafforzare il cuore della nostra missione: Kosen-Rufu. Ogni dato che leggerete qui non è solo un numero, ma il riflesso del coraggio, della dedizione e della passione che ciascuno di voi mette nel creare valore nella propria vita e nella società.</p>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">👥 Presenze Zadankai</h2>
+                
+                <div class="settore">
+                    <div class="settore-title">📌 Settore Fukyo</div>
+                    <div class="gruppi-grid">
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">AURORA</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">7</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">8</div>
+                                </div>
+                                <div class="delta negative">−1</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">COLLINE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">11</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">8</div>
+                                </div>
+                                <div class="delta positive">+3</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">KANSAI</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">4</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta negative">−1</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">SOLE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">12</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta positive">+7</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">TORRE_PREZIOSA</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">4</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">6</div>
+                                </div>
+                                <div class="delta negative">−2</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">VITTORIA</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta neutral">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settore">
+                    <div class="settore-title">📌 Settore Invictus</div>
+                    <div class="gruppi-grid">
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">ALFIERI</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta neutral">0</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">CESARE_PAVESE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">7</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">8</div>
+                                </div>
+                                <div class="delta negative">−1</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">RINASCIMENTO</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">6</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">7</div>
+                                </div>
+                                <div class="delta negative">−1</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settore">
+                    <div class="settore-title">📌 Settore Casale</div>
+                    <div class="gruppi-grid">
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">DHARMA</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">6</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">8</div>
+                                </div>
+                                <div class="delta negative">−2</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">FENICE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">15</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">19</div>
+                                </div>
+                                <div class="delta negative">−4</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">LAGO</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">9</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta positive">+4</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">LEONI</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">15</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">18</div>
+                                </div>
+                                <div class="delta negative">−3</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">MAZZINI</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">2</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">2</div>
+                                </div>
+                                <div class="delta neutral">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settore">
+                    <div class="settore-title">📌 Settore Crescentino</div>
+                    <div class="gruppi-grid">
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">AIRONE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">11</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">9</div>
+                                </div>
+                                <div class="delta positive">+2</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">CASALBORGONE</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">6</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">9</div>
+                                </div>
+                                <div class="delta negative">−3</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">CAVAGNOLO</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">7</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">6</div>
+                                </div>
+                                <div class="delta positive">+1</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">GIOTTO</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">10</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">11</div>
+                                </div>
+                                <div class="delta negative">−1</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">LAURIANO</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">7</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">10</div>
+                                </div>
+                                <div class="delta negative">−3</div>
+                            </div>
+                        </div>
+                        <div class="gruppo-card">
+                            <div class="gruppo-name">VESPUCCI</div>
+                            <div class="gruppo-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Totale</div>
+                                    <div class="stat-value">3</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Prec.</div>
+                                    <div class="stat-value">5</div>
+                                </div>
+                                <div class="delta negative">−2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">📅 Prossimo Evento Speciale</h2>
+                <div class="evento">
+                    <h3>Corso Regionale per Responsabili – 15 e 16 Novembre a Piacenza</h3>
+                    <p>Un'occasione imperdibile per rafforzare la nostra fede, approfondire la pratica e costruire legami indistruttibili con il Maestro e i Compagni di fede.</p>
+                    
+                    <div class="evento-details">
+                        <p><strong>La raccolta delle adesioni avverrà da parte di:</strong></p>
+                        <ul>
+                            <li>Stella per il capitolo Asti</li>
+                            <li>Gerry per il capitolo Casale/Crescentino</li>
+                        </ul>
+                        
+                        <div class="evento-info">
+                            <div class="info-item">
+                                <div class="info-label">Orario</div>
+                                <div class="info-value">9:00–17:00 (entrambi i giorni)</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Camera doppia</div>
+                                <div class="info-value">€215 (ancora da definire bene)</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Camera singola</div>
+                                <div class="info-value">€260 (ancora da definire bene)</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Posti disponibili</div>
+                                <div class="info-value">1 per gruppo, 1 per settore, 1 per Capitolo, 65 per Giovani</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Liste adesioni</div>
+                                <div class="info-value">Entro 10 settembre</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Pagamento</div>
+                                <div class="info-value">Entro 20 ottobre</div>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 15px;"><strong>Nota:</strong> Partecipanti Futuro possono partecipare con genitore (o anche da soli con delega, se membri). Ci sarà una lista dei partecipanti e una lista di attesa.</p>
+                        
+                        <p style="margin-top: 10px; font-weight: 600; color: #e74c3c;">Pertanto siamo tutti invitati a metterci in gioco e prepararci con entusiasmo!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="incoraggiamento">
+                <h3>🌱 Incoraggiamento dal corso europeo Giovani del 6 agosto 2025</h3>
+                <div class="quote">
+                    "... le barriere interiori nell'incoraggiare gli altri si abbattono quando si crede profondamente in se stessi, grazie al legame con il maestro, un legame che non dipende dal fatto che lo abbiamo incontrato o meno ma dalla decisione profonda e autonoma di scegliere il maestro e seguirlo. L'azione concreta per sentire il legame con il maestro è cercare di fare proprio il suo spirito e sfidarsi per realizzare la propria missione. In altre parole, facendo felice un'altra persona anche noi diventiamo felici, vuol dire lottare sinceramente al suo fianco per ampliare sempre di più la rete di persone che vivono nel rispetto della dignità della vita."
+                </div>
+                <a href="https://ilnuovorinascimento.org/a/one-step-for-peace-report-del-corso-europeo-giovani-a-milano" class="link" target="_blank">Leggi l'articolo completo</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Newsletter Hombu 9 - Edizione #1 | "Costruiamo insieme il nostro tempo straordinario"</p>
+        </div>
+    </div>
+</body>
+</html>
