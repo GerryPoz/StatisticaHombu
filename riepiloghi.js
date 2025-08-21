@@ -2,17 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-
-// Configurazione Firebase (importata da firebase-config.js)
-const firebaseConfig = {
-    apiKey: "AIzaSyBdCJKmw5YzTgKmXGKZ8wVfFHOBhGgKJzE",
-    authDomain: "statistica-hombu.firebaseapp.com",
-    databaseURL: "https://statistica-hombu-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "statistica-hombu",
-    storageBucket: "statistica-hombu.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456789012345678"
-};
+import { firebaseConfig } from './firebase-config.js';
 
 // Inizializza Firebase
 const app = initializeApp(firebaseConfig);
