@@ -639,7 +639,7 @@ function esportaPdf() {
     
     // Crea il documento PDF
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('landscape'); // Orientamento orizzontale
+    const doc = new jsPDF('landscape');
     
     // Titolo principale
     doc.setFontSize(18);
@@ -647,7 +647,7 @@ function esportaPdf() {
     
     let yPosition = 40;
     
-    // RIEPILOGO HOMBU GENERALE
+    // ===== RIEPILOGO HOMBU GENERALE =====
     doc.setFontSize(14);
     doc.text('RIEPILOGO HOMBU GENERALE', 20, yPosition);
     yPosition += 10;
@@ -694,27 +694,143 @@ function esportaPdf() {
         styles: { fontSize: 9 },
         headStyles: { fillColor: [41, 128, 185] },
         columnStyles: {
-            5: { fontStyle: 'bold' } // Colonna Totale in grassetto
+            5: { fontStyle: 'bold' }
         }
     });
     
     yPosition = doc.lastAutoTable.finalY + 20;
     
-    // RIEPILOGHI PER CAPITOLO
-    doc.setFontSize(14);
-    doc.text('RIEPILOGHI PER CAPITOLO', 20, yPosition);
-    yPosition += 15;
-    
-    // Raggruppa per capitolo
+    // ===== RIEPILOGHI DETTAGLIATI PER CAPITOLO =====
     const capitoli = [...new Set(righeFiltrate.map(r => gruppoToCapitolo[r.gruppo]))].filter(Boolean).sort();
     
-    capitoli.forEach((capitolo, index) => {
-        if (yPosition > 180) { // Nuova pagina se necessario
+    capitoli.forEach((capitolo) => {
+        // Nuova pagina per ogni capitolo
+        doc.addPage();
+        yPosition = 20;
+        
+        doc.setFontSize(16);
+        doc.text(`CAPITOLO: ${capitolo}`, 20, yPosition);
+        yPosition += 15;
+        
+        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
+        
+        // Raggruppa per settore
+        const settori = {};
+        righeFiltrateCap.forEach(r => {
+            if (!gruppiData || !gruppiData.HOMBU9 || !gruppiData.HOMBU9[capitolo]) return;
+            
+            for (const [settore, gruppiSettore] of Object.entries(gruppiData.HOMBU9[capitolo])) {
+                if (Array.isArray(gruppiSettore) && gruppiSettore.includes(r.gruppo)) {
+                    if (!settori[settore]) settori[settore] = [];
+                    settori[settore].push(r);
+                    break;
+                }
+            }
+        });
+        
+        // ===== TABELLE DETTAGLIATE PER SETTORE =====
+        Object.entries(settori).forEach(([settore, righeSettore]) => {
+            if (yPosition > 200) {
+                doc.addPage();
+                yPosition = 20;
+            }
+            
+            doc.setFontSize(12);
+            doc.text(`Settore: ${settore}`, 20, yPosition);
+            yPosition += 8;
+            
+            // Ottieni lista gruppi del settore
+            const gruppiSettore = gruppiData.HOMBU9[capitolo][settore] || [];
+            
+            // Prepara dati per tabella settore
+            const intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
+            const righeTabSettore = [];
+            
+            ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+                const righeTipo = righeSettore.filter(r => r.tipo === tipo);
+                if (righeTipo.length === 0) return;
+                
+                const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+                if (tipo === "ZADANKAI") {
+                    const ordine = ["membri", "simpatizzanti", "ospiti"];
+                    sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+                }
+                
+                const sezioniRilevanti = tipo === "ZADANKAI" 
+                    ? ["membri", "simpatizzanti", "ospiti"]
+                    : ["membri", "simpatizzanti"];
+                
+                const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+                const sumTot = righeTotali.reduce((acc, r) => ({
+                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+                const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                
+                const righePrecTot = righe.filter(r =>
+                    r.anno === annoPrec && r.mese === mesePrec &&
+                    r.tipo === tipo &&
+                    sezioniRilevanti.includes(r.sezione) &&
+                    gruppiSettore.includes(r.gruppo)
+                );
+                const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+                const delta = totaleMese - totalePrec;
+                
+                sezioni.forEach((sezione, index) => {
+                    const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+                    const sum = righeSezione.reduce((acc, r) => ({
+                        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                    }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+                    const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                    
+                    const righePrec = righe.filter(r =>
+                        r.anno === annoPrec && r.mese === mesePrec &&
+                        r.tipo === tipo && r.sezione === sezione &&
+                        gruppiSettore.includes(r.gruppo)
+                    );
+                    const sommaPrec = righePrec.reduce((acc, r) =>
+                        acc + r.U + r.D + r.GU + r.GD, 0);
+                    
+                    const riga = [
+                        index === 0 ? tipo : '',
+                        sezione,
+                        sum.U, sum.D, sum.GU, sum.GD,
+                        sommaTot,
+                        sommaPrec,
+                        index === 0 ? `${totaleMese} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : '',
+                        sum.FUT,
+                        sum.STU
+                    ];
+                    
+                    righeTabSettore.push(riga);
+                });
+            });
+            
+            doc.autoTable({
+                head: intestazioniSettore,
+                body: righeTabSettore,
+                startY: yPosition,
+                styles: { fontSize: 7 },
+                headStyles: { fillColor: [255, 193, 7] },
+                columnStyles: {
+                    6: { fontStyle: 'bold' }, // Somma
+                    8: { fontStyle: 'bold' }  // Totale Settore
+                }
+            });
+            
+            yPosition = doc.lastAutoTable.finalY + 15;
+        });
+        
+        // ===== RIEPILOGO CAPITOLO =====
+        if (yPosition > 220) {
             doc.addPage();
             yPosition = 20;
         }
         
-        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
+        doc.setFontSize(12);
+        doc.text(`Riepilogo Capitolo: ${capitolo}`, 20, yPosition);
+        yPosition += 8;
         
         // Calcola totali capitolo
         const totaliCap = {
@@ -743,34 +859,47 @@ function esportaPdf() {
         const totPratCap = totaliCap.pratU + totaliCap.pratD + totaliCap.pratGU + totaliCap.pratGD;
         const totGeneraleCap = totZadankaiCap + totPratCap;
         
-        // Titolo capitolo
-        doc.setFontSize(12);
-        doc.text(`${capitolo}`, 20, yPosition);
-        yPosition += 8;
+        // Calcola totali precedenti capitolo
+        const righePrecCap = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            gruppoToCapitolo[r.gruppo] === capitolo
+        );
         
-        // Tabella capitolo
+        const totZadankaiPrec = righePrecCap.filter(r => r.tipo === 'ZADANKAI')
+            .reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const totPratPrec = righePrecCap.filter(r => r.tipo === 'PRATICANTI')
+            .reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const totGeneralePrec = totZadankaiPrec + totPratPrec;
+        
+        const deltaZad = totZadankaiCap - totZadankaiPrec;
+        const deltaPrat = totPratCap - totPratPrec;
+        const deltaGen = totGeneraleCap - totGeneralePrec;
+        
+        // Tabella riepilogo capitolo
         const righeCapitolo = [
-            ['ZADANKAI', totaliCap.zadankaiU, totaliCap.zadankaiD, totaliCap.zadankaiGU, totaliCap.zadankaiGD, totZadankaiCap, '', ''],
-            ['PRATICANTI', totaliCap.pratU, totaliCap.pratD, totaliCap.pratGU, totaliCap.pratGD, totPratCap, '', ''],
-            ['TOTALE', '', '', '', '', totGeneraleCap, totaliCap.futuro, totaliCap.studenti]
+            ['ZADANKAI', totaliCap.zadankaiU, totaliCap.zadankaiD, totaliCap.zadankaiGU, totaliCap.zadankaiGD, 
+             totZadankaiCap, `${totZadankaiPrec}`, `${deltaZad >= 0 ? "+" : ""}${deltaZad}`, '', ''],
+            ['PRATICANTI', totaliCap.pratU, totaliCap.pratD, totaliCap.pratGU, totaliCap.pratGD, 
+             totPratCap, `${totPratPrec}`, `${deltaPrat >= 0 ? "+" : ""}${deltaPrat}`, '', ''],
+            ['TOTALE', '', '', '', '', totGeneraleCap, `${totGeneralePrec}`, 
+             `${deltaGen >= 0 ? "+" : ""}${deltaGen}`, totaliCap.futuro, totaliCap.studenti]
         ];
         
         doc.autoTable({
-            head: [['Categoria', 'U', 'D', 'GU', 'GD', 'Totale', 'Futuro', 'Studenti']],
+            head: [['Categoria', 'U', 'D', 'GU', 'GD', 'Totale', 'Prec.', 'Δ', 'Futuro', 'Studenti']],
             body: righeCapitolo,
             startY: yPosition,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [52, 152, 219] },
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [40, 167, 69] },
             columnStyles: {
-                5: { fontStyle: 'bold' }
+                5: { fontStyle: 'bold' }, // Totale
+                7: { fontStyle: 'bold' }  // Delta
             }
         });
-        
-        yPosition = doc.lastAutoTable.finalY + 10;
     });
     
     // Scarica il file
-    doc.save(`riepiloghi_${meseSelezionato}_${annoSelezionato}.pdf`);
+    doc.save(`riepiloghi_completi_${meseSelezionato}_${annoSelezionato}.pdf`);
 }
 
 // Funzione per la stampa
