@@ -109,19 +109,20 @@ async function caricaDati() {
             
             console.log(`Righe elaborate: ${righe.length}`);
             inizializzaFiltri();
-            // Aggiungi event listener per il pulsante di stampa
-            const btnPrint = document.getElementById('btn-print');
-            if (btnPrint) {
-                btnPrint.addEventListener('click', stampa);
-                console.log('Event listener per stampa aggiunto');
-            } else {
-                console.log('Pulsante stampa non trovato');
-            }
         } else {
             console.log('Nessun dato trovato in Firebase');
         }
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
+    }
+
+    // Aggiungi event listener per il pulsante di stampa SEMPRE, indipendentemente dai dati
+    const btnPrint = document.getElementById('btn-print');
+    if (btnPrint) {
+        btnPrint.addEventListener('click', stampa);
+        console.log('Event listener per stampa aggiunto');
+    } else {
+        console.log('Pulsante stampa non trovato');
     }
 }
 
