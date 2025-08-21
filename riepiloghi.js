@@ -847,7 +847,7 @@ function esportaPdf() {
                 }
             });
             
-            yPosition = doc.lastAutoTable.finalY + 15;
+            yPosition = doc.lastAutoTable.finalY + 8;
         });
         
         // ===== RIEPILOGO CAPITOLO DETTAGLIATO =====
