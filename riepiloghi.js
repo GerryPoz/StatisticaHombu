@@ -765,7 +765,7 @@ function esportaPdf() {
             
             doc.setFontSize(12);
             doc.text(`Settore: ${settore}`, 20, yPosition);
-            yPosition += 6;
+            yPosition += 3;
             
             // Ottieni lista gruppi del settore
             const gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
@@ -847,7 +847,7 @@ function esportaPdf() {
                 }
             });
             
-            yPosition = doc.lastAutoTable.finalY + 9;
+            yPosition = doc.lastAutoTable.finalY + 10;
         });
         
         // ===== RIEPILOGO CAPITOLO DETTAGLIATO =====
