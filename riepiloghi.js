@@ -140,17 +140,24 @@ async function caricaDati() {
 }
 
 // Funzione per convertire il numero del mese in nome
-function getMeseName(numeroMese) {
-    const mesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+function getMeseName(mese) {
+    console.log('getMeseName chiamata con:', mese, 'tipo:', typeof mese);
     
-    // Gestisce sia stringhe che numeri, e rimuove eventuali zeri iniziali
-    const mese = parseInt(numeroMese);
-    if (isNaN(mese) || mese < 1 || mese > 12) {
-        console.warn('Numero mese non valido:', numeroMese);
-        return 'Mese sconosciuto';
+    // Se è già una stringa di nome mese, restituiscila
+    if (typeof mese === 'string' && mese !== '' && isNaN(mese)) {
+        return mese;
     }
-    return mesi[mese - 1];
+    
+    // Converti in numero se è una stringa numerica
+    let meseNum = typeof mese === 'string' ? parseInt(mese.replace(/^0+/, '')) : mese;
+    
+    const nomiMesi = {
+        1: 'Gennaio', 2: 'Febbraio', 3: 'Marzo', 4: 'Aprile',
+        5: 'Maggio', 6: 'Giugno', 7: 'Luglio', 8: 'Agosto',
+        9: 'Settembre', 10: 'Ottobre', 11: 'Novembre', 12: 'Dicembre'
+    };
+    
+    return nomiMesi[meseNum] || 'Mese sconosciuto';
 }
 
 // Funzione per popolare le mappe
@@ -240,12 +247,19 @@ function aggiornaFiltroMesi() {
 // Funzione per aggiornare i riepiloghi
 function aggiornaRiepiloghi() {
     const annoSelezionato = document.getElementById('filtro-anno')?.value;
-    const meseSelezionato = document.getElementById('filtro-mese')?.value;
-    const livelloSelezionato = document.getElementById('filtro-livello')?.value;
+    const meseSelezionato = document.getElementById('filtro-mese').value;
+    console.log('Mese selezionato dal filtro:', meseSelezionato);
     
-    if (!annoSelezionato || !meseSelezionato || !livelloSelezionato) {
-        console.log('Filtri non completi');
-        return;
+    let righeFiltratePerMese = righeFiltratePerAnno;
+    if (meseSelezionato && meseSelezionato !== '') {
+        righeFiltratePerMese = righeFiltratePerAnno.filter(riga => {
+            // Se il mese selezionato è un numero, confronta con il numero del mese
+            if (!isNaN(meseSelezionato)) {
+                return riga.mese == meseSelezionato;
+            }
+            // Se il mese selezionato è un nome, confronta con il nome
+            return riga.mese === meseSelezionato || getMeseName(riga.mese) === meseSelezionato;
+        });
     }
     
     console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato, livelloSelezionato });
@@ -280,13 +294,13 @@ function generaRiepilogoHombu(dati, anno, mese) {
     const card = document.createElement('div');
     card.className = 'card mb-4 shadow-sm';
     
-    const titoloMese = mese === 'tutti' ? 'Tutti i mesi' : mese;
+    const nomeMese = mese === 'tutti' ? 'Tutti i mesi' : getMeseName(mese);
     
     card.innerHTML = `
         <div class="card-header bg-success text-white">
             <h5 class="mb-0">
                 <i class="fas fa-chart-bar me-2"></i>
-                Riepilogo Hombu 9 - ${titoloMese} ${anno}
+                Riepilogo Hombu 9 - ${nomeMese} ${anno}
             </h5>
         </div>
         <div class="card-body">
