@@ -164,7 +164,10 @@ function aggiornaRiepiloghi() {
     }
     
     console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato });
-    
+
+    // Pulisci il contenitore prima di generare i nuovi riepiloghi
+    document.getElementById('contenitore-riepiloghi').innerHTML = '';
+  
     // Filtra i dati
     const righeFiltrate = righe.filter(r => 
         r.anno === annoSelezionato && r.mese === meseSelezionato
