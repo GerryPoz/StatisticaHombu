@@ -839,7 +839,7 @@ function esportaPdf() {
                 head: intestazioniSettore,
                 body: righeTabSettore,
                 startY: yPosition,
-                styles: { fontSize: 10 },
+                styles: { fontSize: 9 },
                 headStyles: { fillColor: [255, 193, 7] },
                 columnStyles: {
                     6: { fontStyle: 'bold' }, // Somma
