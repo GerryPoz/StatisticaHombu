@@ -54,12 +54,15 @@ function mesePrecedente(mese, anno) {
 
 async function caricaDati() {
   try {
+    console.log("Inizio caricamento dati...");
     const snapshot = await get(child(ref(db), '/'));
     if (snapshot.exists()) {
       const data = snapshot.val();
+      console.log("Dati caricati:", data); // DEBUG
       
       // Carica dati gruppi
       gruppiData = data.gruppi || {};
+      console.log("Gruppi data:", gruppiData); // DEBUG
       
       // Costruisci mappa gruppo -> capitolo
       Object.entries(gruppiData["HOMBU 9"] || {}).forEach(([capitolo, settori]) => {
@@ -72,6 +75,7 @@ async function caricaDati() {
       
       // Carica dati statistici
       righe = [];
+      console.log("Dati statistici grezzi:", data.dati); // DEBUG
       Object.entries(data.dati || {}).forEach(([anno, mesi]) => {
         Object.entries(mesi).forEach(([mese, gruppi]) => {
           Object.entries(gruppi).forEach(([gruppo, tipi]) => {
@@ -96,8 +100,12 @@ async function caricaDati() {
         });
       });
       
+      console.log("Righe caricate:", righe.length, righe); // DEBUG
+      
       inizializzaFiltri();
       aggiornaRiepiloghi();
+    } else {
+      console.log("Nessun dato trovato nel database"); // DEBUG
     }
   } catch (error) {
     console.error("Errore nel caricamento dati:", error);
