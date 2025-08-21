@@ -58,11 +58,11 @@ async function caricaDati() {
     const snapshot = await get(child(ref(db), '/'));
     if (snapshot.exists()) {
       const data = snapshot.val();
-      console.log("Dati caricati:", data); // DEBUG
+      console.log("Dati caricati:", data);
       
-      // Carica dati gruppi
-      gruppiData = data.gruppi || {};
-      console.log("Gruppi data:", gruppiData); // DEBUG
+      // Carica dati gruppi - CORREZIONE: usa la struttura reale
+      gruppiData = data.gruppi || data; // Prova prima 'gruppi', poi i dati root
+      console.log("Gruppi data:", gruppiData);
       
       // Costruisci mappa gruppo -> capitolo
       Object.entries(gruppiData["HOMBU 9"] || {}).forEach(([capitolo, settori]) => {
@@ -73,39 +73,69 @@ async function caricaDati() {
         });
       });
       
-      // Carica dati statistici
+      // Carica dati statistici - CORREZIONE: usa la struttura reale
       righe = [];
-      console.log("Dati statistici grezzi:", data.dati); // DEBUG
-      Object.entries(data.dati || {}).forEach(([anno, mesi]) => {
-        Object.entries(mesi).forEach(([mese, gruppi]) => {
-          Object.entries(gruppi).forEach(([gruppo, tipi]) => {
-            Object.entries(tipi).forEach(([tipo, sezioni]) => {
-              Object.entries(sezioni).forEach(([sezione, valori]) => {
-                righe.push({
-                  anno: parseInt(anno),
-                  mese,
-                  gruppo,
-                  tipo,
-                  sezione,
-                  U: valori.U || 0,
-                  D: valori.D || 0,
-                  GU: valori.GU || 0,
-                  GD: valori.GD || 0,
-                  FUT: valori.FUT || 0,
-                  STU: valori.STU || 0
+      const datiStatistici = data.dati || data.zadankai || data;
+      console.log("Dati statistici grezzi:", datiStatistici);
+      
+      // Se i dati sono sotto 'zadankai', adatta la struttura
+      if (data.zadankai) {
+        Object.entries(data.zadankai).forEach(([anno, mesi]) => {
+          Object.entries(mesi).forEach(([mese, gruppi]) => {
+            Object.entries(gruppi).forEach(([gruppo, tipi]) => {
+              Object.entries(tipi).forEach(([tipo, sezioni]) => {
+                Object.entries(sezioni).forEach(([sezione, valori]) => {
+                  righe.push({
+                    anno: parseInt(anno),
+                    mese,
+                    gruppo,
+                    tipo,
+                    sezione,
+                    U: valori.U || 0,
+                    D: valori.D || 0,
+                    GU: valori.GU || 0,
+                    GD: valori.GD || 0,
+                    FUT: valori.FUT || 0,
+                    STU: valori.STU || 0
+                  });
                 });
               });
             });
           });
         });
-      });
+      } else {
+        // Struttura originale
+        Object.entries(datiStatistici || {}).forEach(([anno, mesi]) => {
+          Object.entries(mesi).forEach(([mese, gruppi]) => {
+            Object.entries(gruppi).forEach(([gruppo, tipi]) => {
+              Object.entries(tipi).forEach(([tipo, sezioni]) => {
+                Object.entries(sezioni).forEach(([sezione, valori]) => {
+                  righe.push({
+                    anno: parseInt(anno),
+                    mese,
+                    gruppo,
+                    tipo,
+                    sezione,
+                    U: valori.U || 0,
+                    D: valori.D || 0,
+                    GU: valori.GU || 0,
+                    GD: valori.GD || 0,
+                    FUT: valori.FUT || 0,
+                    STU: valori.STU || 0
+                  });
+                });
+              });
+            });
+          });
+        });
+      }
       
-      console.log("Righe caricate:", righe.length, righe); // DEBUG
+      console.log("Righe caricate:", righe.length, righe);
       
       inizializzaFiltri();
       aggiornaRiepiloghi();
     } else {
-      console.log("Nessun dato trovato nel database"); // DEBUG
+      console.log("Nessun dato trovato nel database");
     }
   } catch (error) {
     console.error("Errore nel caricamento dati:", error);
