@@ -248,10 +248,22 @@ function aggiornaFiltroMesi() {
 function aggiornaRiepiloghi() {
     const annoSelezionato = document.getElementById('filtro-anno')?.value;
     const meseSelezionato = document.getElementById('filtro-mese').value;
+    const livelloSelezionato = document.getElementById('filtro-livello')?.value;
+    
+    if (!annoSelezionato || !meseSelezionato || !livelloSelezionato) {
+        console.log('Filtri non completi');
+        return;
+    }
+    
+    console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato, livelloSelezionato });
+    
+    // Aggiungi questa riga per definire righeFiltratePerAnno
+    const righeFiltratePerAnno = righe.filter(r => r.anno === parseInt(annoSelezionato));
+    
     console.log('Mese selezionato dal filtro:', meseSelezionato);
     
     let righeFiltratePerMese = righeFiltratePerAnno;
-    if (meseSelezionato && meseSelezionato !== '') {
+    if (meseSelezionato && meseSelezionato !== '' && meseSelezionato !== 'tutti') {
         righeFiltratePerMese = righeFiltratePerAnno.filter(riga => {
             // Se il mese selezionato è un numero, confronta con il numero del mese
             if (!isNaN(meseSelezionato)) {
