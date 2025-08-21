@@ -1,10 +1,10 @@
-// 🔹 Import Firebase
+// Importazioni Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
-// 🔹 Configurazione bordi centralizzata
+// Configurazione bordi
 const BORDER_CONFIG = {
   vertical: {
     thickness: "2px",
@@ -24,11 +24,11 @@ const BORDER_CONFIG = {
   }
 };
 
-// 🔹 Inizializza Firebase
+// Inizializzazione Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 🔹 Riferimenti DOM
+// Riferimenti agli elementi DOM
 const filtroAnno = document.getElementById("filtro-anno");
 const filtroMese = document.getElementById("filtro-mese");
 const filtroLivello = document.getElementById("filtro-livello");
@@ -48,121 +48,105 @@ let gruppoToCapitolo = {};
 let gruppiData;
 
 function mesePrecedente(mese, anno) {
-  const idx = mesiOrdine.indexOf(mese);
-  return idx === 0 ? { mese: "Dicembre", anno: anno - 1 } : { mese: mesiOrdine[idx - 1], anno };
+  const indiceMese = mesiOrdine.indexOf(mese);
+  return indiceMese === 0 ? { mese: "Dicembre", anno: anno - 1 } : { mese: mesiOrdine[indiceMese - 1], anno };
 }
 
 async function caricaDati() {
-  try {
-    console.log("Inizio caricamento dati...");
-    const snapshot = await get(child(ref(db), '/'));
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      console.log("Dati caricati:", data);
+  console.log("Inizio caricamento dati...");
+  const dbRef = ref(db);
+  const snapshot = await get(child(dbRef, '/'));
+  console.log("Dati caricati:", snapshot.val());
+  
+  const dati = snapshot.val();
+  gruppiData = dati.zadankai;
+  console.log("Gruppi data:", gruppiData);
+  
+  // Carica dati statistici
+  const datiStatistici = dati.zadankai;
+  
+  // Trova le chiavi che rappresentano i dati statistici (formato: YYYY-Mese-Gruppo)
+  const chiavi = Object.keys(datiStatistici).filter(k => k.match(/^\d{4}-\w+-/));
+  console.log("Dati statistici grezzi:", Object.fromEntries(chiavi.map(k => [k, datiStatistici[k]])));
+  
+  chiavi.forEach(chiave => {
+    const parti = chiave.split('-');
+    if (parti.length >= 3) {
+      const anno = parseInt(parti[0]);
+      const mese = parti[1];
+      const gruppo = parti.slice(2).join('-');
       
-      // Carica dati gruppi - CORREZIONE: usa la struttura reale
-      gruppiData = data.gruppi || data; // Prova prima 'gruppi', poi i dati root
-      console.log("Gruppi data:", gruppiData);
-      
-      // Costruisci mappa gruppo -> capitolo
-      Object.entries(gruppiData["HOMBU 9"] || {}).forEach(([capitolo, settori]) => {
-        Object.values(settori).forEach(gruppiSettore => {
-          gruppiSettore.forEach(gruppo => {
-            gruppoToCapitolo[gruppo] = capitolo;
-          });
-        });
-      });
-      
-      // Carica dati statistici - CORREZIONE: usa la struttura reale
-      righe = [];
-      const datiStatistici = data.dati || data.zadankai || data;
-      console.log("Dati statistici grezzi:", datiStatistici);
-      
-      // Se i dati sono sotto 'zadankai', adatta la struttura
-      if (data.zadankai) {
-        Object.entries(data.zadankai).forEach(([anno, mesi]) => {
-          Object.entries(mesi).forEach(([mese, gruppi]) => {
-            Object.entries(gruppi).forEach(([gruppo, tipi]) => {
-              Object.entries(tipi).forEach(([tipo, sezioni]) => {
-                Object.entries(sezioni).forEach(([sezione, valori]) => {
-                  righe.push({
-                    anno: parseInt(anno),
-                    mese,
-                    gruppo,
-                    tipo,
-                    sezione,
-                    U: valori.U || 0,
-                    D: valori.D || 0,
-                    GU: valori.GU || 0,
-                    GD: valori.GD || 0,
-                    FUT: valori.FUT || 0,
-                    STU: valori.STU || 0
-                  });
-                });
-              });
-            });
-          });
-        });
-      } else {
-        // Struttura originale
-        Object.entries(datiStatistici || {}).forEach(([anno, mesi]) => {
-          Object.entries(mesi).forEach(([mese, gruppi]) => {
-            Object.entries(gruppi).forEach(([gruppo, tipi]) => {
-              Object.entries(tipi).forEach(([tipo, sezioni]) => {
-                Object.entries(sezioni).forEach(([sezione, valori]) => {
-                  righe.push({
-                    anno: parseInt(anno),
-                    mese,
-                    gruppo,
-                    tipo,
-                    sezione,
-                    U: valori.U || 0,
-                    D: valori.D || 0,
-                    GU: valori.GU || 0,
-                    GD: valori.GD || 0,
-                    FUT: valori.FUT || 0,
-                    STU: valori.STU || 0
-                  });
-                });
-              });
-            });
-          });
-        });
+      // Verifica che il gruppo esista nella struttura
+      let capitolo = null;
+      for (const [cap, settori] of Object.entries(gruppiData["HOMBU 9"])) {
+        for (const gruppiSettore of Object.values(settori)) {
+          if (gruppiSettore.includes(gruppo)) {
+            capitolo = cap;
+            break;
+          }
+        }
+        if (capitolo) break;
       }
       
-      console.log("Righe caricate:", righe.length, righe);
-      
-      inizializzaFiltri();
-      aggiornaRiepiloghi();
-    } else {
-      console.log("Nessun dato trovato nel database");
+      if (capitolo) {
+        gruppoToCapitolo[gruppo] = capitolo;
+        
+        const valori = datiStatistici[chiave];
+        Object.entries(valori).forEach(([tipo, sezioni]) => {
+          if (typeof sezioni === 'object' && sezioni !== null) {
+            Object.entries(sezioni).forEach(([sezione, dati]) => {
+              if (typeof dati === 'object' && dati !== null) {
+                righe.push({
+                  anno: anno,
+                  mese: mese,
+                  gruppo: gruppo,
+                  tipo: tipo,
+                  sezione: sezione,
+                  U: dati.U || 0,
+                  D: dati.D || 0,
+                  GU: dati.GU || 0,
+                  GD: dati.GD || 0,
+                  FUT: dati.FUT || 0,
+                  STU: dati.STU || 0
+                });
+              }
+            });
+          }
+        });
+      }
     }
-  } catch (error) {
-    console.error("Errore nel caricamento dati:", error);
-  }
+  });
+  
+  console.log(`Righe caricate: ${righe.length} (${righe.length})`, righe);
+  inizializzaFiltri();
 }
 
 function inizializzaFiltri() {
-  // Popola anni
+  // Popola filtro anno
   const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
-  filtroAnno.innerHTML = anni.map(anno => `<option value="${anno}">${anno}</option>`).join("");
+  filtroAnno.innerHTML = anni.map(anno => `<option value="${anno}">${anno}</option>`).join('');
   
-  // Popola mesi
-  filtroMese.innerHTML = mesiOrdine.map(mese => `<option value="${mese}">${mese}</option>`).join("");
+  // Popola filtro mese
+  const mesi = [...new Set(righe.map(r => r.mese))];
+  const mesiOrdinati = mesi.sort((a, b) => mesiOrdine.indexOf(a) - mesiOrdine.indexOf(b));
+  filtroMese.innerHTML = '<option value="tutti">Tutti i mesi</option>' + 
+    mesiOrdinati.map(mese => `<option value="${mese}">${mese}</option>`).join('');
   
-  // Popola capitoli
-  const capitoli = Object.keys(gruppiData["HOMBU 9"] || {});
-  filtroCapitolo.innerHTML = capitoli.map(cap => `<option value="${cap}">${cap}</option>`).join("");
+  // Popola filtro capitolo
+  const capitoli = [...new Set(Object.values(gruppoToCapitolo))];
+  filtroCapitolo.innerHTML = capitoli.map(cap => `<option value="${cap}">${cap}</option>`).join('');
   
   // Event listeners
-  filtroAnno.addEventListener("change", aggiornaRiepiloghi);
-  filtroMese.addEventListener("change", aggiornaRiepiloghi);
-  filtroLivello.addEventListener("change", () => {
-    const livello = filtroLivello.value;
-    filtroCapitoloContainer.style.display = livello === "settori" ? "block" : "none";
+  filtroAnno.addEventListener('change', aggiornaRiepiloghi);
+  filtroMese.addEventListener('change', aggiornaRiepiloghi);
+  filtroLivello.addEventListener('change', () => {
+    filtroCapitoloContainer.style.display = filtroLivello.value === 'settori' ? 'block' : 'none';
     aggiornaRiepiloghi();
   });
-  filtroCapitolo.addEventListener("change", aggiornaRiepiloghi);
+  filtroCapitolo.addEventListener('change', aggiornaRiepiloghi);
+  
+  // Carica riepilogo iniziale
+  aggiornaRiepiloghi();
 }
 
 function aggiornaRiepiloghi() {
@@ -170,17 +154,6 @@ function aggiornaRiepiloghi() {
   const mese = filtroMese.value;
   const livello = filtroLivello.value;
   const capitolo = filtroCapitolo.value;
-  
-  // DEBUG: Aggiungi questi log
-  console.log("Filtri selezionati:", { anno, mese, livello, capitolo });
-  console.log("Totale righe disponibili:", righe.length);
-  
-  // Verifica che tipo di dati abbiamo
-  if (righe.length > 0) {
-    console.log("Esempio prima riga:", righe[0]);
-    console.log("Anni disponibili:", [...new Set(righe.map(r => r.anno))]);
-    console.log("Mesi disponibili:", [...new Set(righe.map(r => r.mese))]);
-  }
   
   const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
   
@@ -200,17 +173,17 @@ function aggiornaRiepiloghi() {
 }
 
 function generaRiepilogoHombu(anno, mese, annoPrec, mesePrec) {
-  const righeFiltrate = righe.filter(r => r.anno === anno && r.mese === mese);
-  
-  // DEBUG: Aggiungi questo log
-  console.log(`Righe filtrate per ${mese} ${anno}:`, righeFiltrate.length, righeFiltrate);
+  const righeFiltrate = mese === "tutti" 
+    ? righe.filter(r => r.anno === anno)
+    : righe.filter(r => r.anno === anno && r.mese === mese);
   
   const card = document.createElement("div");
   card.className = "card shadow-sm mb-4";
   
   const cardHeader = document.createElement("div");
   cardHeader.className = "card-header bg-success text-white";
-  cardHeader.innerHTML = `<h4 class="mb-0"><i class="fas fa-building me-2"></i>Riepilogo Generale HOMBU 9 - ${mese} ${anno}</h4>`;
+  const titoloMese = mese === "tutti" ? "Tutti i mesi" : mese;
+  cardHeader.innerHTML = `<h4 class="mb-0"><i class="fas fa-building me-2"></i>Riepilogo Generale HOMBU 9 - ${titoloMese} ${anno}</h4>`;
   card.appendChild(cardHeader);
   
   const cardBody = document.createElement("div");
@@ -223,12 +196,12 @@ function generaRiepilogoHombu(anno, mese, annoPrec, mesePrec) {
 }
 
 function generaRiepiloghiCapitoli(anno, mese, annoPrec, mesePrec) {
-  const capitoli = Object.keys(gruppiData["HOMBU 9"] || {});
+  const capitoli = [...new Set(Object.values(gruppoToCapitolo))];
   
   capitoli.forEach(capitolo => {
-    const righeFiltrate = righe.filter(r => 
-      r.anno === anno && r.mese === mese && gruppoToCapitolo[r.gruppo] === capitolo
-    );
+    const righeFiltrate = mese === "tutti"
+      ? righe.filter(r => r.anno === anno && gruppoToCapitolo[r.gruppo] === capitolo)
+      : righe.filter(r => r.anno === anno && r.mese === mese && gruppoToCapitolo[r.gruppo] === capitolo);
     
     if (righeFiltrate.length === 0) return;
     
@@ -237,7 +210,8 @@ function generaRiepiloghiCapitoli(anno, mese, annoPrec, mesePrec) {
     
     const cardHeader = document.createElement("div");
     cardHeader.className = "card-header bg-primary text-white";
-    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo: ${capitolo}</h5>`;
+    const titoloMese = mese === "tutti" ? "Tutti i mesi" : mese;
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-users me-2"></i>Riepilogo: ${capitolo} - ${titoloMese} ${anno}</h5>`;
     card.appendChild(cardHeader);
     
     const cardBody = document.createElement("div");
@@ -255,9 +229,9 @@ function generaRiepiloghiSettori(anno, mese, annoPrec, mesePrec, capitolo) {
   const settori = Object.entries(struttura);
   
   settori.forEach(([settore, gruppiSettore]) => {
-    const righeFiltrate = righe.filter(r => 
-      r.anno === anno && r.mese === mese && gruppiSettore.includes(r.gruppo)
-    );
+    const righeFiltrate = mese === "tutti"
+      ? righe.filter(r => r.anno === anno && gruppiSettore.includes(r.gruppo))
+      : righe.filter(r => r.anno === anno && r.mese === mese && gruppiSettore.includes(r.gruppo));
     
     if (righeFiltrate.length === 0) return;
     
@@ -266,7 +240,8 @@ function generaRiepiloghiSettori(anno, mese, annoPrec, mesePrec, capitolo) {
     
     const cardHeader = document.createElement("div");
     cardHeader.className = "card-header bg-warning text-dark";
-    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ${settore} (${capitolo})</h5>`;
+    const titoloMese = mese === "tutti" ? "Tutti i mesi" : mese;
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ${settore} (${capitolo}) - ${titoloMese} ${anno}</h5>`;
     card.appendChild(cardHeader);
     
     const cardBody = document.createElement("div");
@@ -431,12 +406,10 @@ function creaTabella(righeFiltrate, annoPrec, mesePrec, tipo, nome = "", gruppiS
 }
 
 function esportaExcel() {
-  // Implementazione esportazione Excel
   console.log("Esportazione Excel non ancora implementata");
 }
 
 function esportaPdf() {
-  // Implementazione esportazione PDF
   console.log("Esportazione PDF non ancora implementata");
 }
 
@@ -447,7 +420,8 @@ function stampa() {
 function logout() {
   const auth = getAuth();
   signOut(auth).then(() => {
-    window.location.href = "login.html";
+    console.log("Logout effettuato");
+    window.location.href = "index.html";
   }).catch((error) => {
     console.error("Errore durante il logout:", error);
   });
@@ -458,14 +432,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      console.log("Utente autenticato:", user.email);
       caricaDati();
     } else {
-      window.location.href = "login.html";
+      console.log("Utente non autenticato, reindirizzamento al login");
+      window.location.href = "index.html";
     }
   });
   
-  btnExportExcel.addEventListener("click", esportaExcel);
-  btnExportPdf.addEventListener("click", esportaPdf);
-  btnPrint.addEventListener("click", stampa);
-  document.getElementById("logoutBtn").addEventListener("click", logout);
+  btnExportExcel.addEventListener('click', esportaExcel);
+  btnExportPdf.addEventListener('click', esportaPdf);
+  btnPrint.addEventListener('click', stampa);
+  document.getElementById('btn-logout').addEventListener('click', logout);
 });
