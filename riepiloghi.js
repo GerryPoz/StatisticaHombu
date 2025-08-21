@@ -31,12 +31,15 @@ async function caricaDati() {
     try {
         console.log('Inizio caricamento dati...');
         
+        // Dichiara gruppiData fuori dal blocco if
+        let gruppiData = {};
+        
         // Carica i dati dei gruppi
         const gruppiRef = ref(database, 'gruppi');
         const gruppiSnapshot = await get(gruppiRef);
         
         if (gruppiSnapshot.exists()) {
-            const gruppiData = gruppiSnapshot.val();
+            gruppiData = gruppiSnapshot.val();
             console.log('Dati gruppi caricati:', Object.keys(gruppiData).length, 'gruppi');
             
             // Costruisci le mappe dei gruppi
