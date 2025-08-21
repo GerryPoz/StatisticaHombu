@@ -1,4 +1,4 @@
-// Importa la configurazione Firebase
+// Importa Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
@@ -15,18 +15,17 @@ let gruppiMap = new Map();
 let capitoliMap = new Map();
 let settoriMap = new Map();
 
-// Controllo autenticazione
+// Gestione autenticazione
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('Utente autenticato:', user.email);
         caricaDati();
     } else {
-        console.log('Utente non autenticato, reindirizzamento...');
         window.location.href = 'index.html';
     }
 });
 
-// Funzione per caricare i dati da Firebase
+// Funzione principale per caricare i dati
 async function caricaDati() {
     try {
         console.log('Inizio caricamento dati...');
@@ -165,77 +164,77 @@ function popolaMappe() {
 
 // Funzione per inizializzare i filtri
 function inizializzaFiltri() {
-    // Popola filtro anni
-    const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
-    const selectAnno = document.getElementById('filtro-anno');
-    if (selectAnno) {
-        selectAnno.innerHTML = '';
-        anni.forEach(anno => {
-            const option = document.createElement('option');
-            option.value = anno;
-            option.textContent = anno;
-            selectAnno.appendChild(option);
-        });
-        
-        // Seleziona l'anno più recente
-        if (anni.length > 0) {
-            selectAnno.value = anni[0];
-        }
-    }
-    
-    // Popola filtro mesi
-    aggiornaFiltroMesi();
-    
-    // Aggiungi event listeners
     const filtroAnno = document.getElementById('filtro-anno');
     const filtroMese = document.getElementById('filtro-mese');
     const filtroLivello = document.getElementById('filtro-livello');
     
-    if (filtroAnno) {
-        filtroAnno.addEventListener('change', () => {
-            aggiornaFiltroMesi();
-            aggiornaRiepiloghi();
-        });
+    if (!filtroAnno || !filtroMese || !filtroLivello) {
+        console.error('Elementi filtro non trovati');
+        return;
     }
     
-    if (filtroMese) {
-        filtroMese.addEventListener('change', aggiornaRiepiloghi);
+    // Popola il filtro anni
+    const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
+    filtroAnno.innerHTML = '<option value="">Seleziona anno</option>';
+    anni.forEach(anno => {
+        const option = document.createElement('option');
+        option.value = anno;
+        option.textContent = anno;
+        filtroAnno.appendChild(option);
+    });
+    
+    // Seleziona l'anno più recente
+    if (anni.length > 0) {
+        filtroAnno.value = anni[0];
+        aggiornaFiltroMesi();
     }
     
-    if (filtroLivello) {
-        filtroLivello.addEventListener('change', aggiornaRiepiloghi);
-    }
+    // Event listeners
+    filtroAnno.addEventListener('change', aggiornaFiltroMesi);
+    filtroMese.addEventListener('change', aggiornaRiepiloghi);
+    filtroLivello.addEventListener('change', aggiornaRiepiloghi);
 }
 
 // Funzione per aggiornare il filtro mesi
 function aggiornaFiltroMesi() {
-    const annoSelezionato = document.getElementById('filtro-anno')?.value;
-    const selectMese = document.getElementById('filtro-mese');
+    const filtroAnno = document.getElementById('filtro-anno');
+    const filtroMese = document.getElementById('filtro-mese');
     
-    if (!selectMese || !annoSelezionato) return;
+    if (!filtroAnno || !filtroMese) return;
     
-    // Filtra i mesi per l'anno selezionato
-    const mesiDisponibili = [...new Set(
-        righe.filter(r => r.anno === parseInt(annoSelezionato))
-             .map(r => r.mese)
-    )].sort((a, b) => {
-        const ordine = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                       'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-        return ordine.indexOf(a) - ordine.indexOf(b);
-    });
+    const annoSelezionato = parseInt(filtroAnno.value);
     
-    selectMese.innerHTML = '<option value="tutti">Tutti i mesi</option>';
+    if (!annoSelezionato) {
+        filtroMese.innerHTML = '<option value="">Seleziona prima un anno</option>';
+        return;
+    }
+    
+    // Filtra i mesi disponibili per l'anno selezionato
+    const mesiDisponibili = [...new Set(righe
+        .filter(r => r.anno === annoSelezionato)
+        .map(r => r.mese)
+    )];
+    
+    // Ordina i mesi
+    const ordineM = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                     'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+    mesiDisponibili.sort((a, b) => ordineM.indexOf(a) - ordineM.indexOf(b));
+    
+    // Popola il dropdown
+    filtroMese.innerHTML = '<option value="tutti">Tutti i mesi</option>';
     mesiDisponibili.forEach(mese => {
         const option = document.createElement('option');
         option.value = mese;
         option.textContent = mese;
-        selectMese.appendChild(option);
+        filtroMese.appendChild(option);
     });
     
     // Seleziona il mese più recente
     if (mesiDisponibili.length > 0) {
-        selectMese.value = mesiDisponibili[mesiDisponibili.length - 1];
+        filtroMese.value = mesiDisponibili[mesiDisponibili.length - 1];
     }
+    
+    aggiornaRiepiloghi();
 }
 
 // Funzione per aggiornare i riepiloghi
@@ -359,12 +358,18 @@ function generaRiepiloghiCapitoli(dati, anno, mese) {
     const contenitore = document.getElementById('contenitore-riepiloghi');
     if (!contenitore) return;
     
-    const capitoli = [...new Set(dati.map(r => r.capitolo))].sort();
+    // Raggruppa per capitolo
+    const datiPerCapitolo = {};
+    dati.forEach(riga => {
+        if (!datiPerCapitolo[riga.capitolo]) {
+            datiPerCapitolo[riga.capitolo] = [];
+        }
+        datiPerCapitolo[riga.capitolo].push(riga);
+    });
+    
     const titoloMese = mese === 'tutti' ? 'Tutti i mesi' : mese;
     
-    capitoli.forEach(capitolo => {
-        const datiCapitolo = dati.filter(r => r.capitolo === capitolo);
-        
+    Object.entries(datiPerCapitolo).forEach(([capitolo, righeCapitolo]) => {
         const card = document.createElement('div');
         card.className = 'card mb-4 shadow-sm';
         
@@ -372,7 +377,7 @@ function generaRiepiloghiCapitoli(dati, anno, mese) {
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-users me-2"></i>
-                    Capitolo: ${capitolo} - ${titoloMese} ${anno}
+                    ${capitolo} - ${titoloMese} ${anno}
                 </h5>
             </div>
             <div class="card-body">
@@ -388,20 +393,20 @@ function generaRiepiloghiCapitoli(dati, anno, mese) {
                                 <th>Totale</th>
                             </tr>
                         </thead>
-                        <tbody id="tabella-capitolo-${capitolo.replace(/\s+/g, '-')}">
+                        <tbody id="tabella-${capitolo.replace(/\s+/g, '-')}">
                         </tbody>
                         <tfoot class="table-secondary">
                             <tr>
-                                <th colspan="3">TOTALI CAPITOLO</th>
-                                <th class="totale-partecipanti-capitolo">0</th>
-                                <th class="totale-ospiti-capitolo">0</th>
-                                <th class="totale-generale-capitolo">0</th>
+                                <th colspan="3">TOTALI ${capitolo}</th>
+                                <th id="totale-partecipanti-${capitolo.replace(/\s+/g, '-')}">0</th>
+                                <th id="totale-ospiti-${capitolo.replace(/\s+/g, '-')}">0</th>
+                                <th id="totale-generale-${capitolo.replace(/\s+/g, '-')}">0</th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-primary" onclick="esportaCSV('capitolo', ${anno}, '${mese}', '${capitolo}')">
+                    <button class="btn btn-primary" onclick="esportaCSV('capitoli', ${anno}, '${mese}', '${capitolo}')">
                         <i class="fas fa-download me-2"></i>Esporta CSV
                     </button>
                 </div>
@@ -411,11 +416,11 @@ function generaRiepiloghiCapitoli(dati, anno, mese) {
         contenitore.appendChild(card);
         
         // Popola la tabella del capitolo
-        const tbody = document.getElementById(`tabella-capitolo-${capitolo.replace(/\s+/g, '-')}`);
+        const tbody = document.getElementById(`tabella-${capitolo.replace(/\s+/g, '-')}`);
         let totalePartecipanti = 0;
         let totaleOspiti = 0;
         
-        datiCapitolo.forEach(riga => {
+        righeCapitolo.forEach(riga => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${riga.nomeGruppo}</td>
@@ -432,9 +437,9 @@ function generaRiepiloghiCapitoli(dati, anno, mese) {
         });
         
         // Aggiorna i totali del capitolo
-        card.querySelector('.totale-partecipanti-capitolo').textContent = totalePartecipanti;
-        card.querySelector('.totale-ospiti-capitolo').textContent = totaleOspiti;
-        card.querySelector('.totale-generale-capitolo').textContent = totalePartecipanti + totaleOspiti;
+        document.getElementById(`totale-partecipanti-${capitolo.replace(/\s+/g, '-')}`).textContent = totalePartecipanti;
+        document.getElementById(`totale-ospiti-${capitolo.replace(/\s+/g, '-')}`).textContent = totaleOspiti;
+        document.getElementById(`totale-generale-${capitolo.replace(/\s+/g, '-')}`).textContent = totalePartecipanti + totaleOspiti;
     });
 }
 
@@ -443,20 +448,26 @@ function generaRiepiloghiSettori(dati, anno, mese) {
     const contenitore = document.getElementById('contenitore-riepiloghi');
     if (!contenitore) return;
     
-    const settori = [...new Set(dati.map(r => r.settore))].sort();
+    // Raggruppa per settore
+    const datiPerSettore = {};
+    dati.forEach(riga => {
+        if (!datiPerSettore[riga.settore]) {
+            datiPerSettore[riga.settore] = [];
+        }
+        datiPerSettore[riga.settore].push(riga);
+    });
+    
     const titoloMese = mese === 'tutti' ? 'Tutti i mesi' : mese;
     
-    settori.forEach(settore => {
-        const datiSettore = dati.filter(r => r.settore === settore);
-        
+    Object.entries(datiPerSettore).forEach(([settore, righeSettore]) => {
         const card = document.createElement('div');
         card.className = 'card mb-4 shadow-sm';
         
         card.innerHTML = `
-            <div class="card-header bg-info text-white">
+            <div class="card-header bg-warning text-dark">
                 <h5 class="mb-0">
-                    <i class="fas fa-map-marker-alt me-2"></i>
-                    Settore: ${settore} - ${titoloMese} ${anno}
+                    <i class="fas fa-building me-2"></i>
+                    ${settore} - ${titoloMese} ${anno}
                 </h5>
             </div>
             <div class="card-body">
@@ -476,16 +487,16 @@ function generaRiepiloghiSettori(dati, anno, mese) {
                         </tbody>
                         <tfoot class="table-secondary">
                             <tr>
-                                <th colspan="3">TOTALI SETTORE</th>
-                                <th class="totale-partecipanti-settore">0</th>
-                                <th class="totale-ospiti-settore">0</th>
-                                <th class="totale-generale-settore">0</th>
+                                <th colspan="3">TOTALI ${settore}</th>
+                                <th id="totale-partecipanti-settore-${settore.replace(/\s+/g, '-')}">0</th>
+                                <th id="totale-ospiti-settore-${settore.replace(/\s+/g, '-')}">0</th>
+                                <th id="totale-generale-settore-${settore.replace(/\s+/g, '-')}">0</th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-info" onclick="esportaCSV('settore', ${anno}, '${mese}', '${settore}')">
+                    <button class="btn btn-warning" onclick="esportaCSV('settori', ${anno}, '${mese}', '${settore}')">
                         <i class="fas fa-download me-2"></i>Esporta CSV
                     </button>
                 </div>
@@ -499,7 +510,7 @@ function generaRiepiloghiSettori(dati, anno, mese) {
         let totalePartecipanti = 0;
         let totaleOspiti = 0;
         
-        datiSettore.forEach(riga => {
+        righeSettore.forEach(riga => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${riga.nomeGruppo}</td>
@@ -516,64 +527,60 @@ function generaRiepiloghiSettori(dati, anno, mese) {
         });
         
         // Aggiorna i totali del settore
-        card.querySelector('.totale-partecipanti-settore').textContent = totalePartecipanti;
-        card.querySelector('.totale-ospiti-settore').textContent = totaleOspiti;
-        card.querySelector('.totale-generale-settore').textContent = totalePartecipanti + totaleOspiti;
+        document.getElementById(`totale-partecipanti-settore-${settore.replace(/\s+/g, '-')}`).textContent = totalePartecipanti;
+        document.getElementById(`totale-ospiti-settore-${settore.replace(/\s+/g, '-')}`).textContent = totaleOspiti;
+        document.getElementById(`totale-generale-settore-${settore.replace(/\s+/g, '-')}`).textContent = totalePartecipanti + totaleOspiti;
     });
 }
 
 // Funzione per esportare in CSV
 function esportaCSV(tipo, anno, mese, filtro = '') {
-    let datiEsportazione = [];
-    let nomeFile = `riepilogo_${tipo}_${anno}_${mese}`;
+    let datiEsportazione = righe.filter(r => r.anno === anno);
     
-    // Filtra i dati in base ai parametri
-    let datiFiltered = righe.filter(r => r.anno === anno);
     if (mese !== 'tutti') {
-        datiFiltered = datiFiltered.filter(r => r.mese === mese);
+        datiEsportazione = datiEsportazione.filter(r => r.mese === mese);
     }
     
-    switch (tipo) {
-        case 'hombu':
-            datiEsportazione = datiFiltered;
-            break;
-        case 'capitolo':
-            datiEsportazione = datiFiltered.filter(r => r.capitolo === filtro);
-            nomeFile += `_${filtro.replace(/\s+/g, '_')}`;
-            break;
-        case 'settore':
-            datiEsportazione = datiFiltered.filter(r => r.settore === filtro);
-            nomeFile += `_${filtro.replace(/\s+/g, '_')}`;
-            break;
+    if (filtro) {
+        if (tipo === 'capitoli') {
+            datiEsportazione = datiEsportazione.filter(r => r.capitolo === filtro);
+        } else if (tipo === 'settori') {
+            datiEsportazione = datiEsportazione.filter(r => r.settore === filtro);
+        }
     }
     
-    // Crea il contenuto CSV
-    let csvContent = 'Gruppo,Capitolo,Settore,Responsabile,Partecipanti,Ospiti,Totale\n';
+    // Crea il CSV
+    const headers = ['Gruppo', 'Capitolo', 'Settore', 'Responsabile', 'Partecipanti', 'Ospiti', 'Totale'];
+    let csvContent = headers.join(',') + '\n';
     
     datiEsportazione.forEach(riga => {
-        csvContent += `"${riga.nomeGruppo}","${riga.capitolo}","${riga.settore}","${riga.responsabile}",${riga.partecipanti},${riga.ospiti},${riga.totale}\n`;
+        const row = [
+            `"${riga.nomeGruppo}"`,
+            `"${riga.capitolo}"`,
+            `"${riga.settore}"`,
+            `"${riga.responsabile}"`,
+            riga.partecipanti,
+            riga.ospiti,
+            riga.totale
+        ];
+        csvContent += row.join(',') + '\n';
     });
     
-    // Calcola i totali
-    const totalePartecipanti = datiEsportazione.reduce((sum, r) => sum + r.partecipanti, 0);
-    const totaleOspiti = datiEsportazione.reduce((sum, r) => sum + r.ospiti, 0);
-    const totaleGenerale = totalePartecipanti + totaleOspiti;
-    
-    csvContent += `"TOTALI","","","",${totalePartecipanti},${totaleOspiti},${totaleGenerale}\n`;
-    
-    // Scarica il file
+    // Download del file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `${nomeFile}.csv`);
+    
+    const nomeFile = `riepilogo_${tipo}_${anno}_${mese}${filtro ? '_' + filtro.replace(/\s+/g, '_') : ''}.csv`;
+    link.setAttribute('download', nomeFile);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-// Funzione per il logout
+// Funzione di logout
 function logout() {
     signOut(auth).then(() => {
         console.log('Logout effettuato');
@@ -583,17 +590,11 @@ function logout() {
     });
 }
 
-// Esporta le funzioni globali
+// Esporta le funzioni per l'uso globale
 window.esportaCSV = esportaCSV;
 window.logout = logout;
 
 // Inizializzazione quando il DOM è caricato
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM caricato, inizializzazione in corso...');
-    
-    // Aggiungi event listener per il logout
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
-    }
 });
