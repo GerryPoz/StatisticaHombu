@@ -758,10 +758,10 @@ function esportaPdf() {
         
         // ===== TABELLE DETTAGLIATE PER SETTORE =====
         Object.entries(settori).forEach(([settore, righeSettore]) => {
-            if (yPosition > 200) {
-                doc.addPage();
-                yPosition = 20;
-            }
+            // if (yPosition > 200) {
+            //     doc.addPage();
+            //     yPosition = 20;
+            // }
             
             doc.setFontSize(12);
             doc.text(`Settore: ${settore}`, 20, yPosition);
@@ -852,8 +852,8 @@ function esportaPdf() {
         
         // ===== RIEPILOGO CAPITOLO DETTAGLIATO =====
         // Forza sempre una nuova pagina per il riepilogo capitolo
-        doc.addPage();
-        yPosition = 20;
+        //doc.addPage();
+        //yPosition = 20;
         
         doc.setFontSize(12);
         doc.text(`Riepilogo Capitolo: ${capitolo}`, 20, yPosition);
