@@ -850,6 +850,102 @@ function esportaPdf() {
             yPosition = doc.lastAutoTable.finalY + 15;
         });
         
+        // ===== RIEPILOGHI SETTORI DEL CAPITOLO =====
+        if (yPosition > 180) {
+            doc.addPage();
+            yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.text(`Riepiloghi Settori - ${capitolo}`, 20, yPosition);
+        yPosition += 10;
+        
+        // Crea tabella riepiloghi settori
+        const intestazioniRiepilogiSettori = [['Settore', 'Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
+        const righeRiepilogiSettori = [];
+        
+        Object.entries(settori).forEach(([settore, righeSettore]) => {
+            const gruppiSettore = gruppiData.HOMBU9[capitolo][settore] || [];
+            
+            ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+                const righeTipo = righeSettore.filter(r => r.tipo === tipo);
+                if (righeTipo.length === 0) return;
+                
+                const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+                if (tipo === "ZADANKAI") {
+                    const ordine = ["membri", "simpatizzanti", "ospiti"];
+                    sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+                }
+                
+                const sezioniRilevanti = tipo === "ZADANKAI" 
+                    ? ["membri", "simpatizzanti", "ospiti"]
+                    : ["membri", "simpatizzanti"];
+                
+                const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+                const sumTot = righeTotali.reduce((acc, r) => ({
+                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+                const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                
+                const righePrecTot = righe.filter(r =>
+                    r.anno === annoPrec && r.mese === mesePrec &&
+                    r.tipo === tipo &&
+                    sezioniRilevanti.includes(r.sezione) &&
+                    gruppiSettore.includes(r.gruppo)
+                );
+                const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+                const delta = totaleMese - totalePrec;
+                
+                sezioni.forEach((sezione, index) => {
+                    const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+                    const sum = righeSezione.reduce((acc, r) => ({
+                        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                    }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+                    const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                    
+                    const righePrec = righe.filter(r =>
+                        r.anno === annoPrec && r.mese === mesePrec &&
+                        r.tipo === tipo && r.sezione === sezione &&
+                        gruppiSettore.includes(r.gruppo)
+                    );
+                    const sommaPrec = righePrec.reduce((acc, r) =>
+                        acc + r.U + r.D + r.GU + r.GD, 0);
+                    
+                    const riga = [
+                        index === 0 ? settore : '',
+                        index === 0 ? tipo : '',
+                        sezione,
+                        sum.U, sum.D, sum.GU, sum.GD,
+                        sommaTot,
+                        sommaPrec,
+                        index === 0 ? `${totaleMese} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : '',
+                        sum.FUT,
+                        sum.STU
+                    ];
+                    
+                    righeRiepilogiSettori.push(riga);
+                });
+            });
+        });
+        
+        if (righeRiepilogiSettori.length > 0) {
+            doc.autoTable({
+                head: intestazioniRiepilogiSettori,
+                body: righeRiepilogiSettori,
+                startY: yPosition,
+                styles: { fontSize: 6 },
+                headStyles: { fillColor: [108, 117, 125] },
+                columnStyles: {
+                    7: { fontStyle: 'bold' }, // Somma
+                    9: { fontStyle: 'bold' }  // Totale Settore
+                }
+            });
+            
+            yPosition = doc.lastAutoTable.finalY + 15;
+        }
+        
         // ===== RIEPILOGO CAPITOLO DETTAGLIATO =====
         if (yPosition > 220) {
             doc.addPage();
@@ -937,7 +1033,7 @@ function esportaPdf() {
     });
     
     // Scarica il file
-    doc.save(`riepiloghi_dettagliati_${meseSelezionato}_${annoSelezionato}.pdf`);
+    doc.save(`riepiloghi_completi_${meseSelezionato}_${annoSelezionato}.pdf`);
 }
 
 // Funzione per la stampa
