@@ -851,10 +851,9 @@ function esportaPdf() {
         });
         
         // ===== RIEPILOGO CAPITOLO DETTAGLIATO =====
-        if (yPosition > 220) {
-            doc.addPage();
-            yPosition = 20;
-        }
+        // Forza sempre una nuova pagina per il riepilogo capitolo
+        doc.addPage();
+        yPosition = 20;
         
         doc.setFontSize(12);
         doc.text(`Riepilogo Capitolo: ${capitolo}`, 20, yPosition);
