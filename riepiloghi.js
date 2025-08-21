@@ -745,9 +745,9 @@ function esportaPdf() {
         // Raggruppa per settore
         const settori = {};
         righeFiltrateCap.forEach(r => {
-            if (!gruppiData || !gruppiData.HOMBU9 || !gruppiData.HOMBU9[capitolo]) return;
+            if (!gruppiData || !gruppiData["HOMBU 9"] || !gruppiData["HOMBU 9"][capitolo]) return;
             
-            for (const [settore, gruppiSettore] of Object.entries(gruppiData.HOMBU9[capitolo])) {
+            for (const [settore, gruppiSettore] of Object.entries(gruppiData["HOMBU 9"][capitolo])) {
                 if (Array.isArray(gruppiSettore) && gruppiSettore.includes(r.gruppo)) {
                     if (!settori[settore]) settori[settore] = [];
                     settori[settore].push(r);
@@ -768,7 +768,7 @@ function esportaPdf() {
             yPosition += 8;
             
             // Ottieni lista gruppi del settore
-            const gruppiSettore = gruppiData.HOMBU9[capitolo][settore] || [];
+            const gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
             
             // Prepara dati per tabella settore DETTAGLIATA
             const intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
@@ -865,7 +865,7 @@ function esportaPdf() {
         const righeRiepilogiSettori = [];
         
         Object.entries(settori).forEach(([settore, righeSettore]) => {
-            const gruppiSettore = gruppiData.HOMBU9[capitolo][settore] || [];
+            const gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
             
             ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
                 const righeTipo = righeSettore.filter(r => r.tipo === tipo);
