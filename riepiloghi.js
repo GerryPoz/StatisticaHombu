@@ -28,6 +28,11 @@ onAuthStateChanged(auth, (user) => {
 
 // Funzione per caricare i dati da Firebase
 async function caricaDati() {
+    // Debug: controlla la struttura dei dati
+    console.log('Struttura gruppiData:', Object.keys(gruppiData).slice(0, 3));
+    console.log('Esempio gruppo:', gruppiData[Object.keys(gruppiData)[0]]);
+    console.log('Struttura zadankaiData:', Object.keys(zadankaiData).slice(0, 3));
+    console.log('Esempio zadankai:', zadankaiData[Object.keys(zadankaiData)[0]]);
     try {
         console.log('Inizio caricamento dati...');
         
@@ -65,19 +70,43 @@ async function caricaDati() {
                             if (datiGruppo && typeof datiGruppo === 'object') {
                                 const infoGruppo = gruppiData[gruppoId] || {};
                                 
+                                // Debug per capire la struttura dei dati
+                                console.log('Gruppo ID:', gruppoId);
+                                console.log('Info Gruppo:', infoGruppo);
+                                console.log('Dati Gruppo:', datiGruppo);
+                                
+                                // Gestisce i valori numerici in modo più robusto
+                                let partecipanti = 0;
+                                let ospiti = 0;
+                                
+                                // Se partecipanti è un oggetto, prova a estrarre il valore
+                                if (typeof datiGruppo.partecipanti === 'object' && datiGruppo.partecipanti !== null) {
+                                    partecipanti = datiGruppo.partecipanti.valore || datiGruppo.partecipanti.value || 0;
+                                } else {
+                                    partecipanti = parseInt(datiGruppo.partecipanti) || 0;
+                                }
+                                
+                                // Se ospiti è un oggetto, prova a estrarre il valore
+                                if (typeof datiGruppo.ospiti === 'object' && datiGruppo.ospiti !== null) {
+                                    ospiti = datiGruppo.ospiti.valore || datiGruppo.ospiti.value || 0;
+                                } else {
+                                    ospiti = parseInt(datiGruppo.ospiti) || 0;
+                                }
+                                
                                 const riga = {
                                     anno: parseInt(anno),
                                     mese: mese,
                                     gruppoId: gruppoId,
-                                    nomeGruppo: infoGruppo.nome || 'Gruppo sconosciuto',
+                                    nomeGruppo: infoGruppo.nome || `Gruppo ${gruppoId}`,
                                     capitolo: infoGruppo.capitolo || 'Non specificato',
-                                    settore: infoGruppo.settore || 'Non specificato',
+                                    settore: infoGruppo.settore || 'Non specificato', 
                                     responsabile: infoGruppo.responsabile || 'Non specificato',
-                                    partecipanti: datiGruppo.partecipanti || 0,
-                                    ospiti: datiGruppo.ospiti || 0,
-                                    totale: (datiGruppo.partecipanti || 0) + (datiGruppo.ospiti || 0)
+                                    partecipanti: partecipanti,
+                                    ospiti: ospiti,
+                                    totale: partecipanti + ospiti
                                 };
                                 
+                                console.log('Riga creata:', riga);
                                 righe.push(riga);
                             }
                         });
@@ -107,7 +136,14 @@ async function caricaDati() {
 function getMeseName(numeroMese) {
     const mesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
                   'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-    return mesi[parseInt(numeroMese) - 1] || 'Mese sconosciuto';
+    
+    // Gestisce sia stringhe che numeri, e rimuove eventuali zeri iniziali
+    const mese = parseInt(numeroMese);
+    if (isNaN(mese) || mese < 1 || mese > 12) {
+        console.warn('Numero mese non valido:', numeroMese);
+        return 'Mese sconosciuto';
+    }
+    return mesi[mese - 1];
 }
 
 // Funzione per popolare le mappe
