@@ -124,6 +124,15 @@ async function caricaDati() {
     } else {
         console.log('Pulsante stampa non trovato');
     }
+
+    // Event listener per il pulsante esporta PDF
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener('click', esportaPdf);
+        console.log('Event listener per esporta PDF aggiunto');
+    } else {
+        console.log('Pulsante esporta PDF non trovato');
+    }
 }
 
 // Inizializza filtri
@@ -604,6 +613,164 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
     cardBody.appendChild(tabella);
     cardCapitolo.appendChild(cardBody);
     contenitore.appendChild(cardCapitolo);
+}
+
+// Funzione per esportare in PDF
+function esportaPdf() {
+    const annoSelezionato = document.getElementById('filtro-anno').value;
+    const meseSelezionato = document.getElementById('filtro-mese').value;
+    
+    if (!annoSelezionato || !meseSelezionato) {
+        alert("Seleziona anno e mese per esportare");
+        return;
+    }
+    
+    // Filtra i dati
+    const righeFiltrate = righe.filter(r => 
+        r.anno === annoSelezionato && r.mese === meseSelezionato
+    );
+    
+    if (righeFiltrate.length === 0) {
+        alert("Nessun dato da esportare per il periodo selezionato");
+        return;
+    }
+    
+    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(meseSelezionato, annoSelezionato);
+    
+    // Crea il documento PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape'); // Orientamento orizzontale
+    
+    // Titolo principale
+    doc.setFontSize(18);
+    doc.text(`Riepiloghi HOMBU 9 - ${meseSelezionato} ${annoSelezionato}`, 20, 20);
+    
+    let yPosition = 40;
+    
+    // RIEPILOGO HOMBU GENERALE
+    doc.setFontSize(14);
+    doc.text('RIEPILOGO HOMBU GENERALE', 20, yPosition);
+    yPosition += 10;
+    
+    // Calcola totali Hombu
+    const totaliHombu = {
+        zadankaiU: 0, zadankaiD: 0, zadankaiGU: 0, zadankaiGD: 0,
+        pratU: 0, pratD: 0, pratGU: 0, pratGD: 0,
+        futuro: 0, studenti: 0
+    };
+    
+    righeFiltrate.forEach(r => {
+        if (r.tipo === 'ZADANKAI') {
+            totaliHombu.zadankaiU += r.U;
+            totaliHombu.zadankaiD += r.D;
+            totaliHombu.zadankaiGU += r.GU;
+            totaliHombu.zadankaiGD += r.GD;
+        } else if (r.tipo === 'PRATICANTI') {
+            totaliHombu.pratU += r.U;
+            totaliHombu.pratD += r.D;
+            totaliHombu.pratGU += r.GU;
+            totaliHombu.pratGD += r.GD;
+        }
+        totaliHombu.futuro += r.FUT;
+        totaliHombu.studenti += r.STU;
+    });
+    
+    const totaleZadankai = totaliHombu.zadankaiU + totaliHombu.zadankaiD + totaliHombu.zadankaiGU + totaliHombu.zadankaiGD;
+    const totalePraticanti = totaliHombu.pratU + totaliHombu.pratD + totaliHombu.pratGU + totaliHombu.pratGD;
+    const totaleGenerale = totaleZadankai + totalePraticanti;
+    
+    // Tabella riepilogo Hombu
+    const intestazioniHombu = [['Categoria', 'U', 'D', 'GU', 'GD', 'Totale', 'Futuro', 'Studenti']];
+    const righeHombu = [
+        ['ZADANKAI', totaliHombu.zadankaiU, totaliHombu.zadankaiD, totaliHombu.zadankaiGU, totaliHombu.zadankaiGD, totaleZadankai, '', ''],
+        ['PRATICANTI', totaliHombu.pratU, totaliHombu.pratD, totaliHombu.pratGU, totaliHombu.pratGD, totalePraticanti, '', ''],
+        ['TOTALE GENERALE', '', '', '', '', totaleGenerale, totaliHombu.futuro, totaliHombu.studenti]
+    ];
+    
+    doc.autoTable({
+        head: intestazioniHombu,
+        body: righeHombu,
+        startY: yPosition,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [41, 128, 185] },
+        columnStyles: {
+            5: { fontStyle: 'bold' } // Colonna Totale in grassetto
+        }
+    });
+    
+    yPosition = doc.lastAutoTable.finalY + 20;
+    
+    // RIEPILOGHI PER CAPITOLO
+    doc.setFontSize(14);
+    doc.text('RIEPILOGHI PER CAPITOLO', 20, yPosition);
+    yPosition += 15;
+    
+    // Raggruppa per capitolo
+    const capitoli = [...new Set(righeFiltrate.map(r => gruppoToCapitolo[r.gruppo]))].filter(Boolean).sort();
+    
+    capitoli.forEach((capitolo, index) => {
+        if (yPosition > 180) { // Nuova pagina se necessario
+            doc.addPage();
+            yPosition = 20;
+        }
+        
+        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
+        
+        // Calcola totali capitolo
+        const totaliCap = {
+            zadankaiU: 0, zadankaiD: 0, zadankaiGU: 0, zadankaiGD: 0,
+            pratU: 0, pratD: 0, pratGU: 0, pratGD: 0,
+            futuro: 0, studenti: 0
+        };
+        
+        righeFiltrateCap.forEach(r => {
+            if (r.tipo === 'ZADANKAI') {
+                totaliCap.zadankaiU += r.U;
+                totaliCap.zadankaiD += r.D;
+                totaliCap.zadankaiGU += r.GU;
+                totaliCap.zadankaiGD += r.GD;
+            } else if (r.tipo === 'PRATICANTI') {
+                totaliCap.pratU += r.U;
+                totaliCap.pratD += r.D;
+                totaliCap.pratGU += r.GU;
+                totaliCap.pratGD += r.GD;
+            }
+            totaliCap.futuro += r.FUT;
+            totaliCap.studenti += r.STU;
+        });
+        
+        const totZadankaiCap = totaliCap.zadankaiU + totaliCap.zadankaiD + totaliCap.zadankaiGU + totaliCap.zadankaiGD;
+        const totPratCap = totaliCap.pratU + totaliCap.pratD + totaliCap.pratGU + totaliCap.pratGD;
+        const totGeneraleCap = totZadankaiCap + totPratCap;
+        
+        // Titolo capitolo
+        doc.setFontSize(12);
+        doc.text(`${capitolo}`, 20, yPosition);
+        yPosition += 8;
+        
+        // Tabella capitolo
+        const righeCapitolo = [
+            ['ZADANKAI', totaliCap.zadankaiU, totaliCap.zadankaiD, totaliCap.zadankaiGU, totaliCap.zadankaiGD, totZadankaiCap, '', ''],
+            ['PRATICANTI', totaliCap.pratU, totaliCap.pratD, totaliCap.pratGU, totaliCap.pratGD, totPratCap, '', ''],
+            ['TOTALE', '', '', '', '', totGeneraleCap, totaliCap.futuro, totaliCap.studenti]
+        ];
+        
+        doc.autoTable({
+            head: [['Categoria', 'U', 'D', 'GU', 'GD', 'Totale', 'Futuro', 'Studenti']],
+            body: righeCapitolo,
+            startY: yPosition,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [52, 152, 219] },
+            columnStyles: {
+                5: { fontStyle: 'bold' }
+            }
+        });
+        
+        yPosition = doc.lastAutoTable.finalY + 10;
+    });
+    
+    // Scarica il file
+    doc.save(`riepiloghi_${meseSelezionato}_${annoSelezionato}.pdf`);
 }
 
 // Funzione per la stampa
