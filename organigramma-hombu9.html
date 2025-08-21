@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organigramma HOMBU 9</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.4;
+        }
+        
+        .organigramma {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .titolo {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+        }
+        
+        .capitolo {
+            margin-bottom: 40px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .capitolo-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .capitolo-responsabili {
+            background: linear-gradient(135deg, #2c3e50, #1b2631);
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #ffffff;
+            border-bottom: 1px solid #34495e;
+            font-weight: 500;
+        }
+        
+        .settori {
+            padding: 20px;
+        }
+        
+        .settore {
+            margin-bottom: 25px;
+            border-left: 4px solid #e74c3c;
+            padding-left: 15px;
+        }
+        
+        .settore-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .settore-responsabili {
+            background: linear-gradient(135deg, #8e44ad, #7d3c98);
+            padding: 10px 15px;
+            font-size: 13px;
+            color: #ffffff;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .gruppi {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-left: 20px;
+        }
+        
+        .gruppo {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+            border: 1px solid #1e8449;
+        }
+        
+        .gruppo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #229954, #27ae60);
+        }
+        
+        .gruppo-nome {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .gruppo-responsabili {
+            font-size: 13px;
+            color: #ecf0f1;
+            line-height: 1.3;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        
+        .connettore {
+            color: #7f8c8d;
+            font-family: monospace;
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .gruppi {
+                grid-template-columns: 1fr;
+                margin-left: 10px;
+            }
+            
+            .organigramma {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .titolo {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="organigramma">
+        <div class="titolo">STRUTTURA HOMBU 9</div>
+        
+        <!-- Capitolo Asti -->
+        <div class="capitolo">
+            <div class="capitolo-header">📍 Capitolo Asti</div>
+            <div class="capitolo-responsabili">
+                <strong>Responsabili:</strong> Laura Beretta, Patrizia Marmo, Giorgio Veglio (sost.)
+            </div>
+            
+            <div class="settori">
+                <!-- Settore Fukyo -->
+                <div class="settore">
+                    <div class="settore-header">🔸 Settore Fukyo</div>
+                    <div class="settore-responsabili">
+                        <strong>Responsabili:</strong> Antonella Moscatelli, Nicoletta Schipani, Simona Beretta, Martina Mollo, Arnoldo Vogogna (sost.), Gioacchino Amico
+                    </div>
+                    
+                    <div class="gruppi">
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🌅 Gruppo Aurora</div>
+                            <div class="gruppo-responsabili">Natalia Nesterenko</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏔️ Gruppo Colline</div>
+                            <div class="gruppo-responsabili">Marika Fava, Rossana Colli</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🌸 Gruppo Kansai</div>
+                            <div class="gruppo-responsabili">Yvonne Santero</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">☀️ Gruppo Sole</div>
+                            <div class="gruppo-responsabili">Angela Grillo, Roberta Cantatore, Vito Morello</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏰 Gruppo Torre Preziosa</div>
+                            <div class="gruppo-responsabili">Elisa Pigella, Mimmo Lensi</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏆 Gruppo Vittoria</div>
+                            <div class="gruppo-responsabili">Luisella Martinetto, Lorena Olivieri</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settore Invictus -->
+                <div class="settore">
+                    <div class="settore-header">🔸 Settore Invictus</div>
+                    <div class="settore-responsabili">
+                        <strong>Responsabili:</strong> Anna Sara Navazio, Fedra Marteddu, Max Cannata
+                    </div>
+                    
+                    <div class="gruppi">
+                        <div class="gruppo">
+                            <div class="gruppo-nome">⚔️ Gruppo Alfieri</div>
+                            <div class="gruppo-responsabili">Piera Martinetto</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">📚 Gruppo Cesare Pavese</div>
+                            <div class="gruppo-responsabili">Giuliana Damo, Daniela Pitis</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🎨 Gruppo Rinascimento</div>
+                            <div class="gruppo-responsabili">Flavia Cassano, Claudia Quirico</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Capitolo Casale/Crescentino -->
+        <div class="capitolo">
+            <div class="capitolo-header">📍 Capitolo Casale/Crescentino</div>
+            <div class="capitolo-responsabili">
+                <strong>Responsabili:</strong> Giuliano Bretto, Roberta Gatti, Vilma Pietrobon, Massimo Celentano, Enrico Lusso
+            </div>
+            
+            <div class="settori">
+                <!-- Settore Casale -->
+                <div class="settore">
+                    <div class="settore-header">🔸 Settore Casale</div>
+                    <div class="settore-responsabili">
+                        <strong>Responsabili:</strong> Elena Rosa, Pino Bertolino
+                    </div>
+                    
+                    <div class="gruppi">
+                        <div class="gruppo">
+                            <div class="gruppo-nome">☸️ Gruppo Dharma</div>
+                            <div class="gruppo-responsabili">Lella Bertaccini</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🔥 Gruppo Fenice</div>
+                            <div class="gruppo-responsabili">Alba Islami, Silvia Carena</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏞️ Gruppo Lago</div>
+                            <div class="gruppo-responsabili">Marina Mortarino, Nadia Zeglio</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🦁 Gruppo Leoni</div>
+                            <div class="gruppo-responsabili">Vito Catalisano</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏛️ Gruppo Mazzini</div>
+                            <div class="gruppo-responsabili">Paolo Jacometti</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settore Crescentino -->
+                <div class="settore">
+                    <div class="settore-header">🔸 Settore Crescentino</div>
+                    <div class="settore-responsabili">
+                        <strong>Responsabili:</strong> Veronica di Troia, Silvana Tebenghi, Rita …, Enzo Bergamasco, Beppe Martorana, Ivan Pavia (sost.)
+                    </div>
+                    
+                    <div class="gruppi">
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🦢 Gruppo Airone</div>
+                            <div class="gruppo-responsabili">Paola Massaglia, Valentina Graziano</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🏘️ Gruppo Casalborgone</div>
+                            <div class="gruppo-responsabili">Gianna Maffia, Alessandro Cutri</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🌿 Gruppo Cavagnolo</div>
+                            <div class="gruppo-responsabili">Debora Neri, Cristina Mazzetto</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🎭 Gruppo Giotto</div>
+                            <div class="gruppo-responsabili">Fiorella Boschetti</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🌊 Gruppo Lauriano</div>
+                            <div class="gruppo-responsabili">Cristina Dalla Costa, Luca Menino</div>
+                        </div>
+                        <div class="gruppo">
+                            <div class="gruppo-nome">🧭 Gruppo Vespucci</div>
+                            <div class="gruppo-responsabili">Giuditta Spaggiari, Enrica Olivo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
