@@ -734,11 +734,11 @@ function esportaPdf() {
     capitoli.forEach((capitolo) => {
         // Nuova pagina per ogni capitolo
         doc.addPage();
-        yPosition = 20;
+        yPosition = 10;
         
         doc.setFontSize(16);
         doc.text(`CAPITOLO: ${capitolo}`, 20, yPosition);
-        yPosition += 15;
+        yPosition += 10;
         
         const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
         
@@ -763,9 +763,9 @@ function esportaPdf() {
             //     yPosition = 20;
             // }
             
-            doc.setFontSize(12);
+            doc.setFontSize(14);
             doc.text(`Settore: ${settore}`, 20, yPosition);
-            yPosition += 3;
+            yPosition += 8;
             
             // Ottieni lista gruppi del settore
             const gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
