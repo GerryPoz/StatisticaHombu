@@ -1,8 +1,28 @@
-// Importa Firebase
+// Import Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
+
+// Configurazione bordi
+const BORDER_CONFIG = {
+  vertical: {
+    thickness: "2px",
+    style: "solid",
+    color: "#3282F6"
+  },
+  horizontal: {
+    thickness: "4px",
+    style: "solid",
+    color: "#EE8AF8"
+  },
+  getVerticalBorder: function() {
+    return `${this.vertical.thickness} ${this.vertical.style} ${this.vertical.color}`;
+  },
+  getHorizontalBorder: function() {
+    return `${this.horizontal.thickness} ${this.horizontal.style} ${this.horizontal.color}`;
+  }
+};
 
 // Inizializza Firebase
 const app = initializeApp(firebaseConfig);
@@ -11,11 +31,13 @@ const auth = getAuth(app);
 
 // Variabili globali
 let righe = [];
-let gruppiMap = new Map();
-let capitoliMap = new Map();
-let settoriMap = new Map();
+let gruppiData;
+let gruppoToCapitolo = {};
 
-// Gestione autenticazione
+const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
+// Autenticazione
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('Utente autenticato:', user.email);
@@ -25,164 +47,83 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Funzione principale per caricare i dati
+// Funzione per ottenere il mese precedente
+function mesePrecedente(mese, anno) {
+  const idx = mesiOrdine.indexOf(mese);
+  const nuovoIdx = (idx - 1 + 12) % 12;
+  const nuovoAnno = idx === 0 ? String(Number(anno) - 1) : anno;
+  return { mese: mesiOrdine[nuovoIdx], anno: nuovoAnno };
+}
+
+// Carica dati
 async function caricaDati() {
     try {
-        console.log('Inizio caricamento dati...');
+        console.log('Caricamento dati in corso...');
         
-        // Dichiara gruppiData all'inizio della funzione
-        let gruppiData = {};
+        // Carica gruppi.json
+        const gruppiResponse = await fetch('gruppi.json');
+        gruppiData = await gruppiResponse.json();
+        console.log('Dati gruppi caricati:', gruppiData);
         
-        // Carica i dati dei gruppi
-        const gruppiRef = ref(database, 'gruppi');
-        const gruppiSnapshot = await get(gruppiRef);
-        
-        if (gruppiSnapshot.exists()) {
-            gruppiData = gruppiSnapshot.val();
-            console.log('Dati gruppi caricati:', Object.keys(gruppiData).length, 'gruppi');
-        } else {
-            console.log('Nessun dato gruppi trovato');
+        // Popola gruppoToCapitolo
+        const struttura = gruppiData["HOMBU 9"];
+        for (const [capitolo, settori] of Object.entries(struttura)) {
+            for (const [_, gruppi] of Object.entries(settori)) {
+                gruppi.forEach(gr => gruppoToCapitolo[gr] = capitolo);
+            }
         }
         
-        // Carica i dati zadankai
+        // Carica dati zadankai da Firebase
         const zadankaiRef = ref(database, 'zadankai');
-        const zadankaiSnapshot = await get(zadankaiRef);
+        const snapshot = await get(zadankaiRef);
         
-        if (zadankaiSnapshot.exists()) {
-            console.log('Dati zadankai caricati');
-            const zadankaiData = zadankaiSnapshot.val();
+        if (snapshot.exists()) {
+            const dati = snapshot.val();
+            console.log('Dati zadankai caricati da Firebase');
             
-            // Debug: mostra la struttura dei dati
-            console.log('Struttura gruppiData:', Object.keys(gruppiData).slice(0, 3));
-            if (Object.keys(gruppiData).length > 0) {
-                console.log('Esempio gruppo:', gruppiData[Object.keys(gruppiData)[0]]);
-            }
-            console.log('Struttura zadankaiData:', Object.keys(zadankaiData).slice(0, 3));
-            if (Object.keys(zadankaiData).length > 0) {
-                console.log('Esempio zadankai:', zadankaiData[Object.keys(zadankaiData)[0]]);
-            }
-            
-            // Processa i dati
-            righe = [];
-            
-            if (zadankaiData && typeof zadankaiData === 'object') {
-                Object.entries(zadankaiData).forEach(([chiave, valore]) => {
-                    if (valore && typeof valore === 'object') {
-                        // Estrai anno e mese dalla chiave (formato: "2025-01" o simile)
-                        const [anno, numeroMese] = chiave.split('-');
-                        const mese = getMeseName(numeroMese);
-                        
-                        console.log(`Elaborando ${chiave}: anno=${anno}, mese=${mese}`);
-                        
-                        Object.entries(valore).forEach(([gruppoId, datiGruppo]) => {
-                            if (datiGruppo && typeof datiGruppo === 'object') {
-                                const infoGruppo = gruppiData[gruppoId] || {};
-                                
-                                console.log('Gruppo ID:', gruppoId);
-                                console.log('Info Gruppo:', infoGruppo);
-                                console.log('Dati Gruppo:', datiGruppo);
-                                
-                                // Gestisce i valori numerici in modo più robusto
-                                let partecipanti = 0;
-                                let ospiti = 0;
-                                
-                                // Se partecipanti è un oggetto, prova a estrarre il valore
-                                if (typeof datiGruppo.partecipanti === 'object' && datiGruppo.partecipanti !== null) {
-                                    partecipanti = datiGruppo.partecipanti.valore || datiGruppo.partecipanti.value || 0;
-                                } else {
-                                    partecipanti = parseInt(datiGruppo.partecipanti) || 0;
-                                }
-                                
-                                // Se ospiti è un oggetto, prova a estrarre il valore
-                                if (typeof datiGruppo.ospiti === 'object' && datiGruppo.ospiti !== null) {
-                                    ospiti = datiGruppo.ospiti.valore || datiGruppo.ospiti.value || 0;
-                                } else {
-                                    ospiti = parseInt(datiGruppo.ospiti) || 0;
-                                }
-                                
-                                const riga = {
-                                    anno: parseInt(anno),
-                                    mese: mese,
-                                    gruppoId: gruppoId,
-                                    nomeGruppo: infoGruppo.nome || `Gruppo ${gruppoId}`,
-                                    capitolo: infoGruppo.capitolo || 'Non specificato',
-                                    settore: infoGruppo.settore || 'Non specificato',
-                                    responsabile: infoGruppo.responsabile || 'Non specificato',
-                                    partecipanti: partecipanti,
-                                    ospiti: ospiti,
-                                    totale: partecipanti + ospiti
-                                };
-                                
-                                console.log('Riga creata:', riga);
-                                righe.push(riga);
-                            }
-                        });
-                    }
-                });
+            // Elabora i dati
+            for (const key in dati) {
+                const [anno, mese, gruppo] = key.split('-');
+                const sezioni = dati[key];
+                
+                // Zadankai
+                for (const categoria in sezioni.zadankai) {
+                    const r = sezioni.zadankai[categoria];
+                    righe.push({ 
+                        anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
+                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                    });
+                }
+                
+                // Praticanti
+                for (const categoria in sezioni.praticanti) {
+                    const r = sezioni.praticanti[categoria];
+                    righe.push({ 
+                        anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
+                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                    });
+                }
             }
             
-            console.log('Righe elaborate:', righe.length);
-            
-            // Popola le mappe per i filtri
-            popolaMappe();
-            
-            // Inizializza i filtri
+            console.log(`Righe elaborate: ${righe.length}`);
             inizializzaFiltri();
-            
-            // Aggiorna i riepiloghi
-            aggiornaRiepiloghi();
         } else {
-            console.log('Nessun dato zadankai trovato');
+            console.log('Nessun dato trovato in Firebase');
         }
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
     }
 }
 
-// Funzione per convertire il numero del mese in nome
-function getMeseName(mese) {
-    console.log('getMeseName chiamata con:', mese, 'tipo:', typeof mese);
-    
-    // Se è già una stringa di nome mese, restituiscila
-    if (typeof mese === 'string' && mese !== '' && isNaN(mese)) {
-        return mese;
-    }
-    
-    // Converti in numero se è una stringa numerica
-    let meseNum = typeof mese === 'string' ? parseInt(mese.replace(/^0+/, '')) : mese;
-    
-    const nomiMesi = {
-        1: 'Gennaio', 2: 'Febbraio', 3: 'Marzo', 4: 'Aprile',
-        5: 'Maggio', 6: 'Giugno', 7: 'Luglio', 8: 'Agosto',
-        9: 'Settembre', 10: 'Ottobre', 11: 'Novembre', 12: 'Dicembre'
-    };
-    
-    return nomiMesi[meseNum] || 'Mese sconosciuto';
-}
-
-// Funzione per popolare le mappe
-function popolaMappe() {
-    righe.forEach(riga => {
-        gruppiMap.set(riga.gruppoId, riga.nomeGruppo);
-        capitoliMap.set(riga.capitolo, riga.capitolo);
-        settoriMap.set(riga.settore, riga.settore);
-    });
-}
-
-// Funzione per inizializzare i filtri
+// Inizializza filtri
 function inizializzaFiltri() {
     const filtroAnno = document.getElementById('filtro-anno');
     const filtroMese = document.getElementById('filtro-mese');
-    const filtroLivello = document.getElementById('filtro-livello');
     
-    if (!filtroAnno || !filtroMese || !filtroLivello) {
-        console.error('Elementi filtro non trovati');
-        return;
-    }
-    
-    // Popola il filtro anni
-    const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
-    filtroAnno.innerHTML = '<option value="">Seleziona anno</option>';
+    // Popola anni
+    const anni = [...new Set(righe.map(r => r.anno))].sort();
     anni.forEach(anno => {
         const option = document.createElement('option');
         option.value = anno;
@@ -190,437 +131,488 @@ function inizializzaFiltri() {
         filtroAnno.appendChild(option);
     });
     
-    // Seleziona l'anno più recente
-    if (anni.length > 0) {
-        filtroAnno.value = anni[0];
-        aggiornaFiltroMesi();
-    }
-    
-    // Event listeners
-    filtroAnno.addEventListener('change', aggiornaFiltroMesi);
-    filtroMese.addEventListener('change', aggiornaRiepiloghi);
-    filtroLivello.addEventListener('change', aggiornaRiepiloghi);
-}
-
-// Funzione per aggiornare il filtro mesi
-function aggiornaFiltroMesi() {
-    const filtroAnno = document.getElementById('filtro-anno');
-    const filtroMese = document.getElementById('filtro-mese');
-    
-    if (!filtroAnno || !filtroMese) return;
-    
-    const annoSelezionato = parseInt(filtroAnno.value);
-    
-    if (!annoSelezionato) {
-        filtroMese.innerHTML = '<option value="">Seleziona prima un anno</option>';
-        return;
-    }
-    
-    // Filtra i mesi disponibili per l'anno selezionato
-    const mesiDisponibili = [...new Set(righe
-        .filter(r => r.anno === annoSelezionato)
-        .map(r => r.mese)
-    )];
-    
-    // Ordina i mesi
-    const ordineM = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                     'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-    mesiDisponibili.sort((a, b) => ordineM.indexOf(a) - ordineM.indexOf(b));
-    
-    // Popola il dropdown
-    filtroMese.innerHTML = '<option value="tutti">Tutti i mesi</option>';
-    mesiDisponibili.forEach(mese => {
+    // Popola mesi
+    const mesi = [...new Set(righe.map(r => r.mese))];
+    const mesiOrdinati = mesi.sort((a, b) => mesiOrdine.indexOf(a) - mesiOrdine.indexOf(b));
+    mesiOrdinati.forEach(mese => {
         const option = document.createElement('option');
         option.value = mese;
         option.textContent = mese;
         filtroMese.appendChild(option);
     });
     
-    // Seleziona il mese più recente
-    if (mesiDisponibili.length > 0) {
-        filtroMese.value = mesiDisponibili[mesiDisponibili.length - 1];
-    }
+    // Seleziona valori più recenti
+    if (anni.length > 0) filtroAnno.value = anni[anni.length - 1];
+    if (mesiOrdinati.length > 0) filtroMese.value = mesiOrdinati[mesiOrdinati.length - 1];
     
+    // Aggiungi event listeners
+    filtroAnno.addEventListener('change', aggiornaRiepiloghi);
+    filtroMese.addEventListener('change', aggiornaRiepiloghi);
+    
+    // Genera riepiloghi iniziali
     aggiornaRiepiloghi();
 }
 
-// Funzione per aggiornare i riepiloghi
+// Aggiorna riepiloghi
 function aggiornaRiepiloghi() {
-    const annoSelezionato = document.getElementById('filtro-anno')?.value;
+    const annoSelezionato = document.getElementById('filtro-anno').value;
     const meseSelezionato = document.getElementById('filtro-mese').value;
-    const livelloSelezionato = document.getElementById('filtro-livello')?.value;
     
-    if (!annoSelezionato || !meseSelezionato || !livelloSelezionato) {
+    if (!annoSelezionato || !meseSelezionato) {
         console.log('Filtri non completi');
         return;
     }
     
-    console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato, livelloSelezionato });
-    
-    // Aggiungi questa riga per definire righeFiltratePerAnno
-    const righeFiltratePerAnno = righe.filter(r => r.anno === parseInt(annoSelezionato));
-    
-    console.log('Mese selezionato dal filtro:', meseSelezionato);
-    
-    let righeFiltratePerMese = righeFiltratePerAnno;
-    if (meseSelezionato && meseSelezionato !== '' && meseSelezionato !== 'tutti') {
-        righeFiltratePerMese = righeFiltratePerAnno.filter(riga => {
-            // Se il mese selezionato è un numero, confronta con il numero del mese
-            if (!isNaN(meseSelezionato)) {
-                return riga.mese == meseSelezionato;
-            }
-            // Se il mese selezionato è un nome, confronta con il nome
-            return riga.mese === meseSelezionato || getMeseName(riga.mese) === meseSelezionato;
-        });
-    }
-    
-    console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato, livelloSelezionato });
+    console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato });
     
     // Filtra i dati
-    const datiAnno = righe.filter(r => r.anno === parseInt(annoSelezionato));
-    const datiMese = meseSelezionato === 'tutti' ? datiAnno : datiAnno.filter(r => r.mese === meseSelezionato);
+    const righeFiltrate = righe.filter(r => 
+        r.anno === annoSelezionato && r.mese === meseSelezionato
+    );
     
-    const contenitore = document.getElementById('contenitore-riepiloghi');
-    if (!contenitore) return;
+    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(meseSelezionato, annoSelezionato);
     
-    contenitore.innerHTML = '';
-    
-    switch (livelloSelezionato) {
-        case 'hombu':
-            generaRiepilogoHombu(datiMese, parseInt(annoSelezionato), meseSelezionato);
-            break;
-        case 'capitoli':
-            generaRiepiloghiCapitoli(datiMese, parseInt(annoSelezionato), meseSelezionato);
-            break;
-        case 'settori':
-            generaRiepiloghiSettori(datiMese, parseInt(annoSelezionato), meseSelezionato);
-            break;
-    }
+    // Genera riepiloghi
+    generaRiepilogoHombu(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
+    generaRiepiloghiCapitoli(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
 }
 
-// Funzione per generare il riepilogo Hombu
-function generaRiepilogoHombu(dati, anno, mese) {
+// Genera riepilogo Hombu generale
+function generaRiepilogoHombu(righeFiltrate, mese, anno, mesePrec, annoPrec) {
     const contenitore = document.getElementById('contenitore-riepiloghi');
-    if (!contenitore) return;
     
-    const card = document.createElement('div');
-    card.className = 'card mb-4 shadow-sm';
+    // Crea card per Hombu
+    const cardHombu = document.createElement('div');
+    cardHombu.className = 'card shadow-sm mb-4';
     
-    const nomeMese = mese === 'tutti' ? 'Tutti i mesi' : getMeseName(mese);
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-success text-white';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-home me-2"></i>Riepilogo Generale: HOMBU 9 - ${mese} ${anno}</h5>`;
+    cardHombu.appendChild(cardHeader);
     
-    card.innerHTML = `
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
-                <i class="fas fa-chart-bar me-2"></i>
-                Riepilogo Hombu 9 - ${nomeMese} ${anno}
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Gruppo</th>
-                            <th>Capitolo</th>
-                            <th>Settore</th>
-                            <th>Responsabile</th>
-                            <th>Partecipanti</th>
-                            <th>Ospiti</th>
-                            <th>Totale</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabella-hombu">
-                    </tbody>
-                    <tfoot class="table-secondary">
-                        <tr id="totali-hombu">
-                            <th colspan="4">TOTALI</th>
-                            <th id="totale-partecipanti">0</th>
-                            <th id="totale-ospiti">0</th>
-                            <th id="totale-generale">0</th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-success" onclick="esportaCSV('hombu', ${anno}, '${mese}')">
-                    <i class="fas fa-download me-2"></i>Esporta CSV
-                </button>
-            </div>
-        </div>
-    `;
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
     
-    contenitore.appendChild(card);
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
     
-    // Popola la tabella
-    const tbody = document.getElementById('tabella-hombu');
-    let totalePartecipanti = 0;
-    let totaleOspiti = 0;
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Hombu</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
     
-    dati.forEach(riga => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${riga.nomeGruppo}</td>
-            <td>${riga.capitolo}</td>
-            <td>${riga.settore}</td>
-            <td>${riga.responsabile}</td>
-            <td class="text-end">${riga.partecipanti}</td>
-            <td class="text-end">${riga.ospiti}</td>
-            <td class="text-end fw-bold">${riga.totale}</td>
-        `;
-        tbody.appendChild(tr);
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeFiltrate.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
         
-        totalePartecipanti += riga.partecipanti;
-        totaleOspiti += riga.ospiti;
-    });
-    
-    // Aggiorna i totali
-    document.getElementById('totale-partecipanti').textContent = totalePartecipanti;
-    document.getElementById('totale-ospiti').textContent = totaleOspiti;
-    document.getElementById('totale-generale').textContent = totalePartecipanti + totaleOspiti;
-}
-
-// Funzione per generare i riepiloghi per capitolo
-function generaRiepiloghiCapitoli(dati, anno, mese) {
-    const contenitore = document.getElementById('contenitore-riepiloghi');
-    if (!contenitore) return;
-    
-    // Raggruppa per capitolo
-    const datiPerCapitolo = {};
-    dati.forEach(riga => {
-        if (!datiPerCapitolo[riga.capitolo]) {
-            datiPerCapitolo[riga.capitolo] = [];
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
         }
-        datiPerCapitolo[riga.capitolo].push(riga);
+        
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione)
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+        
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
     });
     
-    const titoloMese = mese === 'tutti' ? 'Tutti i mesi' : mese;
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardHombu.appendChild(cardBody);
+    contenitore.appendChild(cardHombu);
+}
+
+// Genera riepiloghi per capitoli
+function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec) {
+    const contenitore = document.getElementById('contenitore-riepiloghi');
+    const struttura = gruppiData["HOMBU 9"];
     
-    Object.entries(datiPerCapitolo).forEach(([capitolo, righeCapitolo]) => {
-        const card = document.createElement('div');
-        card.className = 'card mb-4 shadow-sm';
+    // Per ogni capitolo
+    Object.entries(struttura).forEach(([capitolo, settori]) => {
+        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
+        if (righeFiltrateCap.length === 0) return;
         
-        card.innerHTML = `
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-users me-2"></i>
-                    ${capitolo} - ${titoloMese} ${anno}
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Gruppo</th>
-                                <th>Settore</th>
-                                <th>Responsabile</th>
-                                <th>Partecipanti</th>
-                                <th>Ospiti</th>
-                                <th>Totale</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabella-${capitolo.replace(/\s+/g, '-')}">
-                        </tbody>
-                        <tfoot class="table-secondary">
-                            <tr>
-                                <th colspan="3">TOTALI ${capitolo}</th>
-                                <th id="totale-partecipanti-${capitolo.replace(/\s+/g, '-')}">0</th>
-                                <th id="totale-ospiti-${capitolo.replace(/\s+/g, '-')}">0</th>
-                                <th id="totale-generale-${capitolo.replace(/\s+/g, '-')}">0</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="mt-3">
-                    <button class="btn btn-primary" onclick="esportaCSV('capitoli', ${anno}, '${mese}', '${capitolo}')">
-                        <i class="fas fa-download me-2"></i>Esporta CSV
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        contenitore.appendChild(card);
-        
-        // Popola la tabella del capitolo
-        const tbody = document.getElementById(`tabella-${capitolo.replace(/\s+/g, '-')}`);
-        let totalePartecipanti = 0;
-        let totaleOspiti = 0;
-        
-        righeCapitolo.forEach(riga => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${riga.nomeGruppo}</td>
-                <td>${riga.settore}</td>
-                <td>${riga.responsabile}</td>
-                <td class="text-end">${riga.partecipanti}</td>
-                <td class="text-end">${riga.ospiti}</td>
-                <td class="text-end fw-bold">${riga.totale}</td>
-            `;
-            tbody.appendChild(tr);
+        // Genera riepiloghi per settori del capitolo
+        Object.entries(settori).forEach(([settore, gruppiSettore]) => {
+            const righeSettore = righeFiltrateCap.filter(r => gruppiSettore.includes(r.gruppo));
+            if (righeSettore.length === 0) return;
             
-            totalePartecipanti += riga.partecipanti;
-            totaleOspiti += riga.ospiti;
+            generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
         });
         
-        // Aggiorna i totali del capitolo
-        document.getElementById(`totale-partecipanti-${capitolo.replace(/\s+/g, '-')}`).textContent = totalePartecipanti;
-        document.getElementById(`totale-ospiti-${capitolo.replace(/\s+/g, '-')}`).textContent = totaleOspiti;
-        document.getElementById(`totale-generale-${capitolo.replace(/\s+/g, '-')}`).textContent = totalePartecipanti + totaleOspiti;
+        // Genera riepilogo capitolo
+        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
     });
 }
 
-// Funzione per generare i riepiloghi per settore
-function generaRiepiloghiSettori(dati, anno, mese) {
-    const contenitore = document.getElementById('contenitore-riepiloghi');
-    if (!contenitore) return;
+// Genera riepilogo per un settore
+function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore) {
+    const cardSettore = document.createElement('div');
+    cardSettore.className = 'card shadow-sm mb-4';
     
-    // Raggruppa per settore
-    const datiPerSettore = {};
-    dati.forEach(riga => {
-        if (!datiPerSettore[riga.settore]) {
-            datiPerSettore[riga.settore] = [];
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-warning text-dark';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ${settore}</h5>`;
+    cardSettore.appendChild(cardHeader);
+    
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Settore</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeSettore.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
+        
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
         }
-        datiPerSettore[riga.settore].push(riga);
-    });
-    
-    const titoloMese = mese === 'tutti' ? 'Tutti i mesi' : mese;
-    
-    Object.entries(datiPerSettore).forEach(([settore, righeSettore]) => {
-        const card = document.createElement('div');
-        card.className = 'card mb-4 shadow-sm';
         
-        card.innerHTML = `
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">
-                    <i class="fas fa-building me-2"></i>
-                    ${settore} - ${titoloMese} ${anno}
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Gruppo</th>
-                                <th>Capitolo</th>
-                                <th>Responsabile</th>
-                                <th>Partecipanti</th>
-                                <th>Ospiti</th>
-                                <th>Totale</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabella-settore-${settore.replace(/\s+/g, '-')}">
-                        </tbody>
-                        <tfoot class="table-secondary">
-                            <tr>
-                                <th colspan="3">TOTALI ${settore}</th>
-                                <th id="totale-partecipanti-settore-${settore.replace(/\s+/g, '-')}">0</th>
-                                <th id="totale-ospiti-settore-${settore.replace(/\s+/g, '-')}">0</th>
-                                <th id="totale-generale-settore-${settore.replace(/\s+/g, '-')}">0</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="mt-3">
-                    <button class="btn btn-warning" onclick="esportaCSV('settori', ${anno}, '${mese}', '${settore}')">
-                        <i class="fas fa-download me-2"></i>Esporta CSV
-                    </button>
-                </div>
-            </div>
-        `;
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
         
-        contenitore.appendChild(card);
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
         
-        // Popola la tabella del settore
-        const tbody = document.getElementById(`tabella-settore-${settore.replace(/\s+/g, '-')}`);
-        let totalePartecipanti = 0;
-        let totaleOspiti = 0;
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione) &&
+            gruppiSettore.includes(r.gruppo)
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
         
-        righeSettore.forEach(riga => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${riga.nomeGruppo}</td>
-                <td>${riga.capitolo}</td>
-                <td>${riga.responsabile}</td>
-                <td class="text-end">${riga.partecipanti}</td>
-                <td class="text-end">${riga.ospiti}</td>
-                <td class="text-end fw-bold">${riga.totale}</td>
-            `;
-            tbody.appendChild(tr);
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
             
-            totalePartecipanti += riga.partecipanti;
-            totaleOspiti += riga.ospiti;
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione &&
+                gruppiSettore.includes(r.gruppo)
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
         });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardSettore.appendChild(cardBody);
+    contenitore.appendChild(cardSettore);
+}
+
+// Genera riepilogo per un capitolo
+function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore) {
+    const cardCapitolo = document.createElement('div');
+    cardCapitolo.className = 'card shadow-sm mb-4';
+    
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-primary text-white';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo: ${capitolo}</h5>`;
+    cardCapitolo.appendChild(cardHeader);
+    
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Capitolo</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeFiltrateCap.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
         
-        // Aggiorna i totali del settore
-        document.getElementById(`totale-partecipanti-settore-${settore.replace(/\s+/g, '-')}`).textContent = totalePartecipanti;
-        document.getElementById(`totale-ospiti-settore-${settore.replace(/\s+/g, '-')}`).textContent = totaleOspiti;
-        document.getElementById(`totale-generale-settore-${settore.replace(/\s+/g, '-')}`).textContent = totalePartecipanti + totaleOspiti;
-    });
-}
-
-// Funzione per esportare in CSV
-function esportaCSV(tipo, anno, mese, filtro = '') {
-    let datiEsportazione = righe.filter(r => r.anno === anno);
-    
-    if (mese !== 'tutti') {
-        datiEsportazione = datiEsportazione.filter(r => r.mese === mese);
-    }
-    
-    if (filtro) {
-        if (tipo === 'capitoli') {
-            datiEsportazione = datiEsportazione.filter(r => r.capitolo === filtro);
-        } else if (tipo === 'settori') {
-            datiEsportazione = datiEsportazione.filter(r => r.settore === filtro);
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
         }
-    }
-    
-    // Crea il CSV
-    const headers = ['Gruppo', 'Capitolo', 'Settore', 'Responsabile', 'Partecipanti', 'Ospiti', 'Totale'];
-    let csvContent = headers.join(',') + '\n';
-    
-    datiEsportazione.forEach(riga => {
-        const row = [
-            `"${riga.nomeGruppo}"`,
-            `"${riga.capitolo}"`,
-            `"${riga.settore}"`,
-            `"${riga.responsabile}"`,
-            riga.partecipanti,
-            riga.ospiti,
-            riga.totale
-        ];
-        csvContent += row.join(',') + '\n';
+        
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione) &&
+            gruppoToCapitolo[r.gruppo] === capitolo
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+        
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione &&
+                gruppoToCapitolo[r.gruppo] === capitolo
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
     });
     
-    // Download del file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    
-    const nomeFile = `riepilogo_${tipo}_${anno}_${mese}${filtro ? '_' + filtro.replace(/\s+/g, '_') : ''}.csv`;
-    link.setAttribute('download', nomeFile);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardCapitolo.appendChild(cardBody);
+    contenitore.appendChild(cardCapitolo);
 }
 
-// Funzione di logout
+// Logout
 function logout() {
     signOut(auth).then(() => {
-        console.log('Logout effettuato');
         window.location.href = 'index.html';
     }).catch((error) => {
         console.error('Errore durante il logout:', error);
     });
 }
 
-// Esporta le funzioni per l'uso globale
-window.esportaCSV = esportaCSV;
+// Esporta funzioni globali
 window.logout = logout;
 
-// Inizializzazione quando il DOM è caricato
+// Inizializza quando il DOM è caricato
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM caricato, inizializzazione in corso...');
+    
+    // Pulisci il contenitore all'inizio
+    const contenitore = document.getElementById('contenitore-riepiloghi');
+    if (contenitore) {
+        contenitore.innerHTML = '';
+    }
 });
