@@ -171,6 +171,17 @@ function aggiornaRiepiloghi() {
   const livello = filtroLivello.value;
   const capitolo = filtroCapitolo.value;
   
+  // DEBUG: Aggiungi questi log
+  console.log("Filtri selezionati:", { anno, mese, livello, capitolo });
+  console.log("Totale righe disponibili:", righe.length);
+  
+  // Verifica che tipo di dati abbiamo
+  if (righe.length > 0) {
+    console.log("Esempio prima riga:", righe[0]);
+    console.log("Anni disponibili:", [...new Set(righe.map(r => r.anno))]);
+    console.log("Mesi disponibili:", [...new Set(righe.map(r => r.mese))]);
+  }
+  
   const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
   
   contenitoreRiepiloghi.innerHTML = "";
@@ -190,6 +201,9 @@ function aggiornaRiepiloghi() {
 
 function generaRiepilogoHombu(anno, mese, annoPrec, mesePrec) {
   const righeFiltrate = righe.filter(r => r.anno === anno && r.mese === mese);
+  
+  // DEBUG: Aggiungi questo log
+  console.log(`Righe filtrate per ${mese} ${anno}:`, righeFiltrate.length, righeFiltrate);
   
   const card = document.createElement("div");
   card.className = "card shadow-sm mb-4";
