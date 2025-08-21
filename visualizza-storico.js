@@ -352,22 +352,23 @@ function aggiornaSottofiltri() {
         gruppiFiltrati = gruppiFiltrati.filter(g => g.settore === settoreSelezionato);
     }
     
-    // Aggiorna filtro settori se capitolo è selezionato
-    if (capitoloSelezionato !== 'tutti') {
-        const settoriDisponibili = [...new Set(gruppiFiltrati.map(g => g.settore))].sort();
-        const settoreSelect = document.getElementById('settoreFiltro');
-        if (settoreSelect) {
-            const valoreCorrente = settoreSelect.value;
-            
-            settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
-            settoriDisponibili.forEach(settore => {
-                const option = document.createElement('option');
-                option.value = settore;
-                option.textContent = settore;
-                if (settore === valoreCorrente) option.selected = true;
-                settoreSelect.appendChild(option);
-            });
-        }
+    // Aggiorna filtro settori SEMPRE (non solo quando capitolo è selezionato)
+    const settoriDisponibili = capitoloSelezionato === 'tutti' 
+        ? [...new Set(gruppiDisponibili.map(g => g.settore))].sort()
+        : [...new Set(gruppiFiltrati.map(g => g.settore))].sort();
+        
+    const settoreSelect = document.getElementById('settoreFiltro');
+    if (settoreSelect) {
+        const valoreCorrente = settoreSelect.value;
+        
+        settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
+        settoriDisponibili.forEach(settore => {
+            const option = document.createElement('option');
+            option.value = settore;
+            option.textContent = settore;
+            if (settore === valoreCorrente) option.selected = true;
+            settoreSelect.appendChild(option);
+        });
     }
     
     // Aggiorna filtro gruppi
