@@ -152,6 +152,10 @@ function inizializzaFiltri() {
     const filtroAnno = document.getElementById('filtro-anno');
     const filtroMese = document.getElementById('filtro-mese');
     
+    // Pulisci le opzioni esistenti (mantieni solo la prima opzione "Seleziona...")
+    filtroAnno.innerHTML = '<option value="">Seleziona Anno</option>';
+    filtroMese.innerHTML = '<option value="">Seleziona Mese</option>';
+    
     // Popola filtro anno
     const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
     anni.forEach(anno => {
