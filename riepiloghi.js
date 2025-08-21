@@ -1,4 +1,4 @@
-// Importa Firebase
+// Import Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
@@ -37,7 +37,7 @@ let gruppoToCapitolo = {};
 const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                     "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
-// Controllo autenticazione
+// Autenticazione
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('Utente autenticato:', user.email);
@@ -47,117 +47,92 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Funzione per calcolare il mese precedente
+// Funzione per ottenere il mese precedente
 function mesePrecedente(mese, anno) {
-    const indiceMese = mesiOrdine.indexOf(mese);
-    return indiceMese === 0 
-        ? { mese: mesiOrdine[11], anno: (parseInt(anno) - 1).toString() }
-        : { mese: mesiOrdine[indiceMese - 1], anno: anno };
+  const idx = mesiOrdine.indexOf(mese);
+  const nuovoIdx = (idx - 1 + 12) % 12;
+  const nuovoAnno = idx === 0 ? String(Number(anno) - 1) : anno;
+  return { mese: mesiOrdine[nuovoIdx], anno: nuovoAnno };
 }
 
-// Carica i dati
+// Carica dati
 async function caricaDati() {
     try {
         console.log('Caricamento dati in corso...');
         
         // Carica gruppi.json
-        const responseGruppi = await fetch('./gruppi.json');
-        gruppiData = await responseGruppi.json();
+        const gruppiResponse = await fetch('gruppi.json');
+        gruppiData = await gruppiResponse.json();
+        console.log('Dati gruppi caricati:', gruppiData);
         
-        // Crea mappa gruppo -> capitolo
-        Object.keys(gruppiData["HOMBU 9"]).forEach(capitolo => {
-            Object.keys(gruppiData["HOMBU 9"][capitolo]).forEach(settore => {
-                gruppiData["HOMBU 9"][capitolo][settore].forEach(gruppo => {
-                    gruppoToCapitolo[gruppo] = capitolo;
-                });
-            });
-        });
-        
-        // Carica dati da Firebase
-        const snapshot = await get(ref(database, 'zadankai'));
-        if (snapshot.exists()) {
-            const datiZadankai = snapshot.val();
-            
-            Object.keys(datiZadankai).forEach(anno => {
-                Object.keys(datiZadankai[anno]).forEach(mese => {
-                    Object.keys(datiZadankai[anno][mese]).forEach(gruppo => {
-                        const datiGruppo = datiZadankai[anno][mese][gruppo];
-                        
-                        // Zadankai
-                        if (datiGruppo.zadankai) {
-                            Object.keys(datiGruppo.zadankai).forEach(sezione => {
-                                const datiSezione = datiGruppo.zadankai[sezione];
-                                righe.push({
-                                    anno: parseInt(anno),
-                                    mese: mese,
-                                    gruppo: gruppo,
-                                    tipo: 'ZADANKAI',
-                                    sezione: sezione,
-                                    U: datiSezione.U || 0,
-                                    D: datiSezione.D || 0,
-                                    GU: datiSezione.GU || 0,
-                                    GD: datiSezione.GD || 0,
-                                    FUT: datiSezione.FUT || 0,
-                                    STU: datiSezione.STU || 0
-                                });
-                            });
-                        }
-                        
-                        // Praticanti
-                        if (datiGruppo.praticanti) {
-                            Object.keys(datiGruppo.praticanti).forEach(sezione => {
-                                const datiSezione = datiGruppo.praticanti[sezione];
-                                righe.push({
-                                    anno: parseInt(anno),
-                                    mese: mese,
-                                    gruppo: gruppo,
-                                    tipo: 'PRATICANTI',
-                                    sezione: sezione,
-                                    U: datiSezione.U || 0,
-                                    D: datiSezione.D || 0,
-                                    GU: datiSezione.GU || 0,
-                                    GD: datiSezione.GD || 0,
-                                    FUT: datiSezione.FUT || 0,
-                                    STU: datiSezione.STU || 0
-                                });
-                            });
-                        }
-                    });
-                });
-            });
+        // Popola gruppoToCapitolo
+        const struttura = gruppiData["HOMBU 9"];
+        for (const [capitolo, settori] of Object.entries(struttura)) {
+            for (const [_, gruppi] of Object.entries(settori)) {
+                gruppi.forEach(gr => gruppoToCapitolo[gr] = capitolo);
+            }
         }
         
-        console.log('Dati caricati:', righe.length, 'righe');
-        inizializzaFiltri();
+        // Carica dati zadankai da Firebase
+        const zadankaiRef = ref(database, 'zadankai');
+        const snapshot = await get(zadankaiRef);
         
-        // Aggiungi event listeners per i pulsanti di esportazione
-        const btnExportExcel = document.getElementById('btn-export-excel');
-        const btnExportPdf = document.getElementById('btn-export-pdf');
-        const btnPrint = document.getElementById('btn-print');
-        
-        if (btnExportExcel) btnExportExcel.addEventListener('click', esportaExcel);
-        if (btnExportPdf) btnExportPdf.addEventListener('click', esportaPdf);
-        if (btnPrint) btnPrint.addEventListener('click', stampa);
-        
-        aggiornaRiepiloghi();
-        
+        if (snapshot.exists()) {
+            const dati = snapshot.val();
+            console.log('Dati zadankai caricati da Firebase');
+            
+            // Elabora i dati
+            for (const key in dati) {
+                const [anno, mese, gruppo] = key.split('-');
+                const sezioni = dati[key];
+                
+                // Zadankai
+                for (const categoria in sezioni.zadankai) {
+                    const r = sezioni.zadankai[categoria];
+                    righe.push({ 
+                        anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
+                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                    });
+                }
+                
+                // Praticanti
+                for (const categoria in sezioni.praticanti) {
+                    const r = sezioni.praticanti[categoria];
+                    righe.push({ 
+                        anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
+                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                    });
+                }
+            }
+            
+            console.log(`Righe elaborate: ${righe.length}`);
+            inizializzaFiltri();
+
+            // Aggiungi event listeners per i pulsanti di esportazione
+            const btnExportExcel = document.getElementById('btn-export-excel');
+            const btnExportPdf = document.getElementById('btn-export-pdf');
+            const btnPrint = document.getElementById('btn-print');
+            
+            if (btnExportExcel) btnExportExcel.addEventListener('click', esportaExcel);
+            if (btnExportPdf) btnExportPdf.addEventListener('click', esportaPdf);
+            if (btnPrint) btnPrint.addEventListener('click', stampa);
+        } else {
+            console.log('Nessun dato trovato in Firebase');
+        }
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
-        alert('Errore nel caricamento dei dati. Controlla la console.');
     }
 }
 
-// Inizializza i filtri
+// Inizializza filtri
 function inizializzaFiltri() {
     const filtroAnno = document.getElementById('filtro-anno');
     const filtroMese = document.getElementById('filtro-mese');
     
-    // Pulisci le opzioni esistenti (mantieni solo la prima opzione "Seleziona...")
-    filtroAnno.innerHTML = '<option value="">Seleziona Anno</option>';
-    filtroMese.innerHTML = '<option value="">Seleziona Mese</option>';
-    
-    // Popola filtro anno
-    const anni = [...new Set(righe.map(r => r.anno))].sort((a, b) => b - a);
+    // Popola anni
+    const anni = [...new Set(righe.map(r => r.anno))].sort();
     anni.forEach(anno => {
         const option = document.createElement('option');
         option.value = anno;
@@ -165,60 +140,496 @@ function inizializzaFiltri() {
         filtroAnno.appendChild(option);
     });
     
-    // Popola filtro mese
-    const mesiPresenti = [...new Set(righe.map(r => r.mese))];
-    mesiOrdine.forEach(mese => {
-        if (mesiPresenti.includes(mese)) {
-            const option = document.createElement('option');
-            option.value = mese;
-            option.textContent = mese;
-            filtroMese.appendChild(option);
-        }
+    // Popola mesi
+    const mesi = [...new Set(righe.map(r => r.mese))];
+    const mesiOrdinati = mesi.sort((a, b) => mesiOrdine.indexOf(a) - mesiOrdine.indexOf(b));
+    mesiOrdinati.forEach(mese => {
+        const option = document.createElement('option');
+        option.value = mese;
+        option.textContent = mese;
+        filtroMese.appendChild(option);
     });
     
-    // Imposta valori predefiniti
-    if (anni.length > 0) filtroAnno.value = anni[0];
-    if (mesiPresenti.length > 0) {
-        const ultimoMese = mesiPresenti[mesiPresenti.length - 1];
-        filtroMese.value = ultimoMese;
-    }
+    // Seleziona valori più recenti
+    if (anni.length > 0) filtroAnno.value = anni[anni.length - 1];
+    if (mesiOrdinati.length > 0) filtroMese.value = mesiOrdinati[mesiOrdinati.length - 1];
     
-    // Event listeners
+    // Aggiungi event listeners
     filtroAnno.addEventListener('change', aggiornaRiepiloghi);
     filtroMese.addEventListener('change', aggiornaRiepiloghi);
+    
+    // Genera riepiloghi iniziali
+    aggiornaRiepiloghi();
 }
 
-// Aggiorna i riepiloghi
+// Aggiorna riepiloghi
 function aggiornaRiepiloghi() {
     const annoSelezionato = document.getElementById('filtro-anno').value;
     const meseSelezionato = document.getElementById('filtro-mese').value;
     
-    if (!annoSelezionato || !meseSelezionato) return;
-    
-    // Pulisci il contenitore
-    document.getElementById('contenitore-riepiloghi').innerHTML = '';
-    
-    const righeFiltratePerAnno = righe.filter(r => r.anno === parseInt(annoSelezionato));
-    const righeFiltrate = righeFiltratePerAnno.filter(r => r.mese === meseSelezionato);
-    
-    if (righeFiltrate.length === 0) {
-        document.getElementById('contenitore-riepiloghi').innerHTML = 
-            '<div class="alert alert-warning">Nessun dato disponibile per il periodo selezionato.</div>';
+    if (!annoSelezionato || !meseSelezionato) {
+        console.log('Filtri non completi');
         return;
     }
     
+    console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato });
+
+    // Pulisci il contenitore prima di generare i nuovi riepiloghi
+    document.getElementById('contenitore-riepiloghi').innerHTML = '';
+  
+    // Filtra i dati
+    const righeFiltrate = righe.filter(r => 
+        r.anno === annoSelezionato && r.mese === meseSelezionato
+    );
+    
     const { mese: mesePrec, anno: annoPrec } = mesePrecedente(meseSelezionato, annoSelezionato);
     
-    // Genera i riepiloghi
+    // Genera riepiloghi
     generaRiepilogoHombu(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
     generaRiepiloghiCapitoli(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
 }
 
-// Genera riepilogo Hombu
+// Genera riepilogo Hombu generale
 function generaRiepilogoHombu(righeFiltrate, mese, anno, mesePrec, annoPrec) {
     const contenitore = document.getElementById('contenitore-riepiloghi');
     
-    // Calcola totali Hombu
+    // Crea card per Hombu
+    const cardHombu = document.createElement('div');
+    cardHombu.className = 'card shadow-sm mb-4';
+    
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-success text-white';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-home me-2"></i>Riepilogo Generale: HOMBU 9 - ${mese} ${anno}</h5>`;
+    cardHombu.appendChild(cardHeader);
+    
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Hombu</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeFiltrate.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
+        
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+        }
+        
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione)
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+        
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardHombu.appendChild(cardBody);
+    contenitore.appendChild(cardHombu);
+}
+
+// Genera riepiloghi per capitoli
+function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec) {
+    const contenitore = document.getElementById('contenitore-riepiloghi');
+    const struttura = gruppiData["HOMBU 9"];
+    
+    // Per ogni capitolo
+    Object.entries(struttura).forEach(([capitolo, settori]) => {
+        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
+        if (righeFiltrateCap.length === 0) return;
+        
+        // Genera riepiloghi per settori del capitolo
+        Object.entries(settori).forEach(([settore, gruppiSettore]) => {
+            const righeSettore = righeFiltrateCap.filter(r => gruppiSettore.includes(r.gruppo));
+            if (righeSettore.length === 0) return;
+            
+            generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
+        });
+        
+        // Genera riepilogo capitolo
+        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
+    });
+}
+
+// Genera riepilogo per un settore
+function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore) {
+    const cardSettore = document.createElement('div');
+    cardSettore.className = 'card shadow-sm mb-4';
+    
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-warning text-dark';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ${settore}</h5>`;
+    cardSettore.appendChild(cardHeader);
+    
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Settore</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeSettore.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
+        
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+        }
+        
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione) &&
+            gruppiSettore.includes(r.gruppo)
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+        
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione &&
+                gruppiSettore.includes(r.gruppo)
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardSettore.appendChild(cardBody);
+    contenitore.appendChild(cardSettore);
+}
+
+// Genera riepilogo per un capitolo
+function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore) {
+    const cardCapitolo = document.createElement('div');
+    cardCapitolo.className = 'card shadow-sm mb-4';
+    
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-primary text-white';
+    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo: ${capitolo}</h5>`;
+    cardCapitolo.appendChild(cardHeader);
+    
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    const tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Somma</th><th>Prec.</th><th>Totale Capitolo</th><th>Futuro</th><th>Studenti</th>
+    </tr>`;
+    tabella.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+        const righeTipo = righeFiltrateCap.filter(r => r.tipo === tipo);
+        if (righeTipo.length === 0) return;
+        
+        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
+        if (tipo === "ZADANKAI") {
+            const ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
+        }
+        
+        const tipoRowSpan = sezioni.length;
+        const sezioniRilevanti = tipo === "ZADANKAI"
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
+        const sumTot = righeTotali.reduce((acc, r) => ({
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        const righePrecTot = righe.filter(r =>
+            r.anno === annoPrec && r.mese === mesePrec &&
+            r.tipo === tipo &&
+            sezioniRilevanti.includes(r.sezione) &&
+            gruppoToCapitolo[r.gruppo] === capitolo
+        );
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const delta = totaleMese - totalePrec;
+        
+        sezioni.forEach((sezione, index) => {
+            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
+            const sum = righeSezione.reduce((acc, r) => ({
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            const righePrec = righe.filter(r =>
+                r.anno === annoPrec && r.mese === mesePrec &&
+                r.tipo === tipo && r.sezione === sezione &&
+                gruppoToCapitolo[r.gruppo] === capitolo
+            );
+            const sommaPrec = righePrec.reduce((acc, r) =>
+                acc + r.U + r.D + r.GU + r.GD, 0);
+            
+            const tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                const tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            const celle = [
+                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sommaTot, sommaPrec
+            ];
+            celle.forEach((val, i) => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                const tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = `
+                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
+                    <div class="small">Prec: ${totalePrec}</div>
+                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                        Δ ${delta >= 0 ? "+" : ""}${delta}
+                    </div>`;
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            const tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            const tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardCapitolo.appendChild(cardBody);
+    contenitore.appendChild(cardCapitolo);
+}
+
+// Funzione per esportare in Excel
+function esportaExcel() {
+    const anno = document.getElementById('filtro-anno').value;
+    const mese = document.getElementById('filtro-mese').value;
+    
+    if (!anno || !mese) {
+        alert('Seleziona anno e mese per esportare');
+        return;
+    }
+    
+    const righeFiltrate = righe.filter(r => r.anno === parseInt(anno) && r.mese === mese);
+    
+    if (righeFiltrate.length === 0) {
+        alert('Nessun dato da esportare per il periodo selezionato');
+        return;
+    }
+    
+    // Crea i dati per Excel
+    const datiExcel = [];
+    
+    // Intestazioni
+    datiExcel.push(['Livello', 'Nome', 'Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Futuro', 'Studenti']);
+    
+    // Totale Hombu
     const totaliHombu = righeFiltrate.reduce((acc, r) => ({
         U: acc.U + r.U,
         D: acc.D + r.D,
@@ -229,79 +640,28 @@ function generaRiepilogoHombu(righeFiltrate, mese, anno, mesePrec, annoPrec) {
     }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
     
     const totaleHombu = totaliHombu.U + totaliHombu.D + totaliHombu.GU + totaliHombu.GD;
+    datiExcel.push(['HOMBU', 'HOMBU 9', 'TOTALE', 'GENERALE', totaliHombu.U, totaliHombu.D, totaliHombu.GU, totaliHombu.GD, totaleHombu, totaliHombu.FUT, totaliHombu.STU]);
     
-    // Calcola totali mese precedente
-    const righePrecHombu = righe.filter(r => r.anno === parseInt(annoPrec) && r.mese === mesePrec);
-    const totaliPrecHombu = righePrecHombu.reduce((acc, r) => ({
-        U: acc.U + r.U,
-        D: acc.D + r.D,
-        GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD,
-        FUT: acc.FUT + r.FUT,
-        STU: acc.STU + r.STU
-    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-    
-    const totalePrecHombu = totaliPrecHombu.U + totaliPrecHombu.D + totaliPrecHombu.GU + totaliPrecHombu.GD;
-    const deltaHombu = totaleHombu - totalePrecHombu;
-    
-    // Crea card Hombu
-    const cardHombu = document.createElement('div');
-    cardHombu.className = 'card mb-4 shadow-sm';
-    cardHombu.innerHTML = `
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0"><i class="fas fa-home me-2"></i>RIEPILOGO HOMBU 9 - ${mese} ${anno}</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Categoria</th>
-                            <th>Sezione</th>
-                            <th>U</th>
-                            <th>D</th>
-                            <th>GU</th>
-                            <th>GD</th>
-                            <th>Somma</th>
-                            <th>Prec.</th>
-                            <th>Δ</th>
-                            <th>Futuro</th>
-                            <th>Studenti</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="table-success">
-                            <td><strong>TOTALE HOMBU</strong></td>
-                            <td><strong>GENERALE</strong></td>
-                            <td><strong>${totaliHombu.U}</strong></td>
-                            <td><strong>${totaliHombu.D}</strong></td>
-                            <td><strong>${totaliHombu.GU}</strong></td>
-                            <td><strong>${totaliHombu.GD}</strong></td>
-                            <td><strong>${totaleHombu}</strong></td>
-                            <td><strong>${totalePrecHombu}</strong></td>
-                            <td><strong class="${deltaHombu >= 0 ? 'text-success' : 'text-danger'}">${deltaHombu >= 0 ? '+' : ''}${deltaHombu}</strong></td>
-                            <td><strong>${totaliHombu.FUT}</strong></td>
-                            <td><strong>${totaliHombu.STU}</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-    
-    contenitore.appendChild(cardHombu);
-}
-
-// Genera riepiloghi per capitoli
-function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec) {
-    const contenitore = document.getElementById('contenitore-riepiloghi');
+    // Dati per capitoli
     const capitoli = [...new Set(righeFiltrate.map(r => gruppoToCapitolo[r.gruppo]))].filter(Boolean).sort();
     
     capitoli.forEach(capitolo => {
         const righeCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        generaRiepilogoCapitolo(righeCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
         
-        // Genera riepiloghi settori per questo capitolo
+        // Totale capitolo
+        const totaliCapitolo = righeCap.reduce((acc, r) => ({
+            U: acc.U + r.U,
+            D: acc.D + r.D,
+            GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD,
+            FUT: acc.FUT + r.FUT,
+            STU: acc.STU + r.STU
+        }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
+        
+        const totaleCapitolo = totaliCapitolo.U + totaliCapitolo.D + totaliCapitolo.GU + totaliCapitolo.GD;
+        datiExcel.push(['CAPITOLO', capitolo, 'TOTALE', 'GENERALE', totaliCapitolo.U, totaliCapitolo.D, totaliCapitolo.GU, totaliCapitolo.GD, totaleCapitolo, totaliCapitolo.FUT, totaliCapitolo.STU]);
+        
+        // Settori del capitolo
         const settori = [...new Set(righeCap.map(r => {
             return gruppiData["HOMBU 9"][capitolo] ? 
                 Object.keys(gruppiData["HOMBU 9"][capitolo]).find(s => 
@@ -313,349 +673,58 @@ function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec)
             const righeSettore = righeCap.filter(r => 
                 gruppiData["HOMBU 9"][capitolo][settore].includes(r.gruppo)
             );
-            const gruppiSettore = [...new Set(righeSettore.map(r => r.gruppo))].sort();
-            generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
-        });
-    });
-}
-
-// Genera riepilogo per settore
-function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore) {
-    // Calcola totali settore
-    const totaliSettore = righeSettore.reduce((acc, r) => ({
-        U: acc.U + r.U,
-        D: acc.D + r.D,
-        GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD,
-        FUT: acc.FUT + r.FUT,
-        STU: acc.STU + r.STU
-    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-    
-    const totaleSettore = totaliSettore.U + totaliSettore.D + totaliSettore.GU + totaliSettore.GD;
-    
-    // Calcola totali mese precedente
-    const righePrecSettore = righe.filter(r => 
-        r.anno === parseInt(annoPrec) && 
-        r.mese === mesePrec && 
-        gruppiSettore.includes(r.gruppo)
-    );
-    
-    const totaliPrecSettore = righePrecSettore.reduce((acc, r) => ({
-        U: acc.U + r.U,
-        D: acc.D + r.D,
-        GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD,
-        FUT: acc.FUT + r.FUT,
-        STU: acc.STU + r.STU
-    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-    
-    const totalePrecSettore = totaliPrecSettore.U + totaliPrecSettore.D + totaliPrecSettore.GU + totaliPrecSettore.GD;
-    const deltaSettore = totaleSettore - totalePrecSettore;
-    
-    // Crea card settore
-    const cardSettore = document.createElement('div');
-    cardSettore.className = 'card mb-3 shadow-sm';
-    
-    const cardHeader = document.createElement('div');
-    cardHeader.className = 'card-header bg-info text-white';
-    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>SETTORE: ${settore}</h5>`;
-    
-    const cardBody = document.createElement('div');
-    cardBody.className = 'card-body';
-    
-    const tableContainer = document.createElement('div');
-    tableContainer.className = 'table-responsive';
-    
-    const tabella = document.createElement('table');
-    tabella.className = 'table table-bordered table-hover';
-    
-    const thead = document.createElement('thead');
-    thead.className = 'table-dark';
-    thead.innerHTML = `
-        <tr>
-            <th>Categoria</th>
-            <th>Sezione</th>
-            <th>U</th>
-            <th>D</th>
-            <th>GU</th>
-            <th>GD</th>
-            <th>Somma</th>
-            <th>Prec.</th>
-            <th>Δ</th>
-            <th>Futuro</th>
-            <th>Studenti</th>
-        </tr>
-    `;
-    
-    const tbody = document.createElement('tbody');
-    
-    // Aggiungi righe per categoria e sezione
-    ['ZADANKAI', 'PRATICANTI'].forEach(tipo => {
-        const righeCategoria = righeSettore.filter(r => r.tipo === tipo);
-        if (righeCategoria.length === 0) return;
-        
-        const sezioni = [...new Set(righeCategoria.map(r => r.sezione))].sort();
-        
-        sezioni.forEach(sezione => {
-            const righeSezione = righeCategoria.filter(r => r.sezione === sezione);
-            const totaliSezione = righeSezione.reduce((acc, r) => ({
-                U: acc.U + r.U,
-                D: acc.D + r.D,
-                GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD,
-                FUT: acc.FUT + r.FUT,
-                STU: acc.STU + r.STU
-            }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
             
-            const sommaSezione = totaliSezione.U + totaliSezione.D + totaliSezione.GU + totaliSezione.GD;
-            
-            const righePrecSezione = righePrecSettore.filter(r => r.tipo === tipo && r.sezione === sezione);
-            const sommaPrecSezione = righePrecSezione.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-            const deltaSezione = sommaSezione - sommaPrecSezione;
-            
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${tipo}</td>
-                <td>${sezione}</td>
-                <td>${totaliSezione.U}</td>
-                <td>${totaliSezione.D}</td>
-                <td>${totaliSezione.GU}</td>
-                <td>${totaliSezione.GD}</td>
-                <td>${sommaSezione}</td>
-                <td>${sommaPrecSezione}</td>
-                <td class="${deltaSezione >= 0 ? 'text-success' : 'text-danger'}">${deltaSezione >= 0 ? '+' : ''}${deltaSezione}</td>
-                <td>${totaliSezione.FUT}</td>
-                <td>${totaliSezione.STU}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    });
-    
-    // Riga totale settore
-    const trTotale = document.createElement('tr');
-    trTotale.className = 'table-info';
-    trTotale.innerHTML = `
-        <td><strong>TOTALE SETTORE</strong></td>
-        <td><strong>${settore}</strong></td>
-        <td><strong>${totaliSettore.U}</strong></td>
-        <td><strong>${totaliSettore.D}</strong></td>
-        <td><strong>${totaliSettore.GU}</strong></td>
-        <td><strong>${totaliSettore.GD}</strong></td>
-        <td><strong>${totaleSettore}</strong></td>
-        <td><strong>${totalePrecSettore}</strong></td>
-        <td><strong class="${deltaSettore >= 0 ? 'text-success' : 'text-danger'}">${deltaSettore >= 0 ? '+' : ''}${deltaSettore}</strong></td>
-        <td><strong>${totaliSettore.FUT}</strong></td>
-        <td><strong>${totaliSettore.STU}</strong></td>
-    `;
-    tbody.appendChild(trTotale);
-    
-    tabella.appendChild(thead);
-    tabella.appendChild(tbody);
-    tableContainer.appendChild(tabella);
-    cardBody.appendChild(tableContainer);
-    cardSettore.appendChild(cardHeader);
-    cardSettore.appendChild(cardBody);
-    contenitore.appendChild(cardSettore);
-}
-
-// Genera riepilogo per capitolo
-function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore) {
-    // Calcola totali capitolo
-    const totaliCapitolo = righeFiltrateCap.reduce((acc, r) => ({
-        U: acc.U + r.U,
-        D: acc.D + r.D,
-        GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD,
-        FUT: acc.FUT + r.FUT,
-        STU: acc.STU + r.STU
-    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-    
-    const totaleCapitolo = totaliCapitolo.U + totaliCapitolo.D + totaliCapitolo.GU + totaliCapitolo.GD;
-    
-    // Calcola totali mese precedente
-    const righePrecCapitolo = righe.filter(r => 
-        r.anno === parseInt(annoPrec) && 
-        r.mese === mesePrec && 
-        gruppoToCapitolo[r.gruppo] === capitolo
-    );
-    
-    const totaliPrecCapitolo = righePrecCapitolo.reduce((acc, r) => ({
-        U: acc.U + r.U,
-        D: acc.D + r.D,
-        GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD,
-        FUT: acc.FUT + r.FUT,
-        STU: acc.STU + r.STU
-    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-    
-    const totalePrecCapitolo = totaliPrecCapitolo.U + totaliPrecCapitolo.D + totaliPrecCapitolo.GU + totaliPrecCapitolo.GD;
-    const deltaCapitolo = totaleCapitolo - totalePrecCapitolo;
-    
-    // Crea card capitolo
-    const cardCapitolo = document.createElement('div');
-    cardCapitolo.className = 'card mb-4 shadow-sm';
-    
-    const cardHeaderCap = document.createElement('div');
-    cardHeaderCap.className = 'card-header bg-primary text-white';
-    cardHeaderCap.innerHTML = `<h4 class="mb-0"><i class="fas fa-building me-2"></i>CAPITOLO: ${capitolo}</h4>`;
-    
-    const cardBodyCap = document.createElement('div');
-    cardBodyCap.className = 'card-body';
-    
-    const tableContainerCap = document.createElement('div');
-    tableContainerCap.className = 'table-responsive';
-    
-    const tabellaCap = document.createElement('table');
-    tabellaCap.className = 'table table-bordered table-hover';
-    
-    const theadCap = document.createElement('thead');
-    theadCap.className = 'table-dark';
-    theadCap.innerHTML = `
-        <tr>
-            <th>Categoria</th>
-            <th>Sezione</th>
-            <th>U</th>
-            <th>D</th>
-            <th>GU</th>
-            <th>GD</th>
-            <th>Somma</th>
-            <th>Prec.</th>
-            <th>Δ</th>
-            <th>Futuro</th>
-            <th>Studenti</th>
-        </tr>
-    `;
-    
-    const tbodyCap = document.createElement('tbody');
-    
-    // Riga totale capitolo
-    const trTotaleCap = document.createElement('tr');
-    trTotaleCap.className = 'table-primary';
-    trTotaleCap.innerHTML = `
-        <td><strong>TOTALE CAPITOLO</strong></td>
-        <td><strong>${capitolo}</strong></td>
-        <td><strong>${totaliCapitolo.U}</strong></td>
-        <td><strong>${totaliCapitolo.D}</strong></td>
-        <td><strong>${totaliCapitolo.GU}</strong></td>
-        <td><strong>${totaliCapitolo.GD}</strong></td>
-        <td><strong>${totaleCapitolo}</strong></td>
-        <td><strong>${totalePrecCapitolo}</strong></td>
-        <td><strong class="${deltaCapitolo >= 0 ? 'text-success' : 'text-danger'}">${deltaCapitolo >= 0 ? '+' : ''}${deltaCapitolo}</strong></td>
-        <td><strong>${totaliCapitolo.FUT}</strong></td>
-        <td><strong>${totaliCapitolo.STU}</strong></td>
-    `;
-    tbodyCap.appendChild(trTotaleCap);
-    
-    tabellaCap.appendChild(theadCap);
-    tabellaCap.appendChild(tbodyCap);
-    tableContainerCap.appendChild(tabellaCap);
-    cardBodyCap.appendChild(tableContainerCap);
-    cardCapitolo.appendChild(cardHeaderCap);
-    cardCapitolo.appendChild(cardBodyCap);
-    contenitore.appendChild(cardCapitolo);
-}
-
-// Funzione per esportare in Excel
-function esportaExcel() {
-    const anno = document.getElementById('filtro-anno').value;
-    const mese = document.getElementById('filtro-mese').value;
-    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
-
-    const righeFiltrate = righe.filter(r => r.anno === parseInt(anno) && r.mese === mese);
-
-    if (righeFiltrate.length === 0) {
-        alert("Nessun dato da esportare");
-        return;
-    }
-
-    // Crea i dati per Excel
-    const datiExcel = [];
-    
-    // Intestazioni
-    datiExcel.push(["Livello", "Nome", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Delta", "Futuro", "Studenti"]);
-    
-    // Dati Hombu
-    const totaleHombu = righeFiltrate.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-    const righePrecHombu = righe.filter(r => r.anno === parseInt(annoPrec) && r.mese === mesePrec);
-    const totalePrecHombu = righePrecHombu.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-    const deltaHombu = totaleHombu - totalePrecHombu;
-    
-    datiExcel.push(["HOMBU", "HOMBU 9", "TOTALE", "", "", "", "", "", totaleHombu, totalePrecHombu, deltaHombu, "", ""]);
-    
-    // Dati per Capitoli
-    const capitoli = [...new Set(righeFiltrate.map(r => gruppoToCapitolo[r.gruppo]))].filter(Boolean).sort();
-    
-    capitoli.forEach(capitolo => {
-        const righeCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        const totaleCap = righeCap.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-        const righePrecCap = righePrecHombu.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        const totalePrecCap = righePrecCap.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-        const deltaCap = totaleCap - totalePrecCap;
-        
-        datiExcel.push(["CAPITOLO", capitolo, "TOTALE", "", "", "", "", "", totaleCap, totalePrecCap, deltaCap, "", ""]);
-        
-        // Settori del capitolo
-        const settori = [...new Set(righeCap.map(r => gruppiData["HOMBU 9"][capitolo] ? Object.keys(gruppiData["HOMBU 9"][capitolo]).find(s => gruppiData["HOMBU 9"][capitolo][s].includes(r.gruppo)) : null))].filter(Boolean).sort();
-        
-        settori.forEach(settore => {
-            const righeSettore = righeCap.filter(r => gruppiData["HOMBU 9"][capitolo][settore].includes(r.gruppo));
-            const totaleSettore = righeSettore.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-            const righePrecSettore = righePrecCap.filter(r => gruppiData["HOMBU 9"][capitolo][settore].includes(r.gruppo));
-            const totalePrecSettore = righePrecSettore.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-            const deltaSettore = totaleSettore - totalePrecSettore;
-            
-            datiExcel.push(["SETTORE", settore, "TOTALE", "", "", "", "", "", totaleSettore, totalePrecSettore, deltaSettore, "", ""]);
-            
-            // Dettagli per categoria e sezione
-            ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
+            // Dati dettagliati per sezioni del settore
+            ['ZADANKAI', 'PRATICANTI'].forEach(tipo => {
                 const righeCategoria = righeSettore.filter(r => r.tipo === tipo);
-                if (righeCategoria.length > 0) {
-                    const sezioni = [...new Set(righeCategoria.map(r => r.sezione))].sort();
-                    sezioni.forEach(sezione => {
-                        const righeSezione = righeCategoria.filter(r => r.sezione === sezione);
-                        const totaleSezione = righeSezione.reduce((acc, r) => ({
-                            U: acc.U + r.U,
-                            D: acc.D + r.D,
-                            GU: acc.GU + r.GU,
-                            GD: acc.GD + r.GD,
-                            FUT: acc.FUT + r.FUT,
-                            STU: acc.STU + r.STU
-                        }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
-                        
-                        const sommaSezione = totaleSezione.U + totaleSezione.D + totaleSezione.GU + totaleSezione.GD;
-                        
-                        const righePrecSezione = righePrecSettore.filter(r => r.tipo === tipo && r.sezione === sezione);
-                        const sommaPrecSezione = righePrecSezione.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-                        const deltaSezione = sommaSezione - sommaPrecSezione;
-                        
-                        datiExcel.push(["DETTAGLIO", settore, tipo, sezione, totaleSezione.U, totaleSezione.D, totaleSezione.GU, totaleSezione.GD, sommaSezione, sommaPrecSezione, deltaSezione, totaleSezione.FUT, totaleSezione.STU]);
-                    });
-                }
+                if (righeCategoria.length === 0) return;
+                
+                const sezioni = [...new Set(righeCategoria.map(r => r.sezione))].sort();
+                
+                sezioni.forEach(sezione => {
+                    const righeSezione = righeCategoria.filter(r => r.sezione === sezione);
+                    const totaliSezione = righeSezione.reduce((acc, r) => ({
+                        U: acc.U + r.U,
+                        D: acc.D + r.D,
+                        GU: acc.GU + r.GU,
+                        GD: acc.GD + r.GD,
+                        FUT: acc.FUT + r.FUT,
+                        STU: acc.STU + r.STU
+                    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
+                    
+                    const sommaSezione = totaliSezione.U + totaliSezione.D + totaliSezione.GU + totaliSezione.GD;
+                    datiExcel.push(['SETTORE', settore, tipo, sezione, totaliSezione.U, totaliSezione.D, totaliSezione.GU, totaliSezione.GD, sommaSezione, totaliSezione.FUT, totaliSezione.STU]);
+                });
             });
         });
     });
-
+    
     // Crea il workbook
     const ws = XLSX.utils.aoa_to_sheet(datiExcel);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Riepiloghi");
+    XLSX.utils.book_append_sheet(wb, ws, 'Riepiloghi');
     
     // Scarica il file
-    XLSX.writeFile(wb, `riepiloghi_${mese}_${anno}.xlsx`);
+    XLSX.writeFile(wb, `riepiloghi_hombu9_${mese}_${anno}.xlsx`);
 }
 
 // Funzione per esportare in PDF
 function esportaPdf() {
     const anno = document.getElementById('filtro-anno').value;
     const mese = document.getElementById('filtro-mese').value;
-
-    const righeFiltrate = righe.filter(r => r.anno === parseInt(anno) && r.mese === mese);
-
-    if (righeFiltrate.length === 0) {
-        alert("Nessun dato da esportare");
+    
+    if (!anno || !mese) {
+        alert('Seleziona anno e mese per esportare');
         return;
     }
-
+    
+    const righeFiltrate = righe.filter(r => r.anno === parseInt(anno) && r.mese === mese);
+    
+    if (righeFiltrate.length === 0) {
+        alert('Nessun dato da esportare per il periodo selezionato');
+        return;
+    }
+    
     // Crea il documento PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('landscape');
@@ -664,29 +733,41 @@ function esportaPdf() {
     doc.setFontSize(16);
     doc.text(`Riepiloghi HOMBU 9 - ${mese} ${anno}`, 20, 20);
     
-    // Prepara i dati per la tabella (versione semplificata per PDF)
-    const intestazioni = [["Livello", "Nome", "Totale", "Precedente", "Delta"]];
+    // Prepara i dati per la tabella
+    const intestazioni = [['Livello', 'Nome', 'Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Futuro', 'Studenti']];
     const righeTabella = [];
     
-    // Aggiungi i dati principali
-    const totaleHombu = righeFiltrate.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-    const { mese: mesePrec, anno: annoPrec } = mesePrecedente(mese, anno);
-    const righePrecHombu = righe.filter(r => r.anno === parseInt(annoPrec) && r.mese === mesePrec);
-    const totalePrecHombu = righePrecHombu.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-    const deltaHombu = totaleHombu - totalePrecHombu;
+    // Totale Hombu
+    const totaliHombu = righeFiltrate.reduce((acc, r) => ({
+        U: acc.U + r.U,
+        D: acc.D + r.D,
+        GU: acc.GU + r.GU,
+        GD: acc.GD + r.GD,
+        FUT: acc.FUT + r.FUT,
+        STU: acc.STU + r.STU
+    }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
     
-    righeTabella.push(["HOMBU", "HOMBU 9", totaleHombu, totalePrecHombu, deltaHombu]);
+    const totaleHombu = totaliHombu.U + totaliHombu.D + totaliHombu.GU + totaliHombu.GD;
+    righeTabella.push(['HOMBU', 'HOMBU 9', 'TOTALE', 'GENERALE', totaliHombu.U, totaliHombu.D, totaliHombu.GU, totaliHombu.GD, totaleHombu, totaliHombu.FUT, totaliHombu.STU]);
     
-    // Aggiungi capitoli
+    // Dati per capitoli e settori (versione semplificata per PDF)
     const capitoli = [...new Set(righeFiltrate.map(r => gruppoToCapitolo[r.gruppo]))].filter(Boolean).sort();
+    
     capitoli.forEach(capitolo => {
         const righeCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        const totaleCap = righeCap.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-        const righePrecCap = righePrecHombu.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        const totalePrecCap = righePrecCap.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-        const deltaCap = totaleCap - totalePrecCap;
         
-        righeTabella.push(["CAPITOLO", capitolo, totaleCap, totalePrecCap, deltaCap]);
+        // Totale capitolo
+        const totaliCapitolo = righeCap.reduce((acc, r) => ({
+            U: acc.U + r.U,
+            D: acc.D + r.D,
+            GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD,
+            FUT: acc.FUT + r.FUT,
+            STU: acc.STU + r.STU
+        }), { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
+        
+        const totaleCapitolo = totaliCapitolo.U + totaliCapitolo.D + totaliCapitolo.GU + totaliCapitolo.GD;
+        righeTabella.push(['CAPITOLO', capitolo, 'TOTALE', 'GENERALE', totaliCapitolo.U, totaliCapitolo.D, totaliCapitolo.GU, totaliCapitolo.GD, totaleCapitolo, totaliCapitolo.FUT, totaliCapitolo.STU]);
     });
     
     // Crea la tabella
@@ -694,18 +775,23 @@ function esportaPdf() {
         head: intestazioni,
         body: righeTabella,
         startY: 30,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] }
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [41, 128, 185] },
+        columnStyles: {
+            8: { fontStyle: 'bold' } // Colonna Somma in grassetto
+        }
     });
     
     // Scarica il file
-    doc.save(`riepiloghi_${mese}_${anno}.pdf`);
+    doc.save(`riepiloghi_hombu9_${mese}_${anno}.pdf`);
 }
 
 // Funzione per la stampa
 function stampa() {
     window.print();
 }
+
+// ... existing code ...
 
 // Logout
 function logout() {
