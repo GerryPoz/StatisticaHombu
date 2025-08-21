@@ -28,22 +28,19 @@ onAuthStateChanged(auth, (user) => {
 
 // Funzione per caricare i dati da Firebase
 async function caricaDati() {
-    // Debug: controlla la struttura dei dati
-    console.log('Struttura gruppiData:', Object.keys(gruppiData).slice(0, 3));
-    console.log('Esempio gruppo:', gruppiData[Object.keys(gruppiData)[0]]);
-    console.log('Struttura zadankaiData:', Object.keys(zadankaiData).slice(0, 3));
-    console.log('Esempio zadankai:', zadankaiData[Object.keys(zadankaiData)[0]]);
     try {
         console.log('Inizio caricamento dati...');
         
-        // Carica i dati dei gruppi
+        // Dichiara gruppiData all'inizio della funzione
         let gruppiData = {};
+        
+        // Carica i dati dei gruppi
         const gruppiRef = ref(database, 'gruppi');
         const gruppiSnapshot = await get(gruppiRef);
         
         if (gruppiSnapshot.exists()) {
             gruppiData = gruppiSnapshot.val();
-            console.log('Dati gruppi caricati');
+            console.log('Dati gruppi caricati:', Object.keys(gruppiData).length, 'gruppi');
         } else {
             console.log('Nessun dato gruppi trovato');
         }
@@ -56,6 +53,16 @@ async function caricaDati() {
             console.log('Dati zadankai caricati');
             const zadankaiData = zadankaiSnapshot.val();
             
+            // Debug: mostra la struttura dei dati
+            console.log('Struttura gruppiData:', Object.keys(gruppiData).slice(0, 3));
+            if (Object.keys(gruppiData).length > 0) {
+                console.log('Esempio gruppo:', gruppiData[Object.keys(gruppiData)[0]]);
+            }
+            console.log('Struttura zadankaiData:', Object.keys(zadankaiData).slice(0, 3));
+            if (Object.keys(zadankaiData).length > 0) {
+                console.log('Esempio zadankai:', zadankaiData[Object.keys(zadankaiData)[0]]);
+            }
+            
             // Processa i dati
             righe = [];
             
@@ -66,11 +73,12 @@ async function caricaDati() {
                         const [anno, numeroMese] = chiave.split('-');
                         const mese = getMeseName(numeroMese);
                         
+                        console.log(`Elaborando ${chiave}: anno=${anno}, mese=${mese}`);
+                        
                         Object.entries(valore).forEach(([gruppoId, datiGruppo]) => {
                             if (datiGruppo && typeof datiGruppo === 'object') {
                                 const infoGruppo = gruppiData[gruppoId] || {};
                                 
-                                // Debug per capire la struttura dei dati
                                 console.log('Gruppo ID:', gruppoId);
                                 console.log('Info Gruppo:', infoGruppo);
                                 console.log('Dati Gruppo:', datiGruppo);
@@ -99,7 +107,7 @@ async function caricaDati() {
                                     gruppoId: gruppoId,
                                     nomeGruppo: infoGruppo.nome || `Gruppo ${gruppoId}`,
                                     capitolo: infoGruppo.capitolo || 'Non specificato',
-                                    settore: infoGruppo.settore || 'Non specificato', 
+                                    settore: infoGruppo.settore || 'Non specificato',
                                     responsabile: infoGruppo.responsabile || 'Non specificato',
                                     partecipanti: partecipanti,
                                     ospiti: ospiti,
