@@ -109,6 +109,14 @@ async function caricaDati() {
             
             console.log(`Righe elaborate: ${righe.length}`);
             inizializzaFiltri();
+            // Aggiungi event listener per il pulsante di stampa
+            const btnPrint = document.getElementById('btn-print');
+            if (btnPrint) {
+                btnPrint.addEventListener('click', stampa);
+                console.log('Event listener per stampa aggiunto');
+            } else {
+                console.log('Pulsante stampa non trovato');
+            }
         } else {
             console.log('Nessun dato trovato in Firebase');
         }
@@ -595,6 +603,11 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
     cardBody.appendChild(tabella);
     cardCapitolo.appendChild(cardBody);
     contenitore.appendChild(cardCapitolo);
+}
+
+// Funzione per la stampa
+function stampa() {
+    window.print();
 }
 
 // Logout
