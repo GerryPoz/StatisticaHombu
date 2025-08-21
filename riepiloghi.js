@@ -763,7 +763,7 @@ function esportaPdf() {
             //     yPosition = 20;
             // }
             
-            doc.setFontSize(14);
+            doc.setFontSize(16);
             doc.text(`Settore: ${settore}`, 20, yPosition);
             yPosition += 8;
             
