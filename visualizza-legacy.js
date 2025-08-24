@@ -417,6 +417,7 @@ function aggiornaTabella() {
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            td.style.borderRight = BORDER_CONFIG.getVerticalBorder();
           }
           
           tr.appendChild(td);
