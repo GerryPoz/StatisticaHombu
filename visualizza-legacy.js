@@ -313,7 +313,6 @@ function aggiornaTabella() {
           th.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         } else if (i === 9) { // Separazione tra Prec. e Totale Gruppo
           th.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          th.style.borderRight = BORDER_CONFIG.getVerticalBorder();
         }
         
         headerRow.appendChild(th);
@@ -415,9 +414,8 @@ function aggiornaTabella() {
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 8) { // Separazione tra GD e Somma
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          } else if (currentCol === 9) { // Separazione tra Prec. e Totale Gruppo
+          } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-            td.style.borderRight = BORDER_CONFIG.getVerticalBorder();
           }
           
           tr.appendChild(td);
@@ -429,7 +427,6 @@ function aggiornaTabella() {
           tdTotaleGruppo.textContent = totaleCategoria;
           tdTotaleGruppo.rowSpan = righeCategoria.length;
           tdTotaleGruppo.style.borderLeft = BORDER_CONFIG.getVerticalBorder(); // Bordo blu per Totale Gruppo
-          tdTotaleGruppo.style.borderRight = BORDER_CONFIG.getVerticalBorder(); // Bordo blu per Totale Gruppo
           tr.appendChild(tdTotaleGruppo);
           
           // Futuro e Studenti (solo per ZADANKAI)
@@ -702,9 +699,6 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           if (v === 0) { // Separazione tra Sezione e U
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (v === 4) { // Separazione tra GD e Somma
-            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          }
-          } else if (v === 10) { // Separazione tra GD e Somma
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           }
           
