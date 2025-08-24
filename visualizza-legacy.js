@@ -704,6 +704,9 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           } else if (v === 4) { // Separazione tra GD e Somma
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           }
+          } else if (v === 10) { // Separazione tra GD e Somma
+            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+          }
           
           tr.appendChild(td);
         }
