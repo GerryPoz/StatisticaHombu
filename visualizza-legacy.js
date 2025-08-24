@@ -119,17 +119,34 @@ function caricaDatiFirebase() {
                 tipo: data.tipo || 'ZADANKAI',
                 sezione: data.sezione || 'membri',
                 
-                // Valori numerici
-                totaleGruppo: parseInt(data.totaleGruppo) || 0,
+                // Zadankai membri
+                zadankai_m_u: parseInt(data.zadankai_m_u) || 0,
+                zadankai_m_d: parseInt(data.zadankai_m_d) || 0,
+                zadankai_m_gu: parseInt(data.zadankai_m_gu) || 0,
+                zadankai_m_gd: parseInt(data.zadankai_m_gd) || 0,
+                zadankai_m_tot: parseInt(data.zadankai_m_tot) || 0,
+                
+                // Zadankai simpatizzanti
+                zadankai_s_u: parseInt(data.zadankai_s_u) || 0,
+                zadankai_s_d: parseInt(data.zadankai_s_d) || 0,
+                zadankai_s_gu: parseInt(data.zadankai_s_gu) || 0,
+                zadankai_s_gd: parseInt(data.zadankai_s_gd) || 0,
+                zadankai_s_tot: parseInt(data.zadankai_s_tot) || 0,
+                
+                // Zadankai ospiti
+                zadankai_o_u: parseInt(data.zadankai_o_u) || 0,
+                zadankai_o_d: parseInt(data.zadankai_o_d) || 0,
+                zadankai_o_gu: parseInt(data.zadankai_o_gu) || 0,
+                zadankai_o_gd: parseInt(data.zadankai_o_gd) || 0,
+                zadankai_o_tot: parseInt(data.zadankai_o_tot) || 0,
+                
+                // Praticanti
+                praticanti_m_tot: parseInt(data.praticanti_m_tot) || 0,
+                praticanti_s_tot: parseInt(data.praticanti_s_tot) || 0,
+                
+                // Futuro e Studenti
                 futuro: parseInt(data.futuro) || 0,
-                studenti: parseInt(data.studenti) || 0,
-                
-                // Settore per il raggruppamento
-                settore: data.settore || 'Non specificato',
-                
-                // Altri campi se presenti
-                note: data.note || '',
-                dataInserimento: data.dataInserimento || new Date().toISOString()
+                studenti: parseInt(data.studenti) || 0
             });
         });
         
