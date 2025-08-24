@@ -59,51 +59,120 @@ function mesePrecedente(mese, anno) {
 function caricaDati() {
   console.log("📊 Caricamento dati in corso...");
   
-  // Carica dati zadankai (invece di statistiche)
+  // Prima carica i gruppi dal file JSON locale
+  var xhr1 = new XMLHttpRequest();
+  xhr1.open('GET', 'gruppi.json', true);
+  xhr1.onreadystatechange = function() {
+    if (xhr1.readyState === 4 && xhr1.status === 200) {
+      try {
+        gruppiData = JSON.parse(xhr1.responseText);
+        var struttura = gruppiData["HOMBU 9"];
+        
+        // Costruisci mappa gruppo -> capitolo
+        for (var capitolo in struttura) {
+          if (struttura.hasOwnProperty(capitolo)) {
+            var settori = struttura[capitolo];
+            for (var settore in settori) {
+              if (settori.hasOwnProperty(settore)) {
+                var gruppi = settori[settore];
+                if (Array.isArray(gruppi)) {
+                  for (var i = 0; i < gruppi.length; i++) {
+                    gruppoToCapitolo[gruppi[i]] = capitolo;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        console.log("✅ Gruppi caricati dal JSON:", Object.keys(struttura).length, "capitoli");
+        
+        // Poi carica i dati da Firebase
+        caricaDatiFirebase();
+        
+      } catch (error) {
+        console.error("❌ Errore nel parsing gruppi.json:", error);
+        alert("Errore nel caricamento dei gruppi: " + error.message);
+      }
+    } else if (xhr1.readyState === 4) {
+      console.error("❌ Errore nel caricamento gruppi.json:", xhr1.status);
+      alert("Errore nel caricamento del file gruppi.json");
+    }
+  };
+  xhr1.send();
+}
+
+// Nuova funzione per caricare solo i dati da Firebase
+function caricaDatiFirebase() {
   database.ref('zadankai').once('value')
     .then(function(snapshot) {
       var dati = snapshot.val();
       if (dati) {
         righe = [];
         
-        // Converti i dati in array
         for (var key in dati) {
           if (dati.hasOwnProperty(key)) {
-            var riga = dati[key];
-            riga.id = key;
-            righe.push(riga);
-          }
-        }
-        
-        console.log("✅ Dati caricati:", righe.length, "righe");
-        
-        // Carica gruppi
-        return database.ref('gruppi').once('value');
-      } else {
-        throw new Error('Nessun dato trovato');
-      }
-    })
-    .then(function(snapshot) {
-      gruppiData = snapshot.val();
-      if (gruppiData) {
-        // Costruisci mappa gruppo -> capitolo
-        for (var capitolo in gruppiData) {
-          if (gruppiData.hasOwnProperty(capitolo)) {
-            var gruppiCapitolo = gruppiData[capitolo];
-            if (Array.isArray(gruppiCapitolo)) {
-              for (var i = 0; i < gruppiCapitolo.length; i++) {
-                gruppoToCapitolo[gruppiCapitolo[i]] = capitolo;
+            var parti = key.split("-");
+            var anno = parti[0];
+            var mese = parti[1];
+            var gruppo = parti[2];
+            var sezioni = dati[key];
+            
+            // Zadankai
+            if (sezioni.zadankai) {
+              for (var categoria in sezioni.zadankai) {
+                if (sezioni.zadankai.hasOwnProperty(categoria)) {
+                  var r = sezioni.zadankai[categoria];
+                  righe.push({
+                    anno: anno,
+                    mese: mese,
+                    gruppo: gruppo,
+                    tipo: "ZADANKAI",
+                    sezione: categoria,
+                    U: r.U || 0,
+                    D: r.D || 0,
+                    GU: r.GU || 0,
+                    GD: r.GD || 0,
+                    FUT: r.FUT || 0,
+                    STU: r.STU || 0
+                  });
+                }
+              }
+            }
+            
+            // Praticanti
+            if (sezioni.praticanti) {
+              for (var categoria in sezioni.praticanti) {
+                if (sezioni.praticanti.hasOwnProperty(categoria)) {
+                  var r = sezioni.praticanti[categoria];
+                  righe.push({
+                    anno: anno,
+                    mese: mese,
+                    gruppo: gruppo,
+                    tipo: "PRATICANTI",
+                    sezione: categoria,
+                    U: r.U || 0,
+                    D: r.D || 0,
+                    GU: r.GU || 0,
+                    GD: r.GD || 0,
+                    FUT: r.FUT || 0,
+                    STU: r.STU || 0
+                  });
+                }
               }
             }
           }
         }
         
-        console.log("✅ Gruppi caricati:", Object.keys(gruppiData).length, "capitoli");
+        console.log("✅ Dati caricati:", righe.length, "righe");
         
         // Inizializza filtri e tabella
         inizializzaFiltri();
         aggiornaTabella();
         aggiornaStatistiche();
+        
+      } else {
+        throw new Error('Nessun dato trovato');
       }
     })
     .catch(function(error) {
