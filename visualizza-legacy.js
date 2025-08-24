@@ -313,6 +313,7 @@ function aggiornaTabella() {
           th.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
         } else if (i === 9) { // Separazione tra Prec. e Totale Gruppo
           th.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+          th.style.borderRight = BORDER_CONFIG.getVerticalBorder();
         }
         
         headerRow.appendChild(th);
