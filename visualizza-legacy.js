@@ -59,8 +59,8 @@ function mesePrecedente(mese, anno) {
 function caricaDati() {
   console.log("📊 Caricamento dati in corso...");
   
-  // Carica dati statistiche
-  database.ref('statistiche').once('value')
+  // Carica dati zadankai (invece di statistiche)
+  database.ref('zadankai').once('value')
     .then(function(snapshot) {
       var dati = snapshot.val();
       if (dati) {
