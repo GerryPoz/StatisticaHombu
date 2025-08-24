@@ -429,6 +429,7 @@ function aggiornaTabella() {
           tdTotaleGruppo.textContent = totaleCategoria;
           tdTotaleGruppo.rowSpan = righeCategoria.length;
           tdTotaleGruppo.style.borderLeft = BORDER_CONFIG.getVerticalBorder(); // Bordo blu per Totale Gruppo
+          tdTotaleGruppo.style.borderRight = BORDER_CONFIG.getVerticalBorder(); // Bordo blu per Totale Gruppo
           tr.appendChild(tdTotaleGruppo);
           
           // Futuro e Studenti (solo per ZADANKAI)
