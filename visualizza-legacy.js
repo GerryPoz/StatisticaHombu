@@ -250,7 +250,22 @@ function aggiornaTabella() {
            r.mese === mese &&
            gruppoToCapitolo[r.gruppo] === capitolo;
   });
-  
+
+  console.log('🔍 Filtri:', { anno: anno, mese: mese, capitolo: capitolo });
+  console.log('📊 Righe filtrate:', righeFiltrate.length);
+  // Aggiungi questi debug per capire il problema:
+  console.log('🎯 Primo record dati:', righe[0]);
+  console.log('🗺️ Mapping gruppi:', Object.keys(gruppoToCapitolo).slice(0, 5));
+  console.log('📋 Capitoli disponibili:', Object.keys(gruppiData["HOMBU 9"]));
+
+// Test specifico per il primo record
+if (righe.length > 0) {
+  var r = righe[0];
+  console.log('🧪 Test primo record:');
+  console.log('  Anno match:', r.anno, '===', anno, '→', r.anno === anno);
+  console.log('  Mese match:', r.mese, '===', mese, '→', r.mese === mese);
+  console.log('  Capitolo match:', gruppoToCapitolo[r.gruppo], '===', capitolo, '→', gruppoToCapitolo[r.gruppo] === capitolo);
+}
   // Debug: aggiungi questo log temporaneo per verificare
   console.log('🔍 Filtri:', { anno: anno, mese: mese, capitolo: capitolo });
   console.log('📊 Righe filtrate:', righeFiltrate.length);
