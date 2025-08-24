@@ -113,8 +113,8 @@ function caricaDatiFirebase() {
             // Converti i dati dal formato Realtime Database
             righe.push({
                 id: childSnapshot.key,
-                anno: parseInt(data.anno) || 0,
-                mese: parseInt(data.mese) || 0,
+                anno: parseInt(data.anno) || (data.id ? parseInt(data.id.split('-')[0]) : 0),
+                mese: data.mese || (data.id ? data.id.split('-')[1] : ''),
                 gruppo: data.gruppo || '',
                 tipo: data.tipo || 'ZADANKAI',
                 sezione: data.sezione || 'membri',
