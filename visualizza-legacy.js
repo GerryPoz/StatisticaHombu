@@ -101,52 +101,50 @@ function caricaDati() {
 }
 
 function caricaDatiFirebase() {
-  // Carica i dati dalla collezione 'zadankai'
-  database.collection('zadankai').get().then(function(querySnapshot) {
-    righe = [];
+    console.log("🔄 Caricamento dati da Firebase Realtime Database...");
     
-    querySnapshot.forEach(function(doc) {
-      var data = doc.data();
-      
-      // Aggiungi ogni riga ai dati
-      righe.push({
-        id: doc.id,
-        anno: data.anno,
-        mese: data.mese,
-        gruppo: data.gruppo,
-        tipo: data.tipo || 'ZADANKAI',
-        sezione: data.sezione || 'membri',
+    // Usa Realtime Database invece di Firestore
+    database.ref('zadankai').once('value').then(function(snapshot) {
+        righe = [];
         
-        // Zadankai membri
-        zadankai_m_u: parseInt(data.zadankai_m_u) || 0,
-        zadankai_m_d: parseInt(data.zadankai_m_d) || 0,
-        zadankai_m_gu: parseInt(data.zadankai_m_gu) || 0,
-        zadankai_m_gd: parseInt(data.zadankai_m_gd) || 0,
-        zadankai_m_tot: parseInt(data.zadankai_m_tot) || 0,
+        snapshot.forEach(function(childSnapshot) {
+            var data = childSnapshot.val();
+            
+            // Converti i dati dal formato Realtime Database
+            righe.push({
+                id: childSnapshot.key,
+                anno: parseInt(data.anno) || 0,
+                mese: parseInt(data.mese) || 0,
+                gruppo: data.gruppo || '',
+                tipo: data.tipo || 'ZADANKAI',
+                sezione: data.sezione || 'membri',
+                
+                // Valori numerici
+                totaleGruppo: parseInt(data.totaleGruppo) || 0,
+                futuro: parseInt(data.futuro) || 0,
+                studenti: parseInt(data.studenti) || 0,
+                
+                // Settore per il raggruppamento
+                settore: data.settore || 'Non specificato',
+                
+                // Altri campi se presenti
+                note: data.note || '',
+                dataInserimento: data.dataInserimento || new Date().toISOString()
+            });
+        });
         
-        // Zadankai simpatizzanti
-        zadankai_s_u: parseInt(data.zadankai_s_u) || 0,
-        zadankai_s_d: parseInt(data.zadankai_s_d) || 0,
-        zadankai_s_gu: parseInt(data.zadankai_s_gu) || 0,
-        zadankai_s_gd: parseInt(data.zadankai_s_gd) || 0,
-        zadankai_s_tot: parseInt(data.zadankai_s_tot) || 0,
+        console.log("✅ Dati caricati:", righe.length, "righe");
         
-        // Zadankai ospiti
-        zadankai_o_u: parseInt(data.zadankai_o_u) || 0,
-        zadankai_o_d: parseInt(data.zadankai_o_d) || 0,
-        zadankai_o_gu: parseInt(data.zadankai_o_gu) || 0,
-        zadankai_o_gd: parseInt(data.zadankai_o_gd) || 0,
-        zadankai_o_tot: parseInt(data.zadankai_o_tot) || 0,
+        // Inizializza i filtri e aggiorna la visualizzazione
+        inizializzaFiltri();
+        aggiornaTabella();
+        aggiornaStatistiche();
         
-        // Praticanti
-        praticanti_m_tot: parseInt(data.praticanti_m_tot) || 0,
-        praticanti_s_tot: parseInt(data.praticanti_s_tot) || 0,
-        
-        // Futuro e Studenti
-        futuro: parseInt(data.futuro) || 0,
-        studenti: parseInt(data.studenti) || 0
-      });
+    }).catch(function(error) {
+        console.error("❌ Errore nel caricamento da Realtime Database:", error);
+        alert("Errore nel caricamento dei dati: " + error.message);
     });
+}
     
     console.log("✅ Dati caricati:", righe.length, "righe");
     
