@@ -223,23 +223,37 @@ function inizializzaFiltri() {
 
 // 🔹 Aggiorna la tabella
 function aggiornaTabella() {
-  var anno = parseInt(filtroAnno.value);
+  tbody.innerHTML = "";
+  var anno = parseInt(filtroAnno.value); // Converti in numero
   var mese = filtroMese.value;
   var capitolo = filtroCapitolo.value;
   
-  if (!anno || !mese || !capitolo) return;
+  // Aggiungi controllo per valori validi
+  if (!anno || !mese || !capitolo) {
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    td.colSpan = 12;
+    td.textContent = "Seleziona tutti i filtri per visualizzare i dati";
+    td.className = "text-center text-muted";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
   
-  var mesePrecInfo = mesePrecedente(mese, anno);
-  var mesePrec = mesePrecInfo.mese;
-  var annoPrec = mesePrecInfo.anno;
+  var meseAnnoPrec = mesePrecedente(mese, anno);
+  var mesePrec = meseAnnoPrec.mese;
+  var annoPrec = meseAnnoPrec.anno;
   
-  // Filtra i dati
+  // Filtra le righe in base ai filtri selezionati
   var righeFiltrate = righe.filter(function(r) {
-    return r.anno === anno && r.mese === mese && gruppoToCapitolo[r.gruppo] === capitolo;
+    return r.anno === anno &&
+           r.mese === mese &&
+           gruppoToCapitolo[r.gruppo] === capitolo;
   });
   
-  // Pulisci la tabella
-  tbody.innerHTML = "";
+  // Debug: aggiungi questo log temporaneo per verificare
+  console.log('🔍 Filtri:', { anno: anno, mese: mese, capitolo: capitolo });
+  console.log('📊 Righe filtrate:', righeFiltrate.length);
   
   if (righeFiltrate.length === 0) {
     var tr = document.createElement("tr");
