@@ -114,6 +114,11 @@ function caricaDati() {
 
 // 🔹 Inizializza i filtri
 function inizializzaFiltri() {
+  console.log("🔍 Inizializzazione filtri...");
+  console.log("📊 Righe disponibili:", righe.length);
+  console.log("📋 Esempio prima riga:", righe[0]);
+  console.log("🗂️ GruppoToCapitolo:", gruppoToCapitolo);
+  
   var anni = [];
   var mesi = [];
   var capitoli = [];
@@ -130,6 +135,11 @@ function inizializzaFiltri() {
     if (capitolo && capitoli.indexOf(capitolo) === -1) capitoli.push(capitolo);
     if (gruppi.indexOf(riga.gruppo) === -1) gruppi.push(riga.gruppo);
   }
+  
+  console.log("📅 Anni trovati:", anni);
+  console.log("📆 Mesi trovati:", mesi);
+  console.log("📖 Capitoli trovati:", capitoli);
+  console.log("👥 Gruppi trovati:", gruppi);
   
   // Ordina
   anni.sort(function(a, b) { return b - a; });
