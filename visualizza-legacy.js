@@ -162,18 +162,6 @@ function caricaDatiFirebase() {
         alert("Errore nel caricamento dei dati: " + error.message);
     });
 }
-    
-    console.log("✅ Dati caricati:", righe.length, "righe");
-    
-    // Inizializza i filtri e aggiorna la visualizzazione
-    inizializzaFiltri();
-    aggiornaTabella();
-    aggiornaStatistiche();
-    
-  }).catch(function(error) {
-    console.error("❌ Errore nel caricamento:", error);
-  });
-}
 
 // 🔹 Inizializza i filtri
 function inizializzaFiltri() {
