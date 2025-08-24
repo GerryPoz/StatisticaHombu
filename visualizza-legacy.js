@@ -415,7 +415,7 @@ function aggiornaTabella() {
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           } else if (currentCol === 8) { // Separazione tra GD e Somma
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
+          } else if (currentCol === 9) { // Separazione tra Prec. e Totale Gruppo
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
             td.style.borderRight = BORDER_CONFIG.getVerticalBorder();
           }
