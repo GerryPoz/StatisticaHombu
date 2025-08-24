@@ -103,56 +103,60 @@ function caricaDati() {
 function caricaDatiFirebase() {
     console.log("🔄 Caricamento dati da Firebase Realtime Database...");
     
-    // Usa Realtime Database invece di Firestore
     database.ref('zadankai').once('value').then(function(snapshot) {
         righe = [];
         
         snapshot.forEach(function(childSnapshot) {
             var data = childSnapshot.val();
             
-            // Converti i dati dal formato Realtime Database
-            righe.push({
-                id: childSnapshot.key,
-                anno: parseInt(data.anno) || (data.id ? parseInt(data.id.split('-')[0]) : 0),
-                mese: data.mese || (data.id ? data.id.split('-')[1] : ''),
-                gruppo: data.gruppo || '',
-                tipo: data.tipo || 'ZADANKAI',
-                sezione: data.sezione || 'membri',
-                
-                // Zadankai membri
-                zadankai_m_u: parseInt(data.zadankai_m_u) || 0,
-                zadankai_m_d: parseInt(data.zadankai_m_d) || 0,
-                zadankai_m_gu: parseInt(data.zadankai_m_gu) || 0,
-                zadankai_m_gd: parseInt(data.zadankai_m_gd) || 0,
-                zadankai_m_tot: parseInt(data.zadankai_m_tot) || 0,
-                
-                // Zadankai simpatizzanti
-                zadankai_s_u: parseInt(data.zadankai_s_u) || 0,
-                zadankai_s_d: parseInt(data.zadankai_s_d) || 0,
-                zadankai_s_gu: parseInt(data.zadankai_s_gu) || 0,
-                zadankai_s_gd: parseInt(data.zadankai_s_gd) || 0,
-                zadankai_s_tot: parseInt(data.zadankai_s_tot) || 0,
-                
-                // Zadankai ospiti
-                zadankai_o_u: parseInt(data.zadankai_o_u) || 0,
-                zadankai_o_d: parseInt(data.zadankai_o_d) || 0,
-                zadankai_o_gu: parseInt(data.zadankai_o_gu) || 0,
-                zadankai_o_gd: parseInt(data.zadankai_o_gd) || 0,
-                zadankai_o_tot: parseInt(data.zadankai_o_tot) || 0,
-                
-                // Praticanti
-                praticanti_m_tot: parseInt(data.praticanti_m_tot) || 0,
-                praticanti_s_tot: parseInt(data.praticanti_s_tot) || 0,
-                
-                // Futuro e Studenti
-                futuro: parseInt(data.futuro) || 0,
-                studenti: parseInt(data.studenti) || 0
-            });
+            // ✅ CORREZIONE: Estrai anno, mese e gruppo dalla chiave
+            var keyParts = childSnapshot.key.split('-');
+            var anno = keyParts[0] || '';
+            var mese = keyParts[1] || '';
+            var gruppo = keyParts[2] || '';
+            
+            // Processa le sezioni zadankai e praticanti come nel file originale
+            if (data.zadankai) {
+                for (var categoria in data.zadankai) {
+                    var r = data.zadankai[categoria];
+                    righe.push({
+                        anno: anno,
+                        mese: mese,
+                        gruppo: gruppo,
+                        tipo: 'ZADANKAI',
+                        sezione: categoria,
+                        U: parseInt(r.U) || 0,
+                        D: parseInt(r.D) || 0,
+                        GU: parseInt(r.GU) || 0,
+                        GD: parseInt(r.GD) || 0,
+                        FUT: parseInt(r.FUT) || 0,
+                        STU: parseInt(r.STU) || 0
+                    });
+                }
+            }
+            
+            if (data.praticanti) {
+                for (var categoria in data.praticanti) {
+                    var r = data.praticanti[categoria];
+                    righe.push({
+                        anno: anno,
+                        mese: mese,
+                        gruppo: gruppo,
+                        tipo: 'PRATICANTI',
+                        sezione: categoria,
+                        U: parseInt(r.U) || 0,
+                        D: parseInt(r.D) || 0,
+                        GU: parseInt(r.GU) || 0,
+                        GD: parseInt(r.GD) || 0,
+                        FUT: 0,
+                        STU: 0
+                    });
+                }
+            }
         });
         
         console.log("✅ Dati caricati:", righe.length, "righe");
         
-        // Inizializza i filtri e aggiorna la visualizzazione
         inizializzaFiltri();
         aggiornaTabella();
         aggiornaStatistiche();
