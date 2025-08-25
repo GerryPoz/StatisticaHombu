@@ -248,26 +248,4 @@ tr.praticanti:hover td {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-
-  /* Regole più specifiche per sovrascrivere Bootstrap */
-  .table tbody tr.zadankai td,
-  .table-striped tbody tr.zadankai td,
-  tbody tr.zadankai td {
-    background-color: #fff3cd !important;
-  }
-  
-  .table tbody tr.praticanti td,
-  .table-striped tbody tr.praticanti td,
-  tbody tr.praticanti td {
-    background-color: #d1ecf1 !important;
-  }
-  
-  /* Assicura che i colori vengano applicati anche con le righe alternate di Bootstrap */
-  .table-striped tbody tr.zadankai:nth-of-type(odd) td {
-    background-color: #fff3cd !important;
-  }
-  
-  .table-striped tbody tr.praticanti:nth-of-type(odd) td {
-    background-color: #d1ecf1 !important;
-  }
 }
