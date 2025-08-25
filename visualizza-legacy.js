@@ -944,7 +944,7 @@ document.addEventListener("DOMContentLoaded", function() {
       caricaDati();
     } else {
       console.log("❌ Utente non autenticato, reindirizzamento al login");
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
   });
   
