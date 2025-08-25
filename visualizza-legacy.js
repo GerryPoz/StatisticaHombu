@@ -403,7 +403,7 @@ function aggiornaTabella() {
         }
         
         var tr = document.createElement("tr");
-        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info"; //Colori tabella Gruppi
        // if (tipo === "ZADANKAI") {
        //   tr.style.backgroundColor = "#fff9c4"; // Giallo chiaro
        // } else {
