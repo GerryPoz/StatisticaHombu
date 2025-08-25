@@ -248,4 +248,13 @@ tr.praticanti:hover td {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Forza i colori per la tabella principale */
+  #tabella-dati tbody tr.zadankai td {
+    background-color: #fff3cd !important;
+  }
+  
+  #tabella-dati tbody tr.praticanti td {
+    background-color: #d1ecf1 !important;
+  }
 }
