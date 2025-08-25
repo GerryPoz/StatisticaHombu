@@ -526,18 +526,17 @@ function aggiornaTabella() {
 
 // 🔹 Mostra gruppi mancanti
 function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
-  if (!gruppiData || !gruppiData["HOMBU 9"] || !gruppiData["HOMBU 9"][capitolo]) {
-    return;
-  }
-  
+  var contenitoreLista = document.getElementById("gruppi-mancanti");
+  contenitoreLista.innerHTML = "";
+
+  // Gruppi del capitolo selezionato
   var strutturaCapitolo = gruppiData["HOMBU 9"][capitolo];
-  var tuttiIGruppi = [];
-  
+  var gruppiCapitolo = [];
   for (var settore in strutturaCapitolo) {
-    var gruppi = strutturaCapitolo[settore];
-    tuttiIGruppi = tuttiIGruppi.concat(gruppi);
+    gruppiCapitolo = gruppiCapitolo.concat(strutturaCapitolo[settore]);
   }
-  
+
+  // Gruppi presenti nei dati per quel mese
   var gruppiPresenti = [];
   for (var i = 0; i < righeFiltrate.length; i++) {
     var gruppo = righeFiltrate[i].gruppo;
@@ -547,27 +546,26 @@ function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
   }
   
   var gruppiMancanti = [];
-  for (var i = 0; i < tuttiIGruppi.length; i++) {
-    if (gruppiPresenti.indexOf(tuttiIGruppi[i]) === -1) {
-      gruppiMancanti.push(tuttiIGruppi[i]);
+  for (var i = 0; i < gruppiCapitolo.length; i++) {
+    if (gruppiPresenti.indexOf(gruppiCapitolo[i]) === -1) {
+      gruppiMancanti.push(gruppiCapitolo[i]);
     }
   }
-  
-  // AGGIUNGI QUESTA SEZIONE PER VISUALIZZARE I GRUPPI MANCANTI
-  var containerGruppiMancanti = document.getElementById("gruppi-mancanti");
-  
+
   if (gruppiMancanti.length > 0) {
-    console.log("⚠️ Gruppi mancanti per", mese, anno, ":", gruppiMancanti);
-    
-    // Mostra l'alert con i gruppi mancanti
-    containerGruppiMancanti.className = "alert alert-warning";
-    containerGruppiMancanti.innerHTML = 
-      '<h6><i class="fas fa-exclamation-triangle me-2"></i>Gruppi che non hanno ancora caricato dati per ' + mese + ' ' + anno + ':</h6>' +
-      '<div class="mt-2">' + gruppiMancanti.join(", ") + '</div>';
-    containerGruppiMancanti.style.display = "block";
+    contenitoreLista.className = "alert alert-warning";
+    var ul = document.createElement("ul");
+    ul.className = "mb-0 list-unstyled";
+    for (var i = 0; i < gruppiMancanti.length; i++) {
+      var li = document.createElement("li");
+      li.innerHTML = '<i class="fas fa-exclamation-triangle text-danger me-2"></i>' + gruppiMancanti[i];
+      ul.appendChild(li);
+    }
+    contenitoreLista.innerHTML = '<strong>Gruppi senza dati per ' + mese + ' ' + anno + ':</strong>';
+    contenitoreLista.appendChild(ul);
   } else {
-    // Nascondi l'alert se non ci sono gruppi mancanti
-    containerGruppiMancanti.style.display = "none";
+    contenitoreLista.className = "alert alert-success";
+    contenitoreLista.innerHTML = '<i class="fas fa-check-circle me-2"></i>Tutti i gruppi del capitolo hanno inserito dati!';
   }
 }
 
