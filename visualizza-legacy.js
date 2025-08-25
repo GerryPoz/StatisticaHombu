@@ -160,7 +160,6 @@ function caricaDatiFirebase() {
       
       inizializzaFiltri();
       aggiornaTabella();
-      aggiornaStatistiche();
     })
     .catch(function(error) {
       console.error("❌ Errore caricamento Firebase:", error);
@@ -528,25 +527,6 @@ function aggiornaTabella() {
   mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo);
   generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
   aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
-}
-
-// 🔹 Aggiorna le statistiche
-function aggiornaStatistiche() {
-  var totaleZadankai = 0;
-  var totalePraticanti = 0;
-  
-  for (var i = 0; i < righe.length; i++) {
-    var riga = righe[i];
-    var totale = riga.U + riga.D + riga.GU + riga.GD;
-    
-    if (riga.tipo === "ZADANKAI") {
-      totaleZadankai += totale;
-    } else if (riga.tipo === "PRATICANTI") {
-      totalePraticanti += totale;
-    }
-  }
-  
-  console.log("📊 Statistiche - Zadankai:", totaleZadankai, "Praticanti:", totalePraticanti);
 }
 
 // 🔹 Mostra gruppi mancanti
