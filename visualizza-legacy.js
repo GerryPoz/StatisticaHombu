@@ -403,11 +403,12 @@ function aggiornaTabella() {
         }
         
         var tr = document.createElement("tr");
-        if (tipo === "ZADANKAI") {
-          tr.style.backgroundColor = "#fff9c4"; // Giallo chiaro
-        } else {
-          tr.style.backgroundColor = "#e3f2fd"; // Azzurro chiaro
-        }
+        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+       // if (tipo === "ZADANKAI") {
+       //   tr.style.backgroundColor = "#fff9c4"; // Giallo chiaro
+       // } else {
+       //   tr.style.backgroundColor = "#e3f2fd"; // Azzurro chiaro
+       // }
         
         // Applica bordo più spesso per separare i gruppi
         if (primaRigaGruppo && rc === 0 && g > 0) {
