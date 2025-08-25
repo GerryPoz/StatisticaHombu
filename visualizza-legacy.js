@@ -712,7 +712,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         }, 0);
         
         var tr = document.createElement("tr");
-        tr.className = tipo === "ZADANKAI" ? "zadankai" : "praticanti";
+        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
         
         if (j === 0) {
           var tdTipo = document.createElement("td");
@@ -864,7 +864,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       }, 0);
       
       var tr = document.createElement("tr");
-      tr.className = tipo === "ZADANKAI" ? "zadankai" : "praticanti";
+      tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
       
       if (j === 0) {
         var tdTipo = document.createElement("td");
