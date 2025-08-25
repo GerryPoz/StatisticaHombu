@@ -478,6 +478,7 @@ function aggiornaTabella() {
           var tdTot = document.createElement("td");
           tdTot.rowSpan = righeCategoria.length;
           tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+          tdTot.style.borderRight = BORDER_CONFIG.getVerticalBorder();
           tdTot.style.border = "1px solid #dee2e6";
           tdTot.style.textAlign = "center";
           tdTot.style.verticalAlign = "middle";
