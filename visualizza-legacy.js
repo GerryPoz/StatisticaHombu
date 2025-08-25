@@ -949,7 +949,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
   
   // Event listener per logout
-  var logoutBtn = document.getElementById("logout-btn");
+  var logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", logout);
   }
