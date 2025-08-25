@@ -477,9 +477,15 @@ function aggiornaTabella() {
         if (!totaleStampati[tipo]) {
           var tdTot = document.createElement("td");
           tdTot.rowSpan = righeCategoria.length;
+          
+          // Applica prima i bordi generici top e bottom
+          tdTot.style.borderTop = "1px solid #dee2e6";
+          tdTot.style.borderBottom = "1px solid #dee2e6";
+          
+          // Poi applica i bordi verticali blu
           tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           tdTot.style.borderRight = BORDER_CONFIG.getVerticalBorder();
-          tdTot.style.border = "1px solid #dee2e6";
+          
           tdTot.style.textAlign = "center";
           tdTot.style.verticalAlign = "middle";
           
