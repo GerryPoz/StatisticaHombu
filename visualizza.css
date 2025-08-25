@@ -248,4 +248,13 @@ tr.praticanti:hover td {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Regole ultra-specifiche per forzare i colori */
+  .table.table-striped tbody tr.table-warning td {
+    background-color: #fff3cd !important;
+  }
+  
+  .table.table-striped tbody tr.table-info td {
+    background-color: #d1ecf1 !important;
+  }
 }
