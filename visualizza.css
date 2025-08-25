@@ -141,11 +141,11 @@ tr.praticanti:hover td {
 
 /* Stili per i colori di sfondo delle tabelle Bootstrap */
 .table-warning {
-  background-color: #fff3cd;
+  background-color: #fff3cd !important;
 }
 
 .table-info {
-  background-color: #d1ecf1;
+  background-color: #d1ecf1 !important;
 }
 
 /* Stili per il testo */
