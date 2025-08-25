@@ -713,6 +713,9 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         
         var tr = document.createElement("tr");
         tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+        // DEBUG: Aggiungi queste righe per il debug
+        console.log("🔍 DEBUG - Tipo:", tipo);
+        console.log("🔍 DEBUG - Classe assegnata:", tr.className);
         
         if (j === 0) {
           var tdTipo = document.createElement("td");
@@ -761,6 +764,22 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         tr.appendChild(tdSTU);
         
         tbody.appendChild(tr);
+        // DEBUG: Verifica gli stili applicati
+        setTimeout(() => {
+            const computedStyle = window.getComputedStyle(tr);
+            console.log("🎨 DEBUG - Background color calcolato:", computedStyle.backgroundColor);
+            console.log("🎨 DEBUG - Classi CSS attive:", tr.classList.toString());
+            
+            // Verifica se ci sono stili inline che sovrascrivono
+            console.log("🎨 DEBUG - Stili inline:", tr.style.cssText);
+            
+            // Verifica le celle
+            const cells = tr.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                const cellStyle = window.getComputedStyle(cell);
+                console.log(`🎨 DEBUG - Cella ${index} background:`, cellStyle.backgroundColor);
+            });
+        }, 100);
       }
     });
     
