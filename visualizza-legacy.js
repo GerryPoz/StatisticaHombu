@@ -27,8 +27,6 @@ var tbody = document.querySelector("#tabella-dati tbody");
 var btnExportExcel = document.getElementById("btn-export-excel");
 var btnExportPdf = document.getElementById("btn-export-pdf");
 var btnPrint = document.getElementById("btn-print");
-var chartCategorie = document.getElementById("chart-categorie");
-var chartConfronto = document.getElementById("chart-confronto");
 
 var mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
@@ -37,8 +35,6 @@ var mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
 var righe = [];
 var gruppoToCapitolo = {};
 var gruppiData;
-var graficoCategorieInstance = null;
-var graficoConfrontoInstance = null;
 
 // 🔹 Funzione per calcolare il mese precedente
 function mesePrecedente(mese, anno) {
@@ -526,7 +522,6 @@ function aggiornaTabella() {
   // Aggiorna le altre sezioni
   mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo);
   generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
-  aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
 }
 
 // 🔹 Mostra gruppi mancanti
@@ -901,12 +896,6 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
   cardBodyCap.appendChild(tabellaCap);
   cardCapitolo.appendChild(cardBodyCap);
   containerRiepilogoCapitolo.appendChild(cardCapitolo);
-}
-
-// 🔹 Aggiorna i grafici
-function aggiornaGrafici(righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec) {
-  // Implementazione semplificata per compatibilità
-  console.log("📈 Aggiornamento grafici per", capitolo, mese, anno);
 }
 
 // 🔹 Esporta in Excel
