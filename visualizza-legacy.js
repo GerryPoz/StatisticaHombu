@@ -553,12 +553,24 @@ function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
     }
   }
   
+  // AGGIUNGI QUESTA SEZIONE PER VISUALIZZARE I GRUPPI MANCANTI
+  var containerGruppiMancanti = document.getElementById("gruppi-mancanti");
+  
   if (gruppiMancanti.length > 0) {
     console.log("⚠️ Gruppi mancanti per", mese, anno, ":", gruppiMancanti);
+    
+    // Mostra l'alert con i gruppi mancanti
+    containerGruppiMancanti.className = "alert alert-warning";
+    containerGruppiMancanti.innerHTML = 
+      '<h6><i class="fas fa-exclamation-triangle me-2"></i>Gruppi che non hanno ancora caricato dati per ' + mese + ' ' + anno + ':</h6>' +
+      '<div class="mt-2">' + gruppiMancanti.join(", ") + '</div>';
+    containerGruppiMancanti.style.display = "block";
+  } else {
+    // Nascondi l'alert se non ci sono gruppi mancanti
+    containerGruppiMancanti.style.display = "none";
   }
 }
 
-// 🔹 Genera riepiloghi capitolo e settori
 // 🔹 Genera riepiloghi capitolo e settori
 function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo) {
   console.log("📋 Generazione riepiloghi per", capitolo, mese, anno);
