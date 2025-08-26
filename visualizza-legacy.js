@@ -960,7 +960,7 @@ function esportaPdf() {
   var settori = Object.keys(struttura);
   
   // Prepara i dati per la tabella dettagliata raggruppata per settore
-  var intestazioni = [["Settore/Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
+  var intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
   var righeTabella = [];
   
   for (var s = 0; s < settori.length; s++) {
@@ -979,21 +979,17 @@ function esportaPdf() {
     
     if (gruppiPresentiSettore.length === 0) continue;
     
-    // Aggiungi intestazione settore
+    // Aggiungi intestazione settore con separatore
     if (s > 0) {
       righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]);
     }
-    righeTabella.push(["🔹 SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", "", ""]);
+    righeTabella.push(["SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", "", ""]);
     
     for (var g = 0; g < gruppiPresentiSettore.length; g++) {
       var gruppo = gruppiPresentiSettore[g];
       var righeGruppo = righeFiltrate.filter(function(r) {
         return r.gruppo === gruppo;
       });
-      
-      if (g > 0) {
-        righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]);
-      }
       
       var tipi = ["ZADANKAI", "PRATICANTI"];
       for (var t = 0; t < tipi.length; t++) {
@@ -1072,11 +1068,18 @@ function esportaPdf() {
     },
     didParseCell: function(data) {
       // Evidenzia le intestazioni dei settori
-      if (data.row.index > 0 && data.row.raw[0] && data.row.raw[0].toString().startsWith('🔹 SETTORE:')) {
+      if (data.row.index > 0 && data.row.raw[0] && data.row.raw[0].toString().startsWith('SETTORE:')) {
         data.cell.styles.fillColor = [52, 152, 219];
         data.cell.styles.textColor = [255, 255, 255];
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fontSize = 7;
+        data.cell.styles.fontSize = 8;
+        data.cell.styles.halign = 'center';
+        // Unisci tutte le celle della riga per l'intestazione del settore
+        if (data.column.index === 0) {
+          data.cell.colSpan = 12;
+        } else if (data.column.index > 0) {
+          data.cell.text = [];
+        }
       }
       // Righe vuote di separazione
       else if (data.row.index > 0) {
@@ -1089,7 +1092,7 @@ function esportaPdf() {
         }
         if (isEmpty) {
           data.cell.styles.fillColor = [240, 240, 240];
-          data.cell.styles.minCellHeight = 1.5;
+          data.cell.styles.minCellHeight = 2;
         }
       }
     }
@@ -1114,7 +1117,9 @@ function esportaPdf() {
     yPosition = 20;
     
     doc.setFontSize(16);
-    doc.text('RIEPILOGO SETTORE: ' + settore, 20, yPosition);
+    doc.setTextColor(52, 152, 219);
+    doc.text('RIEPILOGO SETTORE: ' + settore.toUpperCase(), 20, yPosition);
+    doc.setTextColor(0, 0, 0); // Reset colore
     yPosition += 15;
     
     var intestazioniSettore = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Settore", "Futuro", "Studenti"]];
@@ -1220,7 +1225,9 @@ function esportaPdf() {
   yPosition = 20;
   
   doc.setFontSize(16);
-  doc.text('RIEPILOGO CAPITOLO: ' + capitolo, 20, yPosition);
+  doc.setTextColor(13, 110, 253);
+  doc.text('RIEPILOGO CAPITOLO: ' + capitolo.toUpperCase(), 20, yPosition);
+  doc.setTextColor(0, 0, 0); // Reset colore
   yPosition += 15;
   
   var intestazioniCapitolo = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Capitolo", "Futuro", "Studenti"]];
