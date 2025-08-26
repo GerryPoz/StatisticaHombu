@@ -1358,17 +1358,9 @@ function applicaStiliCelle(data) {
   // Debug migliorato per vedere il contenuto effettivo
   console.log('Cella [' + data.row.index + ',' + data.column.index + ']:', 
               data.row.raw[0], 
-              'Tipo:', typeof data.row.raw[0],
-              'Contenuto:', data.cell.text);
-  
+  function applicaStiliCelle(data) {
   // Controlla se è un'intestazione di settore (priorità massima)
-  // Accede al contenuto della cella, sia che sia stringa che array
-  var contenutoCella = '';
-  if (Array.isArray(data.row.raw[0])) {
-    contenutoCella = data.row.raw[0][0] || '';
-  } else {
-    contenutoCella = data.row.raw[0] || '';
-  }
+  var contenutoCella = data.row.raw[0] || '';
   
   if (data.row.index > 0 && contenutoCella.toString().includes('SETTORE:')) {
     // Applica stile blu a TUTTE le celle della riga settore
@@ -1377,7 +1369,6 @@ function applicaStiliCelle(data) {
     data.cell.styles.fontStyle = 'bold';
     data.cell.styles.fontSize = 7;
     data.cell.styles.halign = 'center';
-    console.log('✅ Applicato stile settore a riga:', data.row.index);
     return; // Esci immediatamente per evitare altri stili
   }
   
@@ -1393,7 +1384,6 @@ function applicaStiliCelle(data) {
     if (isEmpty) {
       data.cell.styles.fillColor = [240, 240, 240];
       data.cell.styles.minCellHeight = 2;
-      console.log('📋 Applicato stile separatore a riga:', data.row.index);
     }
   }
 }
