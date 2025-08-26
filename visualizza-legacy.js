@@ -984,8 +984,6 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
     "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
   ]];
   
-  var righeTabella = [];
-  
   // Itera attraverso i settori
   for (var s = 0; s < settori.length; s++) {
     var settore = settori[s];
@@ -996,12 +994,16 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
     
     if (gruppiPresentiSettore.length === 0) continue;
     
-    // Aggiungi separatore tra settori (tranne per il primo)
+    // Nuova pagina per ogni settore (tranne il primo)
     if (s > 0) {
-      righeTabella.push(creaRigaSeparatore());
+      doc.addPage();
+      yPosition = 20;
     }
     
-    // Aggiungi intestazione settore
+    // Crea la tabella per questo settore
+    var righeTabella = [];
+    
+    // Aggiungi intestazione settore come prima riga
     righeTabella.push(creaIntestazioneSettore(settore));
     
     // Aggiungi i dati dei gruppi per questo settore
@@ -1020,47 +1022,45 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
       var righeGruppoTabella = generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec);
       righeTabella = righeTabella.concat(righeGruppoTabella);
     }
+    
+    // Crea la tabella per questo settore
+    doc.autoTable({
+      head: intestazioni,
+      body: righeTabella,
+      startY: yPosition,
+      styles: { 
+        fontSize: 6,
+        cellPadding: 2
+      },
+      headStyles: { 
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        7: { fontStyle: 'bold' }, // Somma
+        9: { fontStyle: 'bold' }  // Totale Gruppo
+      },
+      willDrawCell: function(data) {
+        // Colora la PRIMA riga (intestazione settore) in blu
+        if (data.row.index === 0) {
+          data.cell.styles.fillColor = [41, 128, 185]; // Blu
+          data.cell.styles.textColor = [255, 255, 255]; // Bianco
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.halign = 'center';
+        }
+        // Colora le righe vuote di separazione in grigio chiaro
+        else if (data.row.raw && data.row.raw.every(function(cell) {
+          return cell === '' || cell === null || cell === undefined;
+        })) {
+          data.cell.styles.fillColor = [240, 240, 240]; // Grigio chiaro
+        }
+      }
+    });
+    
+    // Aggiorna la posizione Y per la prossima tabella
+    yPosition = doc.lastAutoTable.finalY + 20;
   }
-  
-  // Crea la tabella
-  doc.autoTable({
-    head: intestazioni,
-    body: righeTabella,
-    startY: yPosition,
-    styles: { 
-      fontSize: 6,
-      cellPadding: 2
-    },
-    headStyles: { 
-      fillColor: [41, 128, 185],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      7: { fontStyle: 'bold' }, // Somma
-      9: { fontStyle: 'bold' }  // Totale Gruppo
-    },
-    willDrawCell: function(data) {
-      // PRIMA controlla se è una riga di intestazione settore
-      if (data.row.raw && data.row.raw[0] && 
-          typeof data.row.raw[0] === 'string' && 
-          data.row.raw[0].includes('SETTORE:')) {
-        // Applica stile blu per intestazione settore
-        data.cell.styles.fillColor = [41, 128, 185]; // Blu
-        data.cell.styles.textColor = [255, 255, 255]; // Bianco
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.halign = 'center';
-        return; // Esci immediatamente per evitare altre condizioni
-      }
-      // POI controlla se è una riga vuota di separazione
-      else if (data.row.raw && data.row.raw.every(function(cell) {
-        return cell === '' || cell === null || cell === undefined;
-      })) {
-        // Applica stile grigio chiaro per separatori
-        data.cell.styles.fillColor = [240, 240, 240]; // Grigio chiaro
-      }
-    }
-  });
 }
 
 // Funzione per generare i riepiloghi dei settori
