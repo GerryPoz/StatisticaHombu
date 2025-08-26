@@ -1041,11 +1041,19 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         7: { fontStyle: 'bold' }, // Somma
         9: { fontStyle: 'bold' }  // Totale Gruppo
       },
-      willDrawCell: function(data) {
-        // Colora TUTTE le celle della PRIMA riga (intestazione settore) in blu
-        if (data.row.index === 0) {
-          data.cell.styles.fillColor = [41, 128, 185]; // Blu
-          data.cell.styles.textColor = [255, 255, 255]; // Bianco
+      bodyStyles: {
+        0: { // Prima riga del body (intestazione settore)
+          fillColor: [41, 128, 185], // Blu
+          textColor: [255, 255, 255], // Bianco
+          fontStyle: 'bold',
+          halign: 'center'
+        }
+      },
+      didDrawCell: function(data) {
+        // Forza la colorazione della prima riga dopo il rendering
+        if (data.row.index === 0 && data.section === 'body') {
+          data.cell.styles.fillColor = [41, 128, 185];
+          data.cell.styles.textColor = [255, 255, 255];
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.halign = 'center';
         }
