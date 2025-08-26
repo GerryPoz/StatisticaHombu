@@ -943,11 +943,19 @@ function esportaPdf() {
 
   // Crea il documento PDF
   var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF('landscape'); // Orientamento orizzontale per più colonne
+  var doc = new jsPDF('landscape');
   
-  // Titolo
-  doc.setFontSize(16);
-  doc.text('Statistica ' + capitolo + ' - ' + mese + ' ' + anno, 20, 20);
+  var yPosition = 20;
+  
+  // ===== TITOLO PRINCIPALE =====
+  doc.setFontSize(18);
+  doc.text('Statistica ' + capitolo + ' - ' + mese + ' ' + anno, 20, yPosition);
+  yPosition += 20;
+  
+  // ===== 1. TABELLA DETTAGLIATA GRUPPI =====
+  doc.setFontSize(14);
+  doc.text('DETTAGLIO GRUPPI', 20, yPosition);
+  yPosition += 10;
   
   // Raggruppa per gruppo
   var gruppiPresenti = [];
@@ -958,7 +966,7 @@ function esportaPdf() {
   }
   gruppiPresenti.sort();
   
-  // Prepara i dati per la tabella
+  // Prepara i dati per la tabella dettagliata
   var intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
   var righeTabella = [];
   
@@ -968,9 +976,8 @@ function esportaPdf() {
       return r.gruppo === gruppo;
     });
     
-    // Aggiungi riga separatrice tra gruppi (tranne per il primo gruppo)
     if (g > 0) {
-      righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]); // Riga vuota
+      righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]);
     }
     
     var tipi = ["ZADANKAI", "PRATICANTI"];
@@ -982,7 +989,6 @@ function esportaPdf() {
       
       if (righeCategoria.length === 0) continue;
       
-      // Ordina sezioni ZADANKAI nell'ordine: Membri, Simpatizzanti, Ospiti
       if (tipo === "ZADANKAI") {
         var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
         righeCategoria.sort(function(a, b) {
@@ -990,7 +996,6 @@ function esportaPdf() {
         });
       }
       
-      // Calcola totali categoria
       var totaleCategoria = 0;
       for (var rc = 0; rc < righeCategoria.length; rc++) {
         var r = righeCategoria[rc];
@@ -998,10 +1003,8 @@ function esportaPdf() {
       }
       
       var righePrec = righe.filter(function(r) {
-        return r.anno === annoPrec &&
-               r.mese === mesePrec &&
-               r.gruppo === gruppo &&
-               r.tipo === tipo;
+        return r.anno === annoPrec && r.mese === mesePrec &&
+               r.gruppo === gruppo && r.tipo === tipo;
       });
       
       var totalePrec = 0;
@@ -1026,7 +1029,6 @@ function esportaPdf() {
           sommaPrec += x.U + x.D + x.GU + x.GD;
         }
         
-        // Totale gruppo solo per la prima riga della categoria
         var totaleGruppo = "";
         if (rc === 0) {
           var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
@@ -1041,19 +1043,18 @@ function esportaPdf() {
     }
   }
   
-  // Crea la tabella con separazioni personalizzate
+  // Crea la tabella dettagliata
   doc.autoTable({
     head: intestazioni,
     body: righeTabella,
-    startY: 30,
-    styles: { fontSize: 7 }, // Font più piccolo per più colonne
+    startY: yPosition,
+    styles: { fontSize: 6 },
     headStyles: { fillColor: [41, 128, 185] },
     columnStyles: {
-      7: { fontStyle: 'bold' }, // Colonna Somma in grassetto
-      9: { fontStyle: 'bold' } // Colonna Totale in grassetto
+      7: { fontStyle: 'bold' },
+      9: { fontStyle: 'bold' }
     },
     didParseCell: function(data) {
-      // Riduce l'altezza delle righe separatrici (righe vuote)
       if (data.row.index > 0) {
         var isEmpty = true;
         for (var i = 0; i < data.row.raw.length; i++) {
@@ -1062,20 +1063,241 @@ function esportaPdf() {
             break;
           }
         }
-        
         if (isEmpty) {
-          data.cell.styles.fillColor = [240, 240, 240]; // Sfondo grigio chiaro
-          data.cell.styles.lineWidth = 0.5;
-          data.cell.styles.lineColor = [200, 200, 200];
-          data.cell.styles.minCellHeight = 1.5; // Riduce ulteriormente l'altezza
-          data.cell.styles.cellPadding = 0.2; // Riduce anche il padding
+          data.cell.styles.fillColor = [240, 240, 240];
+          data.cell.styles.minCellHeight = 1.5;
         }
       }
     }
   });
   
+  // ===== 2. RIEPILOGHI SETTORI =====
+  var struttura = gruppiData["HOMBU 9"][capitolo];
+  var settori = Object.keys(struttura);
+  
+  for (var s = 0; s < settori.length; s++) {
+    var settore = settori[s];
+    var gruppiSettore = struttura[settore];
+    
+    var righeSettore = righeFiltrate.filter(function(r) {
+      return gruppiSettore.indexOf(r.gruppo) !== -1;
+    });
+    
+    if (righeSettore.length === 0) continue;
+    
+    // Nuova pagina per ogni settore
+    doc.addPage();
+    yPosition = 20;
+    
+    doc.setFontSize(16);
+    doc.text('RIEPILOGO SETTORE: ' + settore, 20, yPosition);
+    yPosition += 15;
+    
+    var intestazioniSettore = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Settore", "Futuro", "Studenti"]];
+    var righeSettoreTabella = [];
+    
+    var tipi = ["ZADANKAI", "PRATICANTI"];
+    for (var t = 0; t < tipi.length; t++) {
+      var tipo = tipi[t];
+      var righeTipo = righeSettore.filter(function(r) { return r.tipo === tipo; });
+      if (righeTipo.length === 0) continue;
+      
+      var sezioni = [];
+      for (var i = 0; i < righeTipo.length; i++) {
+        if (sezioni.indexOf(righeTipo[i].sezione) === -1) {
+          sezioni.push(righeTipo[i].sezione);
+        }
+      }
+      
+      if (tipo === "ZADANKAI") {
+        var ordine = ["membri", "simpatizzanti", "ospiti"];
+        sezioni.sort(function(a, b) {
+          return ordine.indexOf(a) - ordine.indexOf(b);
+        });
+      }
+      
+      var sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+      var righeTotali = righeTipo.filter(function(r) {
+        return sezioniRilevanti.indexOf(r.sezione) !== -1;
+      });
+      
+      var sumTot = righeTotali.reduce(function(acc, r) {
+        return {
+          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        };
+      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      
+      var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+      
+      var righePrecTot = righe.filter(function(r) {
+        return r.anno === annoPrec && r.mese === mesePrec &&
+               r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
+               gruppiSettore.indexOf(r.gruppo) !== -1;
+      });
+      
+      var totalePrec = righePrecTot.reduce(function(acc, r) {
+        return acc + r.U + r.D + r.GU + r.GD;
+      }, 0);
+      
+      var delta = totaleMese - totalePrec;
+      
+      for (var j = 0; j < sezioni.length; j++) {
+        var sezione = sezioni[j];
+        var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+        
+        var sum = righeSezione.reduce(function(acc, r) {
+          return {
+            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+          };
+        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        
+        var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+        
+        var righePrec = righe.filter(function(r) {
+          return r.anno === annoPrec && r.mese === mesePrec &&
+                 r.tipo === tipo && r.sezione === sezione &&
+                 gruppiSettore.indexOf(r.gruppo) !== -1;
+        });
+        
+        var sommaPrec = righePrec.reduce(function(acc, r) {
+          return acc + r.U + r.D + r.GU + r.GD;
+        }, 0);
+        
+        var totaleSettore = "";
+        if (j === 0) {
+          var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
+          totaleSettore = totaleMese + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
+        }
+        
+        var riga = j === 0 ? [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleSettore, sum.FUT, sum.STU] :
+                             ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
+        
+        righeSettoreTabella.push(riga);
+      }
+    }
+    
+    doc.autoTable({
+      head: intestazioniSettore,
+      body: righeSettoreTabella,
+      startY: yPosition,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [255, 193, 7] },
+      columnStyles: {
+        6: { fontStyle: 'bold' },
+        8: { fontStyle: 'bold' }
+      }
+    });
+  }
+  
+  // ===== 3. RIEPILOGO CAPITOLO =====
+  doc.addPage();
+  yPosition = 20;
+  
+  doc.setFontSize(16);
+  doc.text('RIEPILOGO CAPITOLO: ' + capitolo, 20, yPosition);
+  yPosition += 15;
+  
+  var intestazioniCapitolo = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Capitolo", "Futuro", "Studenti"]];
+  var righeCapitoloTabella = [];
+  
+  var tipi = ["ZADANKAI", "PRATICANTI"];
+  for (var t = 0; t < tipi.length; t++) {
+    var tipo = tipi[t];
+    var righeTipo = righeFiltrate.filter(function(r) { return r.tipo === tipo; });
+    if (righeTipo.length === 0) continue;
+    
+    var sezioni = [];
+    for (var i = 0; i < righeTipo.length; i++) {
+      if (sezioni.indexOf(righeTipo[i].sezione) === -1) {
+        sezioni.push(righeTipo[i].sezione);
+      }
+    }
+    
+    if (tipo === "ZADANKAI") {
+      var ordine = ["membri", "simpatizzanti", "ospiti"];
+      sezioni.sort(function(a, b) {
+        return ordine.indexOf(a) - ordine.indexOf(b);
+      });
+    }
+    
+    var sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+    var righeTotali = righeTipo.filter(function(r) {
+      return sezioniRilevanti.indexOf(r.sezione) !== -1;
+    });
+    
+    var sumTot = righeTotali.reduce(function(acc, r) {
+      return {
+        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+      };
+    }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+    
+    var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+    
+    var righePrecTot = righe.filter(function(r) {
+      return r.anno === annoPrec && r.mese === mesePrec &&
+             r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
+             gruppoToCapitolo[r.gruppo] === capitolo;
+    });
+    
+    var totalePrec = righePrecTot.reduce(function(acc, r) {
+      return acc + r.U + r.D + r.GU + r.GD;
+    }, 0);
+    
+    var delta = totaleMese - totalePrec;
+    
+    for (var j = 0; j < sezioni.length; j++) {
+      var sezione = sezioni[j];
+      var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+      
+      var sum = righeSezione.reduce(function(acc, r) {
+        return {
+          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        };
+      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      
+      var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+      
+      var righePrec = righe.filter(function(r) {
+        return r.anno === annoPrec && r.mese === mesePrec &&
+               r.tipo === tipo && r.sezione === sezione &&
+               gruppoToCapitolo[r.gruppo] === capitolo;
+      });
+      
+      var sommaPrec = righePrec.reduce(function(acc, r) {
+        return acc + r.U + r.D + r.GU + r.GD;
+      }, 0);
+      
+      var totaleCapitolo = "";
+      if (j === 0) {
+        var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
+        totaleCapitolo = totaleMese + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
+      }
+      
+      var riga = j === 0 ? [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleCapitolo, sum.FUT, sum.STU] :
+                           ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
+      
+      righeCapitoloTabella.push(riga);
+    }
+  }
+  
+  doc.autoTable({
+    head: intestazioniCapitolo,
+    body: righeCapitoloTabella,
+    startY: yPosition,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [13, 110, 253] },
+    columnStyles: {
+      6: { fontStyle: 'bold' },
+      8: { fontStyle: 'bold' }
+    }
+  });
+  
   // Scarica il file
-  doc.save('dati_' + capitolo + '_' + mese + '_' + anno + '.pdf');
+  doc.save('statistica_completa_' + capitolo + '_' + mese + '_' + anno + '.pdf');
 }
 
 // 🔹 Stampa
