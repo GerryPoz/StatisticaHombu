@@ -1355,18 +1355,8 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
 }
 
 function applicaStiliCelle(data) {
-  // Evidenzia le intestazioni dei settori
-  if (data.row.index > 0 && data.row.raw[0] && 
-      (data.row.raw[0].toString().startsWith('SETTORE:') || 
-       data.row.raw[0].toString().includes('SETTORE:'))) {
-    data.cell.styles.fillColor = [52, 152, 219];
-    data.cell.styles.textColor = [255, 255, 255];
-    data.cell.styles.fontStyle = 'bold';
-    data.cell.styles.fontSize = 7;
-    data.cell.styles.halign = 'center';
-  }
-  // Righe vuote di separazione
-  else if (data.row.index > 0) {
+  // Prima controlla se è una riga vuota di separazione
+  if (data.row.index > 0) {
     var isEmpty = true;
     for (var i = 0; i < data.row.raw.length; i++) {
       if (data.row.raw[i] !== "") {
@@ -1377,7 +1367,19 @@ function applicaStiliCelle(data) {
     if (isEmpty) {
       data.cell.styles.fillColor = [240, 240, 240];
       data.cell.styles.minCellHeight = 2;
+      return; // Esci subito per le righe vuote
     }
+  }
+  
+  // Poi controlla se è un'intestazione di settore
+  if (data.row.index > 0 && data.row.raw[0] && 
+      (data.row.raw[0].toString().startsWith('SETTORE:') || 
+       data.row.raw[0].toString().includes('SETTORE:'))) {
+    data.cell.styles.fillColor = [52, 152, 219];
+    data.cell.styles.textColor = [255, 255, 255];
+    data.cell.styles.fontStyle = 'bold';
+    data.cell.styles.fontSize = 7;
+    data.cell.styles.halign = 'center';
   }
 }
 
