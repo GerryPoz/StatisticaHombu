@@ -1041,7 +1041,7 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
       9: { fontStyle: 'bold' }  // Totale Gruppo
     },
     willDrawCell: function(data) {
-      // Controlla se è una riga di intestazione settore
+      // PRIMA controlla se è una riga di intestazione settore
       if (data.row.raw && data.row.raw[0] && 
           typeof data.row.raw[0] === 'string' && 
           data.row.raw[0].includes('SETTORE:')) {
@@ -1050,8 +1050,9 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         data.cell.styles.textColor = [255, 255, 255]; // Bianco
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.halign = 'center';
+        return; // Esci immediatamente per evitare altre condizioni
       }
-      // Controlla se è una riga vuota di separazione
+      // POI controlla se è una riga vuota di separazione
       else if (data.row.raw && data.row.raw.every(function(cell) {
         return cell === '' || cell === null || cell === undefined;
       })) {
