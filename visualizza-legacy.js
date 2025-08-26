@@ -1041,7 +1041,45 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
       9: { fontStyle: 'bold' }  // Totale Gruppo
     },
     didParseCell: function(data) {
-      applicaStiliCelle(data);
+      // Debug: stampa il contenuto della prima cella
+      if (data.column.index === 0) {
+        console.log('Cella [' + data.row.index + ',0]:', data.cell.text);
+      }
+      
+      // Controlla se la prima cella contiene "SETTORE:"
+      if (data.column.index === 0 && data.row.index > 0 && 
+          data.cell.text && data.cell.text.toString().includes('SETTORE:')) {
+        // Applica stile blu a tutta la riga
+        data.cell.styles.fillColor = [52, 152, 219];
+        data.cell.styles.textColor = [255, 255, 255];
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 7;
+        data.cell.styles.halign = 'center';
+      }
+      // Se siamo in una riga settore (identificata dalla prima cella), applica lo stile a tutte le celle
+      else if (data.row.index > 0 && data.table.body[data.row.index - 1] && 
+               data.table.body[data.row.index - 1][0] && 
+               data.table.body[data.row.index - 1][0].toString().includes('SETTORE:')) {
+        data.cell.styles.fillColor = [52, 152, 219];
+        data.cell.styles.textColor = [255, 255, 255];
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 7;
+        data.cell.styles.halign = 'center';
+      }
+      // Righe vuote di separazione
+      else if (data.row.index > 0) {
+        var isEmpty = true;
+        for (var i = 0; i < data.table.body[data.row.index - 1].length; i++) {
+          if (data.table.body[data.row.index - 1][i] !== "") {
+            isEmpty = false;
+            break;
+          }
+        }
+        if (isEmpty) {
+          data.cell.styles.fillColor = [240, 240, 240];
+          data.cell.styles.minCellHeight = 2;
+        }
+      }
     }
   });
 }
@@ -1352,35 +1390,6 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
   
   var righePrecedenti = righe.filter(filtro);
   return calcolaTotaleRighe(righePrecedenti);
-}
-
-function applicaStiliCelle(data) {
-  // Controlla se è un'intestazione di settore (priorità massima)
-  if (data.row.index > 0 && data.row.raw[0] && 
-      data.row.raw[0].toString().includes('SETTORE:')) {
-    // Applica stile blu a TUTTE le celle della riga settore
-    data.cell.styles.fillColor = [52, 152, 219];
-    data.cell.styles.textColor = [255, 255, 255];
-    data.cell.styles.fontStyle = 'bold';
-    data.cell.styles.fontSize = 7;
-    data.cell.styles.halign = 'center';
-    return; // Esci immediatamente per evitare altri stili
-  }
-  
-  // Solo dopo controlla se è una riga vuota di separazione
-  if (data.row.index > 0) {
-    var isEmpty = true;
-    for (var i = 0; i < data.row.raw.length; i++) {
-      if (data.row.raw[i] !== "") {
-        isEmpty = false;
-        break;
-      }
-    }
-    if (isEmpty) {
-      data.cell.styles.fillColor = [240, 240, 240];
-      data.cell.styles.minCellHeight = 2;
-    }
-  }
 }
 
 // 🔹 Stampa
