@@ -1355,7 +1355,6 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
 }
 
 function applicaStiliCelle(data) {
-function applicaStiliCelle(data) {
   // Debug migliorato per vedere il contenuto effettivo
   console.log('Cella [' + data.row.index + ',' + data.column.index + ']:', 
               data.row.raw[0], 
