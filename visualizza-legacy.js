@@ -1024,24 +1024,58 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
   
   // Crea la tabella
   doc.autoTable({
-    head: intestazioni,
+    head: [intestazioni],
     body: righeTabella,
-    startY: yPosition,
-    styles: { 
+    startY: 30,
+    styles: {
       fontSize: 6,
-      cellPadding: 2
+      cellPadding: 1.5,
+      lineColor: [200, 200, 200],
+      lineWidth: 0.1
     },
-    headStyles: { 
-      fillColor: [41, 128, 185],
+    headStyles: {
+      fillColor: [70, 130, 180],
       textColor: [255, 255, 255],
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      fontSize: 7,
+      halign: 'center'
     },
     columnStyles: {
+      3: { fontStyle: 'bold' }, // U
+      4: { fontStyle: 'bold' }, // D  
+      5: { fontStyle: 'bold' }, // GU
+      6: { fontStyle: 'bold' }, // GD
       7: { fontStyle: 'bold' }, // Somma
       9: { fontStyle: 'bold' }  // Totale Gruppo
     },
-    didParseCell: function(data) {
-      applicaStiliCelle(data);
+    willDrawCell: function(data) {
+      // Controlla se è un'intestazione di settore
+      var contenutoCella = data.row.raw[0] || '';
+      
+      if (data.row.index > 0 && contenutoCella.toString().includes('SETTORE:')) {
+        // Applica stile blu a TUTTE le celle della riga settore
+        data.cell.styles.fillColor = [52, 152, 219];
+        data.cell.styles.textColor = [255, 255, 255];
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 7;
+        data.cell.styles.halign = 'center';
+        return;
+      }
+      
+      // Controlla se è una riga vuota di separazione
+      if (data.row.index > 0) {
+        var isEmpty = true;
+        for (var i = 0; i < data.row.raw.length; i++) {
+          if (data.row.raw[i] !== "") {
+            isEmpty = false;
+            break;
+          }
+        }
+        if (isEmpty) {
+          data.cell.styles.fillColor = [240, 240, 240];
+          data.cell.styles.minCellHeight = 2;
+        }
+      }
     }
   });
 }
@@ -1354,35 +1388,6 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
   return calcolaTotaleRighe(righePrecedenti);
 }
 
-function applicaStiliCelle(data) {
-  // Controlla se è un'intestazione di settore (priorità massima)
-  var contenutoCella = data.row.raw[0] || '';
-  
-  if (data.row.index > 0 && contenutoCella.toString().includes('SETTORE:')) {
-    // Applica stile blu a TUTTE le celle della riga settore
-    data.cell.styles.fillColor = [52, 152, 219];
-    data.cell.styles.textColor = [255, 255, 255];
-    data.cell.styles.fontStyle = 'bold';
-    data.cell.styles.fontSize = 7;
-    data.cell.styles.halign = 'center';
-    return; // Esci immediatamente per evitare altri stili
-  }
-  
-  // Solo dopo controlla se è una riga vuota di separazione
-  if (data.row.index > 0) {
-    var isEmpty = true;
-    for (var i = 0; i < data.row.raw.length; i++) {
-      if (data.row.raw[i] !== "") {
-        isEmpty = false;
-        break;
-      }
-    }
-    if (isEmpty) {
-      data.cell.styles.fillColor = [240, 240, 240];
-      data.cell.styles.minCellHeight = 2;
-    }
-  }
-}
 
 // 🔹 Stampa
 function stampa() {
