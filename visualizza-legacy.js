@@ -1356,7 +1356,9 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
 
 function applicaStiliCelle(data) {
   // Evidenzia le intestazioni dei settori
-  if (data.row.index > 0 && data.row.raw[0] && data.row.raw[0].toString().startsWith('SETTORE:')) {
+  if (data.row.index > 0 && data.row.raw[0] && 
+      (data.row.raw[0].toString().startsWith('SETTORE:') || 
+       data.row.raw[0].toString().includes('SETTORE:'))) {
     data.cell.styles.fillColor = [52, 152, 219];
     data.cell.styles.textColor = [255, 255, 255];
     data.cell.styles.fontStyle = 'bold';
