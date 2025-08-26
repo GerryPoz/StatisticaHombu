@@ -921,6 +921,7 @@ function esportaExcel() {
 }
 
 function esportaPdf() {
+  // Ottieni i valori dei filtri
   var anno = filtroAnno.value;
   var mese = filtroMese.value;
   var capitolo = filtroCapitolo.value;
@@ -928,6 +929,7 @@ function esportaPdf() {
   var annoPrec = mesePrec.anno;
   mesePrec = mesePrec.mese;
 
+  // Filtra i dati per anno, mese e capitolo
   var righeFiltrate = righe.filter(function(r) {
     return r.anno === anno &&
            r.mese === mese &&
@@ -939,19 +941,36 @@ function esportaPdf() {
     return;
   }
 
-  // Crea il documento PDF
+  // Inizializza il documento PDF
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF('landscape');
   
+  // ===== SEZIONE 1: DETTAGLIO GRUPPI PER SETTORE =====
+  generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
+  
+  // ===== SEZIONE 2: RIEPILOGHI SETTORI =====
+  generaRiepiloghiSettori(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
+  
+  // ===== SEZIONE 3: RIEPILOGO CAPITOLO =====
+  generaRiepilogoCapitolo(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
+  
+  // Salva il file PDF
+  doc.save('statistica_completa_' + capitolo + '_' + mese + '_' + anno + '.pdf');
+}
+
+// Funzione per generare il dettaglio gruppi per settore
+function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec) {
   var yPosition = 20;
   
-  // ===== TITOLO PRINCIPALE =====
+  // Titolo principale
   doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
   doc.text('Statistica ' + capitolo + ' - ' + mese + ' ' + anno, 20, yPosition);
   yPosition += 20;
   
-  // ===== 1. TABELLA DETTAGLIATA GRUPPI RAGGRUPPATI PER SETTORE =====
+  // Sottotitolo sezione
   doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
   doc.text('DETTAGLIO GRUPPI PER SETTORE', 20, yPosition);
   yPosition += 10;
   
@@ -959,146 +978,76 @@ function esportaPdf() {
   var struttura = gruppiData["HOMBU 9"][capitolo];
   var settori = Object.keys(struttura);
   
-  // Prepara i dati per la tabella dettagliata raggruppata per settore
-  var intestazioni = [["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]];
+  // Prepara intestazioni tabella
+  var intestazioni = [[
+    "Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", 
+    "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
+  ]];
+  
   var righeTabella = [];
   
+  // Itera attraverso i settori
   for (var s = 0; s < settori.length; s++) {
     var settore = settori[s];
     var gruppiSettore = struttura[settore];
     
-    // Filtra i gruppi presenti per questo settore
-    var gruppiPresentiSettore = [];
-    for (var i = 0; i < righeFiltrate.length; i++) {
-      var gruppo = righeFiltrate[i].gruppo;
-      if (gruppiSettore.indexOf(gruppo) !== -1 && gruppiPresentiSettore.indexOf(gruppo) === -1) {
-        gruppiPresentiSettore.push(gruppo);
-      }
-    }
-    gruppiPresentiSettore.sort();
+    // Trova i gruppi presenti per questo settore
+    var gruppiPresentiSettore = ottieniGruppiPresentiPerSettore(righeFiltrate, gruppiSettore);
     
     if (gruppiPresentiSettore.length === 0) continue;
     
-    // Aggiungi intestazione settore con separatore
+    // Aggiungi separatore tra settori (tranne per il primo)
     if (s > 0) {
-      righeTabella.push(["", "", "", "", "", "", "", "", "", "", "", ""]);
+      righeTabella.push(creaRigaSeparatore());
     }
-    righeTabella.push(["SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", "", ""]);
     
+    // Aggiungi intestazione settore
+    righeTabella.push(creaIntestazioneSettore(settore));
+    
+    // Aggiungi i dati dei gruppi per questo settore
     for (var g = 0; g < gruppiPresentiSettore.length; g++) {
       var gruppo = gruppiPresentiSettore[g];
       var righeGruppo = righeFiltrate.filter(function(r) {
         return r.gruppo === gruppo;
       });
       
-      var tipi = ["ZADANKAI", "PRATICANTI"];
-      for (var t = 0; t < tipi.length; t++) {
-        var tipo = tipi[t];
-        var righeCategoria = righeGruppo.filter(function(r) {
-          return r.tipo === tipo;
-        });
-        
-        if (righeCategoria.length === 0) continue;
-        
-        if (tipo === "ZADANKAI") {
-          var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
-          righeCategoria.sort(function(a, b) {
-            return sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione);
-          });
-        }
-        
-        var totaleCategoria = 0;
-        for (var rc = 0; rc < righeCategoria.length; rc++) {
-          var r = righeCategoria[rc];
-          totaleCategoria += r.U + r.D + r.GU + r.GD;
-        }
-        
-        var righePrec = righe.filter(function(r) {
-          return r.anno === annoPrec && r.mese === mesePrec &&
-                 r.gruppo === gruppo && r.tipo === tipo;
-        });
-        
-        var totalePrec = 0;
-        for (var rp = 0; rp < righePrec.length; rp++) {
-          var r = righePrec[rp];
-          totalePrec += r.U + r.D + r.GU + r.GD;
-        }
-        
-        var delta = totaleCategoria - totalePrec;
-        
-        for (var rc = 0; rc < righeCategoria.length; rc++) {
-          var r = righeCategoria[rc];
-          var somma = r.U + r.D + r.GU + r.GD;
-          
-          var righePrecSezione = righePrec.filter(function(x) {
-            return x.sezione === r.sezione;
-          });
-          
-          var sommaPrec = 0;
-          for (var rps = 0; rps < righePrecSezione.length; rps++) {
-            var x = righePrecSezione[rps];
-            sommaPrec += x.U + x.D + x.GU + x.GD;
-          }
-          
-          var totaleGruppo = "";
-          if (rc === 0) {
-            var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
-            totaleGruppo = totaleCategoria + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
-          }
-          
-          righeTabella.push([
-            gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
-            somma, sommaPrec, totaleGruppo, r.FUT, r.STU
-          ]);
-        }
+      // Aggiungi separatore tra gruppi (tranne per il primo)
+      if (g > 0) {
+        righeTabella.push(creaRigaSeparatore());
       }
+      
+      // Aggiungi le righe per questo gruppo
+      var righeGruppoTabella = generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec);
+      righeTabella = righeTabella.concat(righeGruppoTabella);
     }
   }
   
-  // Crea la tabella dettagliata
+  // Crea la tabella
   doc.autoTable({
     head: intestazioni,
     body: righeTabella,
     startY: yPosition,
-    styles: { fontSize: 6 },
-    headStyles: { fillColor: [41, 128, 185] },
+    styles: { 
+      fontSize: 6,
+      cellPadding: 2
+    },
+    headStyles: { 
+      fillColor: [41, 128, 185],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
     columnStyles: {
-      7: { fontStyle: 'bold' },
-      9: { fontStyle: 'bold' }
+      7: { fontStyle: 'bold' }, // Somma
+      9: { fontStyle: 'bold' }  // Totale Gruppo
     },
     didParseCell: function(data) {
-      // Evidenzia le intestazioni dei settori
-      if (data.row.index > 0 && data.row.raw[0] && data.row.raw[0].toString().startsWith('SETTORE:')) {
-        data.cell.styles.fillColor = [52, 152, 219];
-        data.cell.styles.textColor = [255, 255, 255];
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fontSize = 8;
-        data.cell.styles.halign = 'center';
-        // Unisci tutte le celle della riga per l'intestazione del settore
-        if (data.column.index === 0) {
-          data.cell.colSpan = 12;
-        } else if (data.column.index > 0) {
-          data.cell.text = [];
-        }
-      }
-      // Righe vuote di separazione
-      else if (data.row.index > 0) {
-        var isEmpty = true;
-        for (var i = 0; i < data.row.raw.length; i++) {
-          if (data.row.raw[i] !== "") {
-            isEmpty = false;
-            break;
-          }
-        }
-        if (isEmpty) {
-          data.cell.styles.fillColor = [240, 240, 240];
-          data.cell.styles.minCellHeight = 2;
-        }
-      }
+      applicaStiliCelle(data);
     }
   });
-  
-  // ===== 2. RIEPILOGHI SETTORI =====
+}
+
+// Funzione per generare i riepiloghi dei settori
+function generaRiepiloghiSettori(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec) {
   var struttura = gruppiData["HOMBU 9"][capitolo];
   var settori = Object.keys(struttura);
   
@@ -1114,221 +1063,320 @@ function esportaPdf() {
     
     // Nuova pagina per ogni settore
     doc.addPage();
-    yPosition = 20;
+    var yPosition = 20;
     
+    // Titolo settore
     doc.setFontSize(16);
-    doc.setTextColor(52, 152, 219);
+    doc.setFont(undefined, 'bold');
     doc.text('RIEPILOGO SETTORE: ' + settore.toUpperCase(), 20, yPosition);
-    doc.setTextColor(0, 0, 0); // Reset colore
     yPosition += 15;
     
-    var intestazioniSettore = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Settore", "Futuro", "Studenti"]];
-    var righeSettoreTabella = [];
+    // Genera la tabella riepilogo per il settore
+    var righeSettoreTabella = generaRiepilogoPerTipo(righeSettore, annoPrec, mesePrec, gruppiSettore, "settore");
     
-    var tipi = ["ZADANKAI", "PRATICANTI"];
-    for (var t = 0; t < tipi.length; t++) {
-      var tipo = tipi[t];
-      var righeTipo = righeSettore.filter(function(r) { return r.tipo === tipo; });
-      if (righeTipo.length === 0) continue;
-      
-      var sezioni = [];
-      for (var i = 0; i < righeTipo.length; i++) {
-        if (sezioni.indexOf(righeTipo[i].sezione) === -1) {
-          sezioni.push(righeTipo[i].sezione);
-        }
-      }
-      
-      if (tipo === "ZADANKAI") {
-        var ordine = ["membri", "simpatizzanti", "ospiti"];
-        sezioni.sort(function(a, b) {
-          return ordine.indexOf(a) - ordine.indexOf(b);
-        });
-      }
-      
-      var sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
-      var righeTotali = righeTipo.filter(function(r) {
-        return sezioniRilevanti.indexOf(r.sezione) !== -1;
-      });
-      
-      var sumTot = righeTotali.reduce(function(acc, r) {
-        return {
-          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        };
-      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-      
-      var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
-      
-      var righePrecTot = righe.filter(function(r) {
-        return r.anno === annoPrec && r.mese === mesePrec &&
-               r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
-               gruppiSettore.indexOf(r.gruppo) !== -1;
-      });
-      
-      var totalePrec = righePrecTot.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
-      }, 0);
-      
-      var delta = totaleMese - totalePrec;
-      
-      for (var j = 0; j < sezioni.length; j++) {
-        var sezione = sezioni[j];
-        var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
-        
-        var sum = righeSezione.reduce(function(acc, r) {
-          return {
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-          };
-        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        
-        var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
-        
-        var righePrec = righe.filter(function(r) {
-          return r.anno === annoPrec && r.mese === mesePrec &&
-                 r.tipo === tipo && r.sezione === sezione &&
-                 gruppiSettore.indexOf(r.gruppo) !== -1;
-        });
-        
-        var sommaPrec = righePrec.reduce(function(acc, r) {
-          return acc + r.U + r.D + r.GU + r.GD;
-        }, 0);
-        
-        var totaleSettore = "";
-        if (j === 0) {
-          var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
-          totaleSettore = totaleMese + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
-        }
-        
-        var riga = j === 0 ? [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleSettore, sum.FUT, sum.STU] :
-                             ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
-        
-        righeSettoreTabella.push(riga);
-      }
-    }
+    var intestazioniSettore = [[
+      "Categoria", "Sezione", "U", "D", "GU", "GD", 
+      "Somma", "Prec.", "Totale Settore", "Futuro", "Studenti"
+    ]];
     
     doc.autoTable({
       head: intestazioniSettore,
       body: righeSettoreTabella,
       startY: yPosition,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [255, 193, 7] },
+      styles: { 
+        fontSize: 8,
+        cellPadding: 3
+      },
+      headStyles: { 
+        fillColor: [255, 193, 7],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold'
+      },
       columnStyles: {
-        6: { fontStyle: 'bold' },
-        8: { fontStyle: 'bold' }
+        6: { fontStyle: 'bold' }, // Somma
+        8: { fontStyle: 'bold' }  // Totale Settore
       }
     });
   }
-  
-  // ===== 3. RIEPILOGO CAPITOLO =====
+}
+
+// Funzione per generare il riepilogo del capitolo
+function generaRiepilogoCapitolo(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec) {
   doc.addPage();
-  yPosition = 20;
+  var yPosition = 20;
   
+  // Titolo capitolo
   doc.setFontSize(16);
-  doc.setTextColor(13, 110, 253);
+  doc.setFont(undefined, 'bold');
   doc.text('RIEPILOGO CAPITOLO: ' + capitolo.toUpperCase(), 20, yPosition);
-  doc.setTextColor(0, 0, 0); // Reset colore
   yPosition += 15;
   
-  var intestazioniCapitolo = [["Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Capitolo", "Futuro", "Studenti"]];
-  var righeCapitoloTabella = [];
+  // Genera la tabella riepilogo per il capitolo
+  var righeCapitoloTabella = generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, null, "capitolo");
   
-  var tipi = ["ZADANKAI", "PRATICANTI"];
-  for (var t = 0; t < tipi.length; t++) {
-    var tipo = tipi[t];
-    var righeTipo = righeFiltrate.filter(function(r) { return r.tipo === tipo; });
-    if (righeTipo.length === 0) continue;
-    
-    var sezioni = [];
-    for (var i = 0; i < righeTipo.length; i++) {
-      if (sezioni.indexOf(righeTipo[i].sezione) === -1) {
-        sezioni.push(righeTipo[i].sezione);
-      }
-    }
-    
-    if (tipo === "ZADANKAI") {
-      var ordine = ["membri", "simpatizzanti", "ospiti"];
-      sezioni.sort(function(a, b) {
-        return ordine.indexOf(a) - ordine.indexOf(b);
-      });
-    }
-    
-    var sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
-    var righeTotali = righeTipo.filter(function(r) {
-      return sezioniRilevanti.indexOf(r.sezione) !== -1;
-    });
-    
-    var sumTot = righeTotali.reduce(function(acc, r) {
-      return {
-        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-      };
-    }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-    
-    var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
-    
-    var righePrecTot = righe.filter(function(r) {
-      return r.anno === annoPrec && r.mese === mesePrec &&
-             r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
-             gruppoToCapitolo[r.gruppo] === capitolo;
-    });
-    
-    var totalePrec = righePrecTot.reduce(function(acc, r) {
-      return acc + r.U + r.D + r.GU + r.GD;
-    }, 0);
-    
-    var delta = totaleMese - totalePrec;
-    
-    for (var j = 0; j < sezioni.length; j++) {
-      var sezione = sezioni[j];
-      var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
-      
-      var sum = righeSezione.reduce(function(acc, r) {
-        return {
-          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        };
-      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-      
-      var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
-      
-      var righePrec = righe.filter(function(r) {
-        return r.anno === annoPrec && r.mese === mesePrec &&
-               r.tipo === tipo && r.sezione === sezione &&
-               gruppoToCapitolo[r.gruppo] === capitolo;
-      });
-      
-      var sommaPrec = righePrec.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
-      }, 0);
-      
-      var totaleCapitolo = "";
-      if (j === 0) {
-        var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
-        totaleCapitolo = totaleMese + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
-      }
-      
-      var riga = j === 0 ? [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleCapitolo, sum.FUT, sum.STU] :
-                           ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
-      
-      righeCapitoloTabella.push(riga);
-    }
-  }
+  var intestazioniCapitolo = [[
+    "Categoria", "Sezione", "U", "D", "GU", "GD", 
+    "Somma", "Prec.", "Totale Capitolo", "Futuro", "Studenti"
+  ]];
   
   doc.autoTable({
     head: intestazioniCapitolo,
     body: righeCapitoloTabella,
     startY: yPosition,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [13, 110, 253] },
+    styles: { 
+      fontSize: 8,
+      cellPadding: 3
+    },
+    headStyles: { 
+      fillColor: [13, 110, 253],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
     columnStyles: {
-      6: { fontStyle: 'bold' },
-      8: { fontStyle: 'bold' }
+      6: { fontStyle: 'bold' }, // Somma
+      8: { fontStyle: 'bold' }  // Totale Capitolo
     }
   });
+}
+
+// Funzioni di utilità
+function ottieniGruppiPresentiPerSettore(righeFiltrate, gruppiSettore) {
+  var gruppiPresenti = [];
+  for (var i = 0; i < righeFiltrate.length; i++) {
+    var gruppo = righeFiltrate[i].gruppo;
+    if (gruppiSettore.indexOf(gruppo) !== -1 && gruppiPresenti.indexOf(gruppo) === -1) {
+      gruppiPresenti.push(gruppo);
+    }
+  }
+  return gruppiPresenti.sort();
+}
+
+function creaRigaSeparatore() {
+  return ["", "", "", "", "", "", "", "", "", "", "", ""];
+}
+
+function creaIntestazioneSettore(settore) {
+  return ["SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", "", ""];
+}
+
+function generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec) {
+  var righeTabella = [];
+  var tipi = ["ZADANKAI", "PRATICANTI"];
   
-  // Scarica il file
-  doc.save('statistica_completa_' + capitolo + '_' + mese + '_' + anno + '.pdf');
+  for (var t = 0; t < tipi.length; t++) {
+    var tipo = tipi[t];
+    var righeCategoria = righeGruppo.filter(function(r) {
+      return r.tipo === tipo;
+    });
+    
+    if (righeCategoria.length === 0) continue;
+    
+    // Ordina le sezioni per ZADANKAI
+    if (tipo === "ZADANKAI") {
+      var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+      righeCategoria.sort(function(a, b) {
+        return sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione);
+      });
+    }
+    
+    // Calcola totali per la categoria
+    var totaleCategoria = calcolaTotaleCategoria(righeCategoria);
+    var totalePrec = calcolaTotalePrecedente(gruppo, tipo, annoPrec, mesePrec);
+    var delta = totaleCategoria - totalePrec;
+    
+    // Aggiungi le righe per ogni sezione
+    for (var rc = 0; rc < righeCategoria.length; rc++) {
+      var r = righeCategoria[rc];
+      var somma = r.U + r.D + r.GU + r.GD;
+      
+      var sommaPrec = calcolaSommaPrecedenteSezione(gruppo, tipo, r.sezione, annoPrec, mesePrec);
+      
+      var totaleGruppo = "";
+      if (rc === 0) {
+        var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
+        totaleGruppo = totaleCategoria + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
+      }
+      
+      righeTabella.push([
+        gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
+        somma, sommaPrec, totaleGruppo, r.FUT, r.STU
+      ]);
+    }
+  }
+  
+  return righeTabella;
+}
+
+function generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo) {
+  var righeTabella = [];
+  var tipi = ["ZADANKAI", "PRATICANTI"];
+  
+  for (var t = 0; t < tipi.length; t++) {
+    var tipo = tipi[t];
+    var righeTipo = righeFiltrate.filter(function(r) { return r.tipo === tipo; });
+    if (righeTipo.length === 0) continue;
+    
+    var sezioni = ottieniSezioniUniche(righeTipo, tipo);
+    var sezioniRilevanti = tipo === "ZADANKAI" ? ["membri", "simpatizzanti", "ospiti"] : ["membri", "simpatizzanti"];
+    
+    // Calcola totali per il tipo
+    var righeTotali = righeTipo.filter(function(r) {
+      return sezioniRilevanti.indexOf(r.sezione) !== -1;
+    });
+    
+    var totaleMese = calcolaTotaleRighe(righeTotali);
+    var totalePrec = calcolaTotalePrecedentePerTipo(tipo, sezioniRilevanti, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo);
+    var delta = totaleMese - totalePrec;
+    
+    // Aggiungi righe per ogni sezione
+    for (var j = 0; j < sezioni.length; j++) {
+      var sezione = sezioni[j];
+      var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+      
+      var sum = calcolaRiepilogoSezione(righeSezione);
+      var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+      
+      var sommaPrec = calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo);
+      
+      var totaleColonna = "";
+      if (j === 0) {
+        var deltaStr = delta >= 0 ? "+" + delta : "" + delta;
+        var nomeColonna = tipoRiepilogo === "settore" ? "Settore" : "Capitolo";
+        totaleColonna = totaleMese + " (Prec: " + totalePrec + ", Δ: " + deltaStr + ")";
+      }
+      
+      var riga = j === 0 ? 
+        [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleColonna, sum.FUT, sum.STU] :
+        ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
+      
+      righeTabella.push(riga);
+    }
+  }
+  
+  return righeTabella;
+}
+
+// Funzioni di calcolo
+function calcolaTotaleCategoria(righeCategoria) {
+  return righeCategoria.reduce(function(acc, r) {
+    return acc + r.U + r.D + r.GU + r.GD;
+  }, 0);
+}
+
+function calcolaTotalePrecedente(gruppo, tipo, annoPrec, mesePrec) {
+  var righePrecedenti = righe.filter(function(r) {
+    return r.anno === annoPrec && r.mese === mesePrec &&
+           r.gruppo === gruppo && r.tipo === tipo;
+  });
+  
+  return righePrecedenti.reduce(function(acc, r) {
+    return acc + r.U + r.D + r.GU + r.GD;
+  }, 0);
+}
+
+function calcolaSommaPrecedenteSezione(gruppo, tipo, sezione, annoPrec, mesePrec) {
+  var righePrecedenti = righe.filter(function(r) {
+    return r.anno === annoPrec && r.mese === mesePrec &&
+           r.gruppo === gruppo && r.tipo === tipo && r.sezione === sezione;
+  });
+  
+  return righePrecedenti.reduce(function(acc, r) {
+    return acc + r.U + r.D + r.GU + r.GD;
+  }, 0);
+}
+
+function ottieniSezioniUniche(righeTipo, tipo) {
+  var sezioni = [];
+  for (var i = 0; i < righeTipo.length; i++) {
+    if (sezioni.indexOf(righeTipo[i].sezione) === -1) {
+      sezioni.push(righeTipo[i].sezione);
+    }
+  }
+  
+  if (tipo === "ZADANKAI") {
+    var ordine = ["membri", "simpatizzanti", "ospiti"];
+    sezioni.sort(function(a, b) {
+      return ordine.indexOf(a) - ordine.indexOf(b);
+    });
+  }
+  
+  return sezioni;
+}
+
+function calcolaTotaleRighe(righe) {
+  return righe.reduce(function(acc, r) {
+    return acc + r.U + r.D + r.GU + r.GD;
+  }, 0);
+}
+
+function calcolaTotalePrecedentePerTipo(tipo, sezioniRilevanti, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo) {
+  var filtro = function(r) {
+    var baseCondition = r.anno === annoPrec && r.mese === mesePrec &&
+                       r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1;
+    
+    if (tipoRiepilogo === "settore" && gruppiSettore) {
+      return baseCondition && gruppiSettore.indexOf(r.gruppo) !== -1;
+    } else if (tipoRiepilogo === "capitolo") {
+      return baseCondition && gruppoToCapitolo[r.gruppo] === filtroCapitolo.value;
+    }
+    
+    return baseCondition;
+  };
+  
+  var righePrecedenti = righe.filter(filtro);
+  return calcolaTotaleRighe(righePrecedenti);
+}
+
+function calcolaRiepilogoSezione(righeSezione) {
+  return righeSezione.reduce(function(acc, r) {
+    return {
+      U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+      GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+    };
+  }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+}
+
+function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo) {
+  var filtro = function(r) {
+    var baseCondition = r.anno === annoPrec && r.mese === mesePrec &&
+                       r.tipo === tipo && r.sezione === sezione;
+    
+    if (tipoRiepilogo === "settore" && gruppiSettore) {
+      return baseCondition && gruppiSettore.indexOf(r.gruppo) !== -1;
+    } else if (tipoRiepilogo === "capitolo") {
+      return baseCondition && gruppoToCapitolo[r.gruppo] === filtroCapitolo.value;
+    }
+    
+    return baseCondition;
+  };
+  
+  var righePrecedenti = righe.filter(filtro);
+  return calcolaTotaleRighe(righePrecedenti);
+}
+
+function applicaStiliCelle(data) {
+  // Evidenzia le intestazioni dei settori
+  if (data.row.index > 0 && data.row.raw[0] && data.row.raw[0].toString().startsWith('SETTORE:')) {
+    data.cell.styles.fillColor = [52, 152, 219];
+    data.cell.styles.textColor = [255, 255, 255];
+    data.cell.styles.fontStyle = 'bold';
+    data.cell.styles.fontSize = 7;
+    data.cell.styles.halign = 'center';
+  }
+  // Righe vuote di separazione
+  else if (data.row.index > 0) {
+    var isEmpty = true;
+    for (var i = 0; i < data.row.raw.length; i++) {
+      if (data.row.raw[i] !== "") {
+        isEmpty = false;
+        break;
+      }
+    }
+    if (isEmpty) {
+      data.cell.styles.fillColor = [240, 240, 240];
+      data.cell.styles.minCellHeight = 2;
+    }
+  }
 }
 
 // 🔹 Stampa
