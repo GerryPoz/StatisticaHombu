@@ -1355,7 +1355,6 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
 }
 
 function applicaStiliCelle(data) {
-function applicaStiliCelle(data) {
   // Controlla se è un'intestazione di settore (priorità massima)
   if (data.row.index > 0 && data.row.raw[0] && 
       data.row.raw[0].toString().includes('SETTORE:')) {
@@ -1383,7 +1382,7 @@ function applicaStiliCelle(data) {
     }
   }
 }
-  
+
 // 🔹 Stampa
 function stampa() {
   window.print();
