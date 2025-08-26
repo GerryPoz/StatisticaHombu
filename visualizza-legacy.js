@@ -1054,8 +1054,8 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         }
         
         // Aggiungi bordo nero sotto ogni riga
-        data.cell.styles.lineColor = [0, 0, 0]; // Nero
-        data.cell.styles.lineWidth = 0.1;
+        //data.cell.styles.lineColor = [0, 0, 0]; // Nero
+        //data.cell.styles.lineWidth = 0.1;
       }
     });
     
