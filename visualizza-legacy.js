@@ -1042,14 +1042,13 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         9: { fontStyle: 'bold' }  // Totale Gruppo
       },
       willDrawCell: function(data) {
-        // Colora SOLO la PRIMA riga (intestazione settore) in blu
+        // Colora TUTTE le celle della PRIMA riga (intestazione settore) in blu
         if (data.row.index === 0) {
           data.cell.styles.fillColor = [41, 128, 185]; // Blu
           data.cell.styles.textColor = [255, 255, 255]; // Bianco
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.halign = 'center';
         }
-        // Rimuovo completamente la logica per le righe grigie
       }
     });
     
