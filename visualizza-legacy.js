@@ -1041,6 +1041,9 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         7: { fontStyle: 'bold' }, // Somma
         9: { fontStyle: 'bold' }  // Totale Gruppo
       },
+      alternateRowStyles: {
+        fillColor: false // Disabilita l'alternanza automatica
+      },
       willDrawCell: function(data) {
         // Colora TUTTE le celle della PRIMA riga (intestazione settore) in blu
         if (data.row.index === 0) {
