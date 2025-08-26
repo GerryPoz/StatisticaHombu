@@ -1043,7 +1043,7 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
       },
       willDrawCell: function(data) {
         // Colora TUTTE le celle della PRIMA riga (intestazione settore) in blu
-        if (data.row.index === 0) {
+        if (data.row.index === 1) {
           data.cell.styles.fillColor = [41, 128, 185]; // Blu
           data.cell.styles.textColor = [255, 255, 255]; // Bianco
           data.cell.styles.fontStyle = 'bold';
