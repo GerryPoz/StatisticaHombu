@@ -1355,7 +1355,20 @@ function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, grup
 }
 
 function applicaStiliCelle(data) {
-  // Prima controlla se è una riga vuota di separazione
+function applicaStiliCelle(data) {
+  // Controlla se è un'intestazione di settore (priorità massima)
+  if (data.row.index > 0 && data.row.raw[0] && 
+      data.row.raw[0].toString().includes('SETTORE:')) {
+    // Applica stile blu a TUTTE le celle della riga settore
+    data.cell.styles.fillColor = [52, 152, 219];
+    data.cell.styles.textColor = [255, 255, 255];
+    data.cell.styles.fontStyle = 'bold';
+    data.cell.styles.fontSize = 7;
+    data.cell.styles.halign = 'center';
+    return; // Esci immediatamente per evitare altri stili
+  }
+  
+  // Solo dopo controlla se è una riga vuota di separazione
   if (data.row.index > 0) {
     var isEmpty = true;
     for (var i = 0; i < data.row.raw.length; i++) {
@@ -1367,22 +1380,10 @@ function applicaStiliCelle(data) {
     if (isEmpty) {
       data.cell.styles.fillColor = [240, 240, 240];
       data.cell.styles.minCellHeight = 2;
-      return; // Esci subito per le righe vuote
     }
   }
-  
-  // Poi controlla se è un'intestazione di settore
-  if (data.row.index > 0 && data.row.raw[0] && 
-      (data.row.raw[0].toString().startsWith('SETTORE:') || 
-       data.row.raw[0].toString().includes('SETTORE:'))) {
-    data.cell.styles.fillColor = [52, 152, 219];
-    data.cell.styles.textColor = [255, 255, 255];
-    data.cell.styles.fontStyle = 'bold';
-    data.cell.styles.fontSize = 7;
-    data.cell.styles.halign = 'center';
-  }
 }
-
+  
 // 🔹 Stampa
 function stampa() {
   window.print();
