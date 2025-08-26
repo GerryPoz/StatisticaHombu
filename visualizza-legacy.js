@@ -917,7 +917,104 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
 
 // 🔹 Esporta in Excel
 function esportaExcel() {
-  alert("Funzione di esportazione Excel non implementata nella versione legacy");
+  var anno = filtroAnno.value;
+  var mese = filtroMese.value;
+  var capitolo = filtroCapitolo.value;
+  var mesePrec = mesePrecedente(mese, anno);
+  var annoPrec = mesePrec.anno;
+  mesePrec = mesePrec.mese;
+
+  var righeFiltrate = righe.filter(function(r) {
+    return r.anno === anno &&
+           r.mese === mese &&
+           gruppoToCapitolo[r.gruppo] === capitolo;
+  });
+
+  if (righeFiltrate.length === 0) {
+    alert("Nessun dato da esportare");
+    return;
+  }
+
+  // Crea i dati per Excel
+  var datiExcel = [];
+  
+  // Intestazioni
+  datiExcel.push(["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]);
+  
+  // Raggruppa per gruppo
+  var gruppiPresenti = [];
+  righeFiltrate.forEach(function(r) {
+    if (gruppiPresenti.indexOf(r.gruppo) === -1) {
+      gruppiPresenti.push(r.gruppo);
+    }
+  });
+  gruppiPresenti.sort();
+  
+  // Righe dati
+  gruppiPresenti.forEach(function(gruppo) {
+    var righeGruppo = righeFiltrate.filter(function(r) {
+      return r.gruppo === gruppo;
+    });
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
+      var righeCategoria = righeGruppo.filter(function(r) {
+        return r.tipo === tipo;
+      });
+      
+      if (righeCategoria.length === 0) return;
+      
+      // Ordina sezioni ZADANKAI nell'ordine: Membri, Simpatizzanti, Ospiti
+      if (tipo === "ZADANKAI") {
+        var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
+        righeCategoria.sort(function(a, b) {
+          return sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione);
+        });
+      }
+      
+      // Calcola totali categoria
+      var totaleCategoria = righeCategoria.reduce(function(acc, r) {
+        return acc + r.U + r.D + r.GU + r.GD;
+      }, 0);
+      
+      var righePrec = righe.filter(function(r) {
+        return r.anno === annoPrec &&
+               r.mese === mesePrec &&
+               r.gruppo === gruppo &&
+               r.tipo === tipo;
+      });
+      
+      var totalePrec = righePrec.reduce(function(acc, r) {
+        return acc + r.U + r.D + r.GU + r.GD;
+      }, 0);
+      var delta = totaleCategoria - totalePrec;
+      
+      righeCategoria.forEach(function(r, index) {
+        var somma = r.U + r.D + r.GU + r.GD;
+        var righePrecSezione = righePrec.filter(function(x) {
+          return x.sezione === r.sezione;
+        });
+        var sommaPrec = righePrecSezione.reduce(function(acc, x) {
+          return acc + x.U + x.D + x.GU + x.GD;
+        }, 0);
+        
+        // Totale gruppo solo per la prima riga della categoria
+        var totaleGruppo = index === 0 ? totaleCategoria + " (Prec: " + totalePrec + ", Δ: " + (delta >= 0 ? "+" : "") + delta + ")" : "";
+        
+        datiExcel.push([
+          gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
+          somma, sommaPrec, totaleGruppo, r.FUT, r.STU
+        ]);
+      });
+    });
+  });
+
+  // Crea il workbook
+  var ws = XLSX.utils.aoa_to_sheet(datiExcel);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dati");
+  
+  // Scarica il file
+  XLSX.writeFile(wb, "dati_" + capitolo + "_" + mese + "_" + anno + ".xlsx");
 }
 
 function esportaPdf() {
