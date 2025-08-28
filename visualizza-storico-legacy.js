@@ -60,11 +60,10 @@ function inizializzaApp() {
         try {
             mostraLoading(true);
             
-            // Carica dati storici e gruppi in parallelo
-            Promise.all([
-                caricaDatiStorici(),
-                caricaGruppi()
-            ]).then(function() {
+            // Carica dati in sequenza invece di Promise.all per compatibilità
+            caricaDatiStorici().then(function() {
+                return caricaGruppi();
+            }).then(function() {
                 inizializzaFiltri();
                 applicaFiltri();
                 mostraLoading(false);
@@ -521,7 +520,9 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
             }
             
             if (includiDato) {
-                var chiave = dato.anno + '-' + String(dato.mese).padStart(2, '0');
+                // Sostituisci padStart con funzione compatibile
+                var meseStr = dato.mese < 10 ? '0' + dato.mese : String(dato.mese);
+                var chiave = dato.anno + '-' + meseStr;
                 
                 if (!datiAggregati[chiave]) {
                     datiAggregati[chiave] = {
@@ -541,7 +542,15 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
         }
     });
     
-    return Object.values(datiAggregati).sort(function(a, b) {
+    // Sostituisci Object.values con funzione compatibile
+    var risultato = [];
+    for (var chiave in datiAggregati) {
+        if (datiAggregati.hasOwnProperty(chiave)) {
+            risultato.push(datiAggregati[chiave]);
+        }
+    }
+    
+    return risultato.sort(function(a, b) {
         if (a.anno !== b.anno) return a.anno - b.anno;
         return a.mese - b.mese;
     });
