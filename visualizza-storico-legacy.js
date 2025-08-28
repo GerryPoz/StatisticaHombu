@@ -74,33 +74,129 @@ function generaDatiEsempio() {
     return datiEsempio;
 }
 
-// Carica dati (versione semplificata)
+// Carica dati dal database con fallback
 function caricaDatiStorici() {
-    console.log('Inizio caricamento dati...');
+    console.log('Tentativo di caricamento dati dal database...');
     
-    // Usa sempre dati di esempio per garantire il funzionamento
-    datiStorici = generaDatiEsempio();
-    
-    // Popola gruppi disponibili
+    // Prova a caricare dal database
+    database.ref('zadankai').once('value').then(function(snapshot) {
+        var datiCompleti = snapshot.val();
+        console.log('Dati ricevuti dal database:', datiCompleti);
+        
+        if (datiCompleti && typeof datiCompleti === 'object') {
+            datiStorici = [];
+            
+            // Elabora i dati del database
+            for (var chiave in datiCompleti) {
+                if (datiCompleti.hasOwnProperty(chiave)) {
+                    console.log('Elaborando chiave:', chiave);
+                    var parti = chiave.split('-');
+                    
+                    if (parti.length >= 3) {
+                        var anno = parseInt(parti[0]);
+                        var nomeMese = parti[1];
+                        var gruppo = parti.slice(2).join('-');
+                        var mese = convertiMeseInNumero(nomeMese);
+                        
+                        var datiGruppo = datiCompleti[chiave];
+                        
+                        // Verifica se esiste la sezione zadankai
+                        if (datiGruppo && datiGruppo.zadankai) {
+                            console.log('Sezione zadankai trovata per:', gruppo);
+                            
+                            // Calcola membri
+                            var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                            
+                            // Calcola presenze
+                            var membriPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                            var simpatizzantiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {});
+                            var ospitiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                            var presenze = membriPresenze + simpatizzantiPresenze + ospitiPresenze;
+                            
+                            // Calcola praticanti
+                            var praticanti = 0;
+                            if (datiGruppo.praticanti) {
+                                for (var tipoPraticante in datiGruppo.praticanti) {
+                                    if (datiGruppo.praticanti.hasOwnProperty(tipoPraticante)) {
+                                        praticanti += calcolaTotaleCategoria(datiGruppo.praticanti[tipoPraticante] || {});
+                                    }
+                                }
+                            }
+                            
+                            datiStorici.push({
+                                anno: anno,
+                                mese: mese,
+                                nomeMese: nomeMese,
+                                gruppo: gruppo,
+                                membri: membri,
+                                presenze: presenze,
+                                praticanti: praticanti
+                            });
+                            
+                            console.log('Record aggiunto:', {
+                                gruppo: gruppo,
+                                anno: anno,
+                                mese: nomeMese,
+                                membri: membri,
+                                presenze: presenze,
+                                praticanti: praticanti
+                            });
+                        }
+                    }
+                }
+            }
+            
+            console.log('Totale dati dal database:', datiStorici.length);
+            
+            // Se non ci sono dati dal database, usa dati di esempio
+            if (datiStorici.length === 0) {
+                console.log('Nessun dato valido dal database, uso dati di esempio');
+                datiStorici = generaDatiEsempio();
+            }
+            
+            // Popola gruppi disponibili
+            popolaGruppiDisponibili();
+            
+        } else {
+            console.log('Database vuoto o formato non valido, uso dati di esempio');
+            datiStorici = generaDatiEsempio();
+            popolaGruppiDisponibili();
+        }
+        
+    }).catch(function(error) {
+        console.error('Errore nel caricamento dal database:', error);
+        console.log('Uso dati di esempio a causa dell\'errore');
+        datiStorici = generaDatiEsempio();
+        popolaGruppiDisponibili();
+    });
+}
+
+// Funzione helper per popolare gruppi disponibili
+function popolaGruppiDisponibili() {
     gruppiDisponibili = [];
+    gruppoToCapitolo = {};
+    gruppoToSettore = {};
+    
     for (var i = 0; i < datiStorici.length; i++) {
         var gruppo = datiStorici[i].gruppo;
         var trovato = false;
+        
         for (var j = 0; j < gruppiDisponibili.length; j++) {
             if (gruppiDisponibili[j] === gruppo) {
                 trovato = true;
                 break;
             }
         }
+        
         if (!trovato) {
             gruppiDisponibili.push(gruppo);
+            // Assegna capitolo e settore di default (puoi personalizzare questa logica)
             gruppoToCapitolo[gruppo] = 'Capitolo A';
             gruppoToSettore[gruppo] = 'Settore 1';
         }
     }
     
-    console.log('Dati caricati:', datiStorici.length, 'record');
-    console.log('Gruppi disponibili:', gruppiDisponibili.length);
+    console.log('Gruppi disponibili popolati:', gruppiDisponibili.length);
 }
 
 // Inizializza filtri
@@ -316,18 +412,30 @@ function mostraLoading(mostra) {
 }
 
 // Inizializzazione principale
+// Modifica anche la funzione di inizializzazione per gestire l'asincronia
 function inizializzaApp() {
     console.log('Inizializzazione app...');
     mostraLoading(true);
     
     try {
+        // Carica i dati e poi inizializza il resto
         caricaDatiStorici();
-        inizializzaFiltri();
-        applicaFiltri();
-        mostraLoading(false);
-        console.log('App inizializzata con successo');
+        
+        // Aspetta un momento per il caricamento asincrono
+        setTimeout(function() {
+            inizializzaFiltri();
+            applicaFiltri();
+            mostraLoading(false);
+            console.log('App inizializzata con successo');
+        }, 1000); // Aspetta 1 secondo
+        
     } catch (error) {
         console.error('Errore inizializzazione:', error);
+        // Fallback con dati di esempio
+        datiStorici = generaDatiEsempio();
+        popolaGruppiDisponibili();
+        inizializzaFiltri();
+        applicaFiltri();
         mostraLoading(false);
     }
 }
