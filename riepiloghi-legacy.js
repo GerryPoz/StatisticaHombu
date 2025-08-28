@@ -133,12 +133,6 @@ function caricaDati() {
         btnExportPdf.addEventListener('click', esportaPdf);
         console.log('Event listener per esporta PDF aggiunto');
     }
-
-    var btnExportExcel = document.getElementById('btn-export-excel');
-    if (btnExportExcel) {
-        btnExportExcel.addEventListener('click', esportaExcel);
-        console.log('Event listener per esporta Excel aggiunto');
-    }
 }
 
 // Inizializza filtri
@@ -625,11 +619,6 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
     cardBody.appendChild(tabella);
     cardCapitolo.appendChild(cardBody);
     contenitore.appendChild(cardCapitolo);
-}
-
-// Funzioni di esportazione
-function esportaExcel() {
-    alert("Funzione di esportazione Excel in sviluppo per la versione legacy");
 }
 
 function esportaPdf() {
