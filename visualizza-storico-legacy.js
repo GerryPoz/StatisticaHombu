@@ -190,11 +190,31 @@ function caricaGruppi() {
                 return response.json();
             })
             .then(function(data) {
-                if (!data || !data.gruppi || !Array.isArray(data.gruppi)) {
+                console.log('Dati gruppi ricevuti:', data);
+                
+                if (!data || !data['HOMBU 9']) {
                     throw new Error('Struttura del file gruppi.json non valida');
                 }
                 
-                gruppiDisponibili = data.gruppi;
+                gruppiDisponibili = [];
+                
+                // Elabora la struttura gerarchica
+                var hombu9 = data['HOMBU 9'];
+                Object.keys(hombu9).forEach(function(capitolo) {
+                    var capitoloData = hombu9[capitolo];
+                    Object.keys(capitoloData).forEach(function(settore) {
+                        var gruppi = capitoloData[settore];
+                        if (Array.isArray(gruppi)) {
+                            gruppi.forEach(function(nomeGruppo) {
+                                gruppiDisponibili.push({
+                                    nome: nomeGruppo,
+                                    capitolo: capitolo,
+                                    settore: settore
+                                });
+                            });
+                        }
+                    });
+                });
                 
                 // Costruisci le mappe gruppo -> capitolo e gruppo -> settore
                 gruppiDisponibili.forEach(function(gruppo) {
@@ -203,10 +223,20 @@ function caricaGruppi() {
                 });
                 
                 console.log('Gruppi caricati:', gruppiDisponibili.length);
+                console.log('Primi gruppi:', gruppiDisponibili.slice(0, 3));
                 resolve();
             })
             .catch(function(error) {
                 console.error('Errore nel caricamento gruppi:', error);
+                // Crea gruppi di fallback per non bloccare l'app
+                gruppiDisponibili = [
+                    { nome: 'AURORA', capitolo: 'Capitolo Asti', settore: 'Settore Fukyo' },
+                    { nome: 'DHARMA', capitolo: 'Capitolo Casale/Crescentino', settore: 'Settore Casale' }
+                ];
+                gruppiDisponibili.forEach(function(gruppo) {
+                    gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
+                    gruppoToSettore[gruppo.nome] = gruppo.settore;
+                });
                 resolve(); // Non bloccare l'app se i gruppi non si caricano
             });
     });
