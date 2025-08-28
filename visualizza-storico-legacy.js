@@ -172,7 +172,8 @@ function caricaGruppi() {
                     return response.json();
                 })
                 .then(function(data) {
-                    if (data && data.gruppi) {
+                    console.log('Dati gruppi ricevuti:', data);
+                    if (data && Array.isArray(data.gruppi) && data.gruppi.length > 0) {
                         gruppiDisponibili = data.gruppi;
                         
                         // Crea le mappe gruppo -> capitolo e gruppo -> settore
@@ -183,7 +184,8 @@ function caricaGruppi() {
                         
                         console.log('Gruppi caricati:', gruppiDisponibili.length);
                     } else {
-                        console.warn('Struttura del file gruppi.json non valida');
+                        console.warn('Struttura del file gruppi.json non valida o vuota');
+                        console.log('Struttura ricevuta:', data);
                     }
                     resolve();
                 })
@@ -266,9 +268,17 @@ function inizializzaFiltri() {
 
 // Aggiorna sottofiltri in base al capitolo selezionato
 function aggiornaSottofiltri() {
-    var capitoloSelezionato = document.getElementById('filtroCapitolo').value;
+    var selectCapitolo = document.getElementById('filtroCapitolo');
     var selectSettore = document.getElementById('filtroSettore');
     var selectGruppo = document.getElementById('filtroGruppo');
+    
+    // Controlli di sicurezza
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
+        return;
+    }
+    
+    var capitoloSelezionato = selectCapitolo.value;
     
     // Reset settori
     selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
@@ -316,9 +326,19 @@ function mostraLoading(mostra) {
 
 // Applica filtri
 function applicaFiltri() {
-    var capitolo = document.getElementById('filtroCapitolo').value;
-    var settore = document.getElementById('filtroSettore').value;
-    var gruppo = document.getElementById('filtroGruppo').value;
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
+    
+    // Controlli di sicurezza
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
+        return;
+    }
+    
+    var capitolo = selectCapitolo.value;
+    var settore = selectSettore.value;
+    var gruppo = selectGruppo.value;
     
     var datiAggregati = aggregaDatiUltimi12Mesi(capitolo, settore, gruppo);
     var filtri = { capitolo: capitolo, settore: settore, gruppo: gruppo };
