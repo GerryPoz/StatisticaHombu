@@ -73,79 +73,129 @@ function inizializzaApp() {
 
 function caricaDatiStorici() {
     return new Promise(function(resolve, reject) {
+        console.log('Caricamento dati storici...');
         mostraLoading(true);
         
-        var dataRef = database.ref('dati');
-        dataRef.once('value').then(function(snapshot) {
-            var datiCompleti = snapshot.val();
-            
-            if (!datiCompleti) {
-                console.log('Nessun dato trovato nel database, genero dati di esempio');
-                datiStorici = generaDatiEsempio();
-                resolve();
-                return;
-            }
-            
-            datiStorici = [];
-            
-            // Converti i dati in formato utilizzabile
-            for (var anno in datiCompleti) {
-                if (datiCompleti.hasOwnProperty(anno)) {
-                    for (var mese in datiCompleti[anno]) {
-                        if (datiCompleti[anno].hasOwnProperty(mese)) {
-                            var datiMese = datiCompleti[anno][mese];
+        // Reset array dati
+        datiStorici = [];
+        
+        // Prima carica i gruppi per avere la mappatura gruppo->capitolo/settore
+        caricaGruppi().then(function() {
+            // Carica dati zadankai dal database reale
+            var zadankaiRef = database.ref('zadankai');
+            return zadankaiRef.once('value');
+        }).then(function(zadankaiSnapshot) {
+            if (zadankaiSnapshot.exists()) {
+                var zadankaiData = zadankaiSnapshot.val();
+                console.log('Dati zadankai trovati:', Object.keys(zadankaiData).length, 'record');
+                
+                // Elabora dati zadankai dal database reale
+                for (var chiave in zadankaiData) {
+                    if (zadankaiData.hasOwnProperty(chiave)) {
+                        var sezioni = zadankaiData[chiave];
+                        console.log('Elaborando chiave:', chiave, 'Sezioni:', sezioni);
+                        var parti = chiave.split('-');
+                        var anno = parti[0];
+                        var mese = parti[1];
+                        var gruppo = parti[2];
+                        
+                        if (!anno || !mese || !gruppo) {
+                            console.warn('Formato chiave non valido:', chiave);
+                            continue;
+                        }
+                        
+                        // Converti il mese da nome a numero
+                        var numeroMese = convertiMeseInNumero(mese);
+                        var data = new Date(parseInt(anno), numeroMese - 1, 1);
+                        var capitolo = gruppoToCapitolo[gruppo] || 'Sconosciuto';
+                        var settore = gruppoToSettore[gruppo] || 'Sconosciuto';
+                        
+                        console.log('Data elaborata:', data, 'Gruppo:', gruppo, 'Capitolo:', capitolo, 'Settore:', settore);
+                        
+                        // Elabora sezione zadankai
+                        if (sezioni.zadankai) {
+                            var zadankai = sezioni.zadankai;
+                            console.log('Dati zadankai per', gruppo, ':', zadankai);
                             
-                            for (var gruppo in datiMese) {
-                                if (datiMese.hasOwnProperty(gruppo) && gruppo !== 'timestamp') {
-                                    var datiGruppo = datiMese[gruppo];
-                                    
-                                    // Calcola totali per ogni categoria
-                                    var totaleResponsabili = calcolaTotaleCategoria(datiGruppo.Responsabili);
-                                    var totaleYD = calcolaTotaleCategoria(datiGruppo['Giovani Donne']);
-                                    var totaleYM = calcolaTotaleCategoria(datiGruppo['Giovani Uomini']);
-                                    var totaleMD = calcolaTotaleCategoria(datiGruppo['Donne']);
-                                    var totaleMM = calcolaTotaleCategoria(datiGruppo['Uomini']);
-                                    var totaleSimpatizzanti = calcolaTotaleCategoria(datiGruppo['Praticanti Simpatizzanti']);
-                                    
-                                    var totaleGenerale = totaleResponsabili + totaleYD + totaleYM + totaleMD + totaleMM + totaleSimpatizzanti;
-                                    
-                                    datiStorici.push({
-                                        anno: parseInt(anno),
-                                        mese: mese,
-                                        meseNumero: convertiMeseInNumero(mese),
-                                        gruppo: gruppo,
-                                        totaleResponsabili: totaleResponsabili,
-                                        totaleYD: totaleYD,
-                                        totaleYM: totaleYM,
-                                        totaleMD: totaleMD,
-                                        totaleMM: totaleMM,
-                                        totaleSimpatizzanti: totaleSimpatizzanti,
-                                        totaleGenerale: totaleGenerale,
-                                        datiCompleti: datiGruppo
-                                    });
-                                }
+                            // Membri Zadankai - somma tutte le sottocategorie
+                            if (zadankai.membri) {
+                                var membri = calcolaTotaleCategoria(zadankai.membri);
+                                console.log('Aggiungendo membri zadankai:', membri, 'Dettaglio:', zadankai.membri);
+                                datiStorici.push({
+                                    id: chiave + '-zadankai-membri',
+                                    data: data,
+                                    gruppo: gruppo,
+                                    settore: settore,
+                                    capitolo: capitolo,
+                                    tipo: 'zadankai',
+                                    categoria: 'membri',
+                                    valore: membri
+                                });
                             }
+                            
+                            // Presenze Zadankai - calcola come somma di membri + simpatizzanti + ospiti
+                            var presenzeTotali = calcolaTotaleCategoria(zadankai.membri) + 
+                                               calcolaTotaleCategoria(zadankai.simpatizzanti) + 
+                                               calcolaTotaleCategoria(zadankai.ospiti);
+                            
+                            console.log('Aggiungendo presenze zadankai:', presenzeTotali);
+                            datiStorici.push({
+                                id: chiave + '-zadankai-presenze',
+                                data: data,
+                                gruppo: gruppo,
+                                settore: settore,
+                                capitolo: capitolo,
+                                tipo: 'zadankai',
+                                categoria: 'presenze',
+                                valore: presenzeTotali
+                            });
+                        }
+                        
+                        // Elabora sezione praticanti
+                        if (sezioni.praticanti) {
+                            var praticanti = sezioni.praticanti;
+                            console.log('Dati praticanti per', gruppo, ':', praticanti);
+                            
+                            // Calcola totale praticanti sommando membri e simpatizzanti
+                            var totalePraticanti = calcolaTotaleCategoria(praticanti.membri) + 
+                                                  calcolaTotaleCategoria(praticanti.simpatizzanti);
+                            
+                            console.log('Totale praticanti calcolato:', totalePraticanti, 
+                                      'Membri:', calcolaTotaleCategoria(praticanti.membri),
+                                      'Simpatizzanti:', calcolaTotaleCategoria(praticanti.simpatizzanti));
+                            
+                            datiStorici.push({
+                                id: chiave + '-praticanti-totale',
+                                data: data,
+                                gruppo: gruppo,
+                                settore: settore,
+                                capitolo: capitolo,
+                                tipo: 'praticanti',
+                                categoria: 'totale',
+                                valore: totalePraticanti
+                            });
                         }
                     }
                 }
             }
             
-            // Ordina per data (più recente prima)
-            datiStorici.sort(function(a, b) {
-                if (a.anno !== b.anno) {
-                    return b.anno - a.anno;
-                }
-                return b.meseNumero - a.meseNumero;
-            });
+            // Se non ci sono dati reali, genera dati di esempio
+            if (datiStorici.length === 0) {
+                console.log('Nessun dato reale trovato, generazione dati di esempio...');
+                datiStorici = generaDatiEsempio();
+            }
             
-            console.log('Dati storici caricati:', datiStorici.length, 'record');
+            console.log('Dati storici caricati totali:', datiStorici.length);
+            console.log('Primi 5 dati:', datiStorici.slice(0, 5));
+            mostraLoading(false);
             resolve();
+            
         }).catch(function(error) {
-            console.error('Errore nel caricamento dati storici:', error);
+            console.error('Errore durante il caricamento dei dati:', error);
+            mostraLoading(false);
+            // Fallback ai dati di esempio in caso di errore
             datiStorici = generaDatiEsempio();
             resolve();
-        }).finally(function() {
-            mostraLoading(false);
         });
     });
 }
