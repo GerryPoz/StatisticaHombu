@@ -513,23 +513,24 @@ function applicaFiltri() {
 
 // Aggrega dati ultimi 12 mesi
 function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
-    if (typeof capitolo === 'undefined') capitolo = 'tutti';
-    if (typeof settore === 'undefined') settore = 'tutti';
-    if (typeof gruppo === 'undefined') gruppo = 'tutti';
+    if (capitolo === void 0) { capitolo = 'tutti'; }
+    if (settore === void 0) { settore = 'tutti'; }
+    if (gruppo === void 0) { gruppo = 'tutti'; }
     
     var oggi = new Date();
     var dataLimite = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1);
     
     var datiAggregati = {};
     
-    // Verifica che datiStorici sia un array
-    if (!datiStorici || !Array.isArray(datiStorici)) {
-        console.warn('datiStorici non è un array valido:', datiStorici);
+    // Controllo di sicurezza per datiStorici
+    if (!datiStorici || datiStorici.length === 0) {
+        console.log('🔍 DEBUG: datiStorici è vuoto o non definito');
         return [];
     }
     
-    for (var i = 0; i < datiStorici.length; i++) {
-        var dato = datiStorici[i];
+    console.log('🔍 DEBUG aggregaDatiUltimi12Mesi: Elaboro', datiStorici.length, 'elementi');
+    
+    datiStorici.forEach(function(dato) {
         var dataDato = new Date(dato.anno, dato.mese - 1, 1);
         
         if (dataDato >= dataLimite) {
@@ -549,8 +550,11 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
             }
             
             if (includiDato) {
-                // Compatibile con iPadOS 12 - evita padStart
-                var meseStr = dato.mese < 10 ? '0' + dato.mese : '' + dato.mese;
+                // Sostituisce String.padStart() con implementazione ES5
+                var meseStr = String(dato.mese);
+                if (meseStr.length < 2) {
+                    meseStr = '0' + meseStr;
+                }
                 var chiave = dato.anno + '-' + meseStr;
                 
                 if (!datiAggregati[chiave]) {
@@ -564,25 +568,28 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
                     };
                 }
                 
-                datiAggregati[chiave].membri += dato.membri || 0;
-                datiAggregati[chiave].presenze += dato.presenze || 0;
-                datiAggregati[chiave].praticanti += dato.praticanti || 0;
+                datiAggregati[chiave].membri += dato.membri;
+                datiAggregati[chiave].presenze += dato.presenze;
+                datiAggregati[chiave].praticanti += dato.praticanti;
             }
         }
-    }
+    });
     
-    // Compatibile con iPadOS 12 - evita Object.values
-    var risultato = [];
+    // Sostituisce Object.values() con implementazione ES5
+    var valori = [];
     for (var chiave in datiAggregati) {
         if (datiAggregati.hasOwnProperty(chiave)) {
-            risultato.push(datiAggregati[chiave]);
+            valori.push(datiAggregati[chiave]);
         }
     }
     
-    return risultato.sort(function(a, b) {
+    var risultato = valori.sort(function(a, b) {
         if (a.anno !== b.anno) return a.anno - b.anno;
         return a.mese - b.mese;
     });
+    
+    console.log('🔍 DEBUG aggregaDatiUltimi12Mesi: Risultato finale:', risultato.length, 'elementi');
+    return risultato;
 }
 
 // Aggiorna grafico
