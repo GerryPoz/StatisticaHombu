@@ -353,7 +353,10 @@ function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec)
         var righeFiltrateCap = righeFiltrate.filter(function(r) { return gruppoToCapitolo[r.gruppo] === capitolo; });
         if (righeFiltrateCap.length === 0) return;
         
-        // Genera riepiloghi per settori del capitolo
+        // Prima genera il riepilogo del capitolo
+        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
+        
+        // Poi genera i riepiloghi per settori del capitolo
         Object.keys(settori).forEach(function(settore) {
             var gruppiSettore = settori[settore];
             var righeSettore = righeFiltrateCap.filter(function(r) { return gruppiSettore.indexOf(r.gruppo) !== -1; });
@@ -361,9 +364,6 @@ function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec)
             
             generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
         });
-        
-        // Genera riepilogo capitolo
-        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
     });
 }
 
