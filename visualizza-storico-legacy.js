@@ -27,16 +27,20 @@ function convertiMeseInNumero(nomeMese) {
 
 function calcolaTotaleCategoria(categoria) {
     if (!categoria || typeof categoria !== 'object') {
+        console.log('🔍 DEBUG calcolaTotaleCategoria: categoria non valida:', categoria);
         return 0;
     }
     
     var totale = 0;
     ['U', 'D', 'GU', 'GD'].forEach(function(sottoCat) {
         if (categoria[sottoCat] !== undefined) {
-            totale += parseInt(categoria[sottoCat]) || 0;
+            var valore = parseInt(categoria[sottoCat]) || 0;
+            totale += valore;
+            console.log('🔍 DEBUG calcolaTotaleCategoria:', sottoCat, '=', valore);
         }
     });
     
+    console.log('🔍 DEBUG calcolaTotaleCategoria: totale calcolato =', totale, 'da:', categoria);
     return totale;
 }
 
@@ -83,13 +87,14 @@ function caricaDatiStorici() {
         try {
             database.ref('zadankai').once('value').then(function(snapshot) {
                 var datiCompleti = snapshot.val();
-                console.log('Dati ricevuti dal database:', datiCompleti);
+                console.log('🔍 DEBUG: Dati ricevuti dal database:', datiCompleti);
                 
                 if (datiCompleti) {
                     datiStorici = [];
                     
                     // Elabora tutti gli anni e mesi
                     Object.keys(datiCompleti).forEach(function(chiave) {
+                        console.log('🔍 DEBUG: Elaborando chiave:', chiave);
                         var parti = chiave.split('-');
                         if (parti.length >= 3) {
                             var anno = parseInt(parti[0]);
@@ -98,20 +103,27 @@ function caricaDatiStorici() {
                             var mese = convertiMeseInNumero(nomeMese);
                             
                             var datiGruppo = datiCompleti[chiave];
+                            console.log('🔍 DEBUG: Dati gruppo', gruppo, ':', datiGruppo);
                             
                             // Sezione zadankai
                             if (datiGruppo.zadankai) {
+                                console.log('🔍 DEBUG: Sezione zadankai trovata:', datiGruppo.zadankai);
+                                
+                                // Calcola membri
                                 var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                console.log('🔍 DEBUG: Membri calcolati:', membri, 'da:', datiGruppo.zadankai.membri);
                                 
-                                // CORREZIONE: calcola presenze come somma di membri + simpatizzanti + ospiti
-                                var presenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {}) + 
-                                              calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {}) + 
-                                              calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                                // Calcola presenze come somma di membri + simpatizzanti + ospiti
+                                var membriPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                var simpatizzantiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {});
+                                var ospitiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                                var presenze = membriPresenze + simpatizzantiPresenze + ospitiPresenze;
                                 
-                                console.log('Gruppo:', gruppo, 'Membri:', membri, 'Presenze calcolate:', presenze);
-                                console.log('Dettaglio presenze - Membri:', calcolaTotaleCategoria(datiGruppo.zadankai.membri || {}), 
-                                           'Simpatizzanti:', calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {}), 
-                                           'Ospiti:', calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {}));
+                                console.log('🔍 DEBUG: Calcolo presenze per', gruppo);
+                                console.log('  - Membri presenze:', membriPresenze, 'da:', datiGruppo.zadankai.membri);
+                                console.log('  - Simpatizzanti presenze:', simpatizzantiPresenze, 'da:', datiGruppo.zadankai.simpatizzanti);
+                                console.log('  - Ospiti presenze:', ospitiPresenze, 'da:', datiGruppo.zadankai.ospiti);
+                                console.log('  - TOTALE PRESENZE:', presenze);
                                 
                                 datiStorici.push({
                                     anno: anno,
@@ -122,6 +134,16 @@ function caricaDatiStorici() {
                                     presenze: presenze,
                                     praticanti: 0
                                 });
+                                
+                                console.log('🔍 DEBUG: Record aggiunto:', {
+                                    anno: anno,
+                                    mese: mese,
+                                    gruppo: gruppo,
+                                    membri: membri,
+                                    presenze: presenze
+                                });
+                            } else {
+                                console.log('⚠️ DEBUG: Nessuna sezione zadankai trovata per', gruppo);
                             }
                             
                             // Sezione praticanti
@@ -136,8 +158,7 @@ function caricaDatiStorici() {
                                     var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti || {});
                                     datiStorici[ultimoIndice].praticanti = membriPraticanti + simpatizzanti;
                                     
-                                    console.log('Praticanti per', gruppo, ':', datiStorici[ultimoIndice].praticanti, 
-                                               '(Membri:', membriPraticanti, 'Simpatizzanti:', simpatizzanti, ')');
+                                    console.log('🔍 DEBUG: Praticanti aggiornati per', gruppo, ':', datiStorici[ultimoIndice].praticanti);
                                 }
                             }
                         }
@@ -150,22 +171,22 @@ function caricaDatiStorici() {
                         return a.gruppo.localeCompare(b.gruppo);
                     });
                     
-                    console.log('Dati storici elaborati:', datiStorici.length, 'record');
-                    console.log('Primi 3 record per verifica:', datiStorici.slice(0, 3));
+                    console.log('🔍 DEBUG: Dati storici finali elaborati:', datiStorici.length, 'record');
+                    console.log('🔍 DEBUG: Primi 5 record per verifica:', datiStorici.slice(0, 5));
                 } else {
-                    console.log('Nessun dato trovato nel database, genero dati di esempio');
+                    console.log('⚠️ Nessun dato trovato nel database, genero dati di esempio');
                     datiStorici = generaDatiEsempio();
                 }
                 
                 resolve();
             }).catch(function(error) {
-                console.error('Errore nel caricamento dati:', error);
+                console.error('❌ Errore nel caricamento dati:', error);
                 console.log('Genero dati di esempio a causa dell\'errore');
                 datiStorici = generaDatiEsempio();
                 resolve();
             });
         } catch (error) {
-            console.error('Errore nella funzione caricaDatiStorici:', error);
+            console.error('❌ Errore nella funzione caricaDatiStorici:', error);
             datiStorici = generaDatiEsempio();
             resolve();
         }
