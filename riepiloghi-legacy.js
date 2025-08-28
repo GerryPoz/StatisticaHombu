@@ -883,7 +883,7 @@ function esportaPdf() {
                 
                 doc.setFontSize(12);
                 doc.text('Settore: ' + settore, 20, yPosition);
-                yPosition += 5; // Spazio tra titolo settore e tabella
+                yPosition += 2; // Spazio tra titolo settore e tabella
                 
                 // Ottieni lista gruppi del settore
                 var gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
