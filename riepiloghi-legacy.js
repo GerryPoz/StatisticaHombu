@@ -1,6 +1,3 @@
-<script src="firebase-config.js"></script>
-<script src="riepiloghi-legacy.js"></script>
-
 // Inizializza Firebase
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
