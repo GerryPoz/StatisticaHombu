@@ -667,7 +667,7 @@ function esportaPdf() {
         // ===== RIEPILOGO HOMBU GENERALE DETTAGLIATO =====
         doc.setFontSize(14);
         doc.text('RIEPILOGO HOMBU GENERALE', 20, yPosition);
-        yPosition += 10; // Spazio dopo titolo Hombu
+        yPosition += 4; // Spazio dopo titolo Hombu
         
         // Prepara tabella dettagliata Hombu
         var intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
