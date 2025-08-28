@@ -232,23 +232,411 @@ function aggiornaRiepiloghi() {
     generaRiepiloghiCapitoli(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec.mese, mesePrec.anno);
 }
 
-// Funzioni di riepilogo (da implementare seguendo la logica del file originale)
+// Genera riepilogo Hombu generale
 function generaRiepilogoHombu(righeFiltrate, mese, anno, mesePrec, annoPrec) {
-    // Implementazione semplificata - da completare con la logica completa
     var contenitore = document.getElementById('contenitore-riepiloghi');
-    var div = document.createElement('div');
-    div.className = 'card mb-4';
-    div.innerHTML = '<div class="card-header bg-success text-white"><h5>Riepilogo HOMBU 9</h5></div><div class="card-body">Riepilogo generale in sviluppo...</div>';
-    contenitore.appendChild(div);
+    
+    // Crea card per Hombu
+    var cardHombu = document.createElement('div');
+    cardHombu.className = 'card shadow-sm mb-4';
+    
+    var cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-success text-white';
+    cardHeader.innerHTML = '<h5 class="mb-0"><i class="fas fa-home me-2"></i>Riepilogo Generale: HOMBU 9 - ' + mese + ' ' + anno + '</h5>';
+    cardHombu.appendChild(cardHeader);
+    
+    var cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    var tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Somma</th><th>Prec.</th><th>Totale Hombu</th><th>Futuro</th><th>Studenti</th></tr>';
+    tabella.appendChild(thead);
+    
+    var tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
+        var righeTipo = righeFiltrate.filter(function(r) { return r.tipo === tipo; });
+        if (righeTipo.length === 0) return;
+        
+        var sezioni = righeTipo.map(function(r) { return r.sezione; })
+            .filter(function(value, index, self) { return self.indexOf(value) === index; });
+        
+        if (tipo === "ZADANKAI") {
+            var ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort(function(a, b) { return ordine.indexOf(a) - ordine.indexOf(b); });
+        }
+        
+        var tipoRowSpan = sezioni.length;
+        var sezioniRilevanti = tipo === "ZADANKAI" 
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
+        var sumTot = righeTotali.reduce(function(acc, r) {
+            return {
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            };
+        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        var righePrecTot = righe.filter(function(r) {
+            return r.anno === annoPrec && r.mese === mesePrec &&
+                   r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1;
+        });
+        var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+        var delta = totaleMese - totalePrec;
+        
+        sezioni.forEach(function(sezione, index) {
+            var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+            var sum = righeSezione.reduce(function(acc, r) {
+                return {
+                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                };
+            }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            var righePrec = righe.filter(function(r) {
+                return r.anno === annoPrec && r.mese === mesePrec &&
+                       r.tipo === tipo && r.sezione === sezione;
+            });
+            var sommaPrec = righePrec.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+            
+            var tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                var tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            var celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+            celle.forEach(function(val, i) {
+                var td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                var tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = '<div style="font-size: 1.2em;"><strong>' + totaleMese + '</strong></div>' +
+                    '<div class="small">Prec: ' + totalePrec + '</div>' +
+                    '<div class="' + (delta >= 0 ? 'text-success' : 'text-danger') + ' fw-bold">' +
+                    'Δ ' + (delta >= 0 ? "+" : "") + delta + '</div>';
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            var tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            var tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardHombu.appendChild(cardBody);
+    contenitore.appendChild(cardHombu);
 }
 
+// Genera riepiloghi per capitoli
 function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec) {
-    // Implementazione semplificata - da completare con la logica completa
     var contenitore = document.getElementById('contenitore-riepiloghi');
-    var div = document.createElement('div');
-    div.className = 'card mb-4';
-    div.innerHTML = '<div class="card-header bg-info text-white"><h5>Riepiloghi Capitoli</h5></div><div class="card-body">Riepiloghi capitoli in sviluppo...</div>';
-    contenitore.appendChild(div);
+    var struttura = gruppiData["HOMBU 9"];
+    
+    // Per ogni capitolo
+    Object.keys(struttura).forEach(function(capitolo) {
+        var settori = struttura[capitolo];
+        var righeFiltrateCap = righeFiltrate.filter(function(r) { return gruppoToCapitolo[r.gruppo] === capitolo; });
+        if (righeFiltrateCap.length === 0) return;
+        
+        // Genera riepiloghi per settori del capitolo
+        Object.keys(settori).forEach(function(settore) {
+            var gruppiSettore = settori[settore];
+            var righeSettore = righeFiltrateCap.filter(function(r) { return gruppiSettore.indexOf(r.gruppo) !== -1; });
+            if (righeSettore.length === 0) return;
+            
+            generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
+        });
+        
+        // Genera riepilogo capitolo
+        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
+    });
+}
+
+// Genera riepilogo per un settore
+function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore) {
+    var cardSettore = document.createElement('div');
+    cardSettore.className = 'card shadow-sm mb-4';
+    
+    var cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-warning text-dark';
+    cardHeader.innerHTML = '<h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Riepilogo: ' + settore + '</h5>';
+    cardSettore.appendChild(cardHeader);
+    
+    var cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    var tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Somma</th><th>Prec.</th><th>Totale Settore</th><th>Futuro</th><th>Studenti</th></tr>';
+    tabella.appendChild(thead);
+    
+    var tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
+        var righeTipo = righeSettore.filter(function(r) { return r.tipo === tipo; });
+        if (righeTipo.length === 0) return;
+        
+        var sezioni = righeTipo.map(function(r) { return r.sezione; })
+            .filter(function(value, index, self) { return self.indexOf(value) === index; });
+        
+        if (tipo === "ZADANKAI") {
+            var ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort(function(a, b) { return ordine.indexOf(a) - ordine.indexOf(b); });
+        }
+        
+        var tipoRowSpan = sezioni.length;
+        var sezioniRilevanti = tipo === "ZADANKAI" 
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
+        var sumTot = righeTotali.reduce(function(acc, r) {
+            return {
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            };
+        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        var righePrecTot = righe.filter(function(r) {
+            return r.anno === annoPrec && r.mese === mesePrec &&
+                   r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
+                   gruppiSettore.indexOf(r.gruppo) !== -1;
+        });
+        var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+        var delta = totaleMese - totalePrec;
+        
+        sezioni.forEach(function(sezione, index) {
+            var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+            var sum = righeSezione.reduce(function(acc, r) {
+                return {
+                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                };
+            }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            var righePrec = righe.filter(function(r) {
+                return r.anno === annoPrec && r.mese === mesePrec &&
+                       r.tipo === tipo && r.sezione === sezione &&
+                       gruppiSettore.indexOf(r.gruppo) !== -1;
+            });
+            var sommaPrec = righePrec.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+            
+            var tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                var tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            var celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+            celle.forEach(function(val, i) {
+                var td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                var tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = '<div style="font-size: 1.2em;"><strong>' + totaleMese + '</strong></div>' +
+                    '<div class="small">Prec: ' + totalePrec + '</div>' +
+                    '<div class="' + (delta >= 0 ? 'text-success' : 'text-danger') + ' fw-bold">' +
+                    'Δ ' + (delta >= 0 ? "+" : "") + delta + '</div>';
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            var tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            var tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardSettore.appendChild(cardBody);
+    contenitore.appendChild(cardSettore);
+}
+
+// Genera riepilogo per un capitolo
+function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore) {
+    var cardCapitolo = document.createElement('div');
+    cardCapitolo.className = 'card shadow-sm mb-4';
+    
+    var cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header bg-primary text-white';
+    cardHeader.innerHTML = '<h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Riepilogo: ' + capitolo + '</h5>';
+    cardCapitolo.appendChild(cardHeader);
+    
+    var cardBody = document.createElement('div');
+    cardBody.className = 'card-body table-responsive';
+    
+    var tabella = document.createElement('table');
+    tabella.className = 'table table-striped table-bordered';
+    
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Somma</th><th>Prec.</th><th>Totale Capitolo</th><th>Futuro</th><th>Studenti</th></tr>';
+    tabella.appendChild(thead);
+    
+    var tbody = document.createElement('tbody');
+    
+    ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
+        var righeTipo = righeFiltrateCap.filter(function(r) { return r.tipo === tipo; });
+        if (righeTipo.length === 0) return;
+        
+        var sezioni = righeTipo.map(function(r) { return r.sezione; })
+            .filter(function(value, index, self) { return self.indexOf(value) === index; });
+        
+        if (tipo === "ZADANKAI") {
+            var ordine = ["membri", "simpatizzanti", "ospiti"];
+            sezioni.sort(function(a, b) { return ordine.indexOf(a) - ordine.indexOf(b); });
+        }
+        
+        var tipoRowSpan = sezioni.length;
+        var sezioniRilevanti = tipo === "ZADANKAI" 
+            ? ["membri", "simpatizzanti", "ospiti"]
+            : ["membri", "simpatizzanti"];
+        
+        var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
+        var sumTot = righeTotali.reduce(function(acc, r) {
+            return {
+                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            };
+        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+        
+        var righePrecTot = righe.filter(function(r) {
+            return r.anno === annoPrec && r.mese === mesePrec &&
+                   r.tipo === tipo && sezioniRilevanti.indexOf(r.sezione) !== -1 &&
+                   gruppoToCapitolo[r.gruppo] === capitolo;
+        });
+        var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+        var delta = totaleMese - totalePrec;
+        
+        sezioni.forEach(function(sezione, index) {
+            var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
+            var sum = righeSezione.reduce(function(acc, r) {
+                return {
+                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
+                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                };
+            }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+            var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+            
+            var righePrec = righe.filter(function(r) {
+                return r.anno === annoPrec && r.mese === mesePrec &&
+                       r.tipo === tipo && r.sezione === sezione &&
+                       gruppoToCapitolo[r.gruppo] === capitolo;
+            });
+            var sommaPrec = righePrec.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+            
+            var tr = document.createElement('tr');
+            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
+            
+            if (index === 0) {
+                var tdTipo = document.createElement('td');
+                tdTipo.textContent = tipo;
+                tdTipo.rowSpan = tipoRowSpan;
+                tdTipo.className = 'fw-bold';
+                tr.appendChild(tdTipo);
+            }
+            
+            var celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+            celle.forEach(function(val, i) {
+                var td = document.createElement('td');
+                td.textContent = val;
+                if (i === 1) { // U
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                } else if (i === 5) { // Somma
+                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                    td.style.fontWeight = "bold";
+                }
+                tr.appendChild(td);
+            });
+            
+            if (index === 0) {
+                var tdTot = document.createElement('td');
+                tdTot.rowSpan = tipoRowSpan;
+                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+                tdTot.innerHTML = '<div style="font-size: 1.2em;"><strong>' + totaleMese + '</strong></div>' +
+                    '<div class="small">Prec: ' + totalePrec + '</div>' +
+                    '<div class="' + (delta >= 0 ? 'text-success' : 'text-danger') + ' fw-bold">' +
+                    'Δ ' + (delta >= 0 ? "+" : "") + delta + '</div>';
+                tdTot.className = 'text-center';
+                tr.appendChild(tdTot);
+            }
+            
+            var tdFUT = document.createElement('td');
+            tdFUT.textContent = sum.FUT;
+            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
+            var tdSTU = document.createElement('td');
+            tdSTU.textContent = sum.STU;
+            tr.appendChild(tdFUT);
+            tr.appendChild(tdSTU);
+            
+            tbody.appendChild(tr);
+        });
+    });
+    
+    tabella.appendChild(tbody);
+    cardBody.appendChild(tabella);
+    cardCapitolo.appendChild(cardBody);
+    contenitore.appendChild(cardCapitolo);
 }
 
 // Funzioni di esportazione
