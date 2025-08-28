@@ -307,7 +307,7 @@ function generaDatiEsempio() {
     return datiEsempio;
 }
 
-// Inizializza i filtri (VERSIONE CORRETTA senza Set() per compatibilità Safari)
+// Inizializza i filtri (VERSIONE CORRETTA con event listeners)
 function inizializzaFiltri() {
     var capitoli = [];
     var settori = [];
@@ -336,12 +336,25 @@ function inizializzaFiltri() {
             option.textContent = capitolo;
             selectCapitolo.appendChild(option);
         });
+        
+        // Aggiungi event listener per il cambio capitolo
+        selectCapitolo.addEventListener('change', function() {
+            aggiornaSottofiltri();
+        });
+    }
+    
+    // Aggiungi event listener per il cambio settore
+    var selectSettore = document.getElementById('filtroSettore');
+    if (selectSettore) {
+        selectSettore.addEventListener('change', function() {
+            aggiornaGruppiPerSettore();
+        });
     }
     
     aggiornaSottofiltri();
 }
 
-// Aggiorna sottofiltri (VERSIONE CORRETTA senza Set())
+// Aggiorna sottofiltri in base al capitolo selezionato
 function aggiornaSottofiltri() {
     var selectCapitolo = document.getElementById('filtroCapitolo');
     var selectSettore = document.getElementById('filtroSettore');
@@ -354,25 +367,31 @@ function aggiornaSottofiltri() {
     
     var capitoloSelezionato = selectCapitolo.value;
     
+    // Reset settori e gruppi
     selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
     selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
     
     var settoriDisponibili = [];
-    var gruppiDisponibili = [];
     
-    datiStorici.forEach(function(dato) {
-        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
-        var settoreGruppo = gruppoToSettore[dato.gruppo];
-        
-        if (capitoloSelezionato === 'tutti' || capitoloGruppo === capitoloSelezionato) {
+    // Se è selezionato "tutti" i capitoli, mostra tutti i settori
+    if (capitoloSelezionato === 'tutti') {
+        datiStorici.forEach(function(dato) {
+            var settoreGruppo = gruppoToSettore[dato.gruppo];
             if (settoreGruppo && settoriDisponibili.indexOf(settoreGruppo) === -1) {
                 settoriDisponibili.push(settoreGruppo);
             }
-            if (gruppiDisponibili.indexOf(dato.gruppo) === -1) {
-                gruppiDisponibili.push(dato.gruppo);
+        });
+    } else {
+        // Mostra solo i settori del capitolo selezionato
+        datiStorici.forEach(function(dato) {
+            var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+            var settoreGruppo = gruppoToSettore[dato.gruppo];
+            
+            if (capitoloGruppo === capitoloSelezionato && settoreGruppo && settoriDisponibili.indexOf(settoreGruppo) === -1) {
+                settoriDisponibili.push(settoreGruppo);
             }
-        }
-    });
+        });
+    }
     
     // Popola settori
     settoriDisponibili.sort().forEach(function(settore) {
@@ -380,6 +399,55 @@ function aggiornaSottofiltri() {
         option.value = settore;
         option.textContent = settore;
         selectSettore.appendChild(option);
+    });
+    
+    // Aggiorna anche i gruppi per il primo settore o tutti
+    aggiornaGruppiPerSettore();
+}
+
+// Aggiorna gruppi in base al settore selezionato
+function aggiornaGruppiPerSettore() {
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
+    
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
+        return;
+    }
+    
+    var capitoloSelezionato = selectCapitolo.value;
+    var settoreSelezionato = selectSettore.value;
+    
+    // Reset gruppi
+    selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
+    
+    var gruppiDisponibili = [];
+    
+    datiStorici.forEach(function(dato) {
+        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+        var settoreGruppo = gruppoToSettore[dato.gruppo];
+        
+        var includiGruppo = false;
+        
+        // Logica di filtro a cascata
+        if (capitoloSelezionato === 'tutti' && settoreSelezionato === 'tutti') {
+            // Mostra tutti i gruppi
+            includiGruppo = true;
+        } else if (capitoloSelezionato === 'tutti' && settoreSelezionato !== 'tutti') {
+            // Mostra gruppi del settore selezionato (qualsiasi capitolo)
+            includiGruppo = (settoreGruppo === settoreSelezionato);
+        } else if (capitoloSelezionato !== 'tutti' && settoreSelezionato === 'tutti') {
+            // Mostra gruppi del capitolo selezionato (qualsiasi settore)
+            includiGruppo = (capitoloGruppo === capitoloSelezionato);
+        } else {
+            // Mostra gruppi del capitolo E settore selezionati
+            includiGruppo = (capitoloGruppo === capitoloSelezionato && settoreGruppo === settoreSelezionato);
+        }
+        
+        if (includiGruppo && gruppiDisponibili.indexOf(dato.gruppo) === -1) {
+            gruppiDisponibili.push(dato.gruppo);
+        }
     });
     
     // Popola gruppi
