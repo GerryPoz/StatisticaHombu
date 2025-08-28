@@ -114,6 +114,24 @@
             <h6><i class="fas fa-filter me-2"></i>Filtri di Visualizzazione</h6>
             <div class="row">
                 <div class="col-md-3">
+                    <label for="filtroCapitolo" class="form-label">Capitolo</label>
+                    <select id="filtroCapitolo" class="form-select">
+                        <option value="tutti">Tutti i capitoli</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroSettore" class="form-label">Settore</label>
+                    <select id="filtroSettore" class="form-select">
+                        <option value="tutti">Tutti i settori</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroGruppo" class="form-label">Gruppo</label>
+                    <select id="filtroGruppo" class="form-select">
+                        <option value="tutti">Tutti i gruppi</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">&nbsp;</label>
                     <button id="applicaFiltri" class="btn btn-primary d-block w-100" onclick="applicaFiltri()">
                         <i class="fas fa-sync-alt me-1"></i>Aggiorna
