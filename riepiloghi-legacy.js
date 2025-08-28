@@ -1,13 +1,5 @@
 // Configurazione Firebase (da firebase-config.js)
-var firebaseConfig = {
-  apiKey: "AIzaSyBvqKZKvhKGKGKGKGKGKGKGKGKGKGKGKGK",
-  authDomain: "hombu9-statistics.firebaseapp.com",
-  databaseURL: "https://hombu9-statistics-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "hombu9-statistics",
-  storageBucket: "hombu9-statistics.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnopqrstuvwxyz"
-};
+import { firebaseConfig } from './firebase-config.js';
 
 // Inizializza Firebase
 firebase.initializeApp(firebaseConfig);
