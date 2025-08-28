@@ -201,30 +201,249 @@ function popolaGruppiDisponibili() {
 
 // Inizializza filtri
 function inizializzaFiltri() {
+    console.log('Inizializzazione filtri...');
+    console.log('Dati storici disponibili:', datiStorici.length);
+    console.log('Gruppi disponibili:', gruppiDisponibili.length);
+    console.log('Mappa capitoli:', gruppoToCapitolo);
+    console.log('Mappa settori:', gruppoToSettore);
+    
+    var capitoli = [];
+    var settori = [];
+    var gruppi = [];
+    
+    // Estrai capitoli, settori e gruppi dai dati storici
+    for (var i = 0; i < datiStorici.length; i++) {
+        var dato = datiStorici[i];
+        
+        // Aggiungi gruppo se non presente
+        var gruppoTrovato = false;
+        for (var j = 0; j < gruppi.length; j++) {
+            if (gruppi[j] === dato.gruppo) {
+                gruppoTrovato = true;
+                break;
+            }
+        }
+        if (!gruppoTrovato) {
+            gruppi.push(dato.gruppo);
+        }
+        
+        // Aggiungi capitolo se esiste nella mappa
+        if (gruppoToCapitolo[dato.gruppo]) {
+            var capitoloTrovato = false;
+            for (var k = 0; k < capitoli.length; k++) {
+                if (capitoli[k] === gruppoToCapitolo[dato.gruppo]) {
+                    capitoloTrovato = true;
+                    break;
+                }
+            }
+            if (!capitoloTrovato) {
+                capitoli.push(gruppoToCapitolo[dato.gruppo]);
+            }
+        }
+        
+        // Aggiungi settore se esiste nella mappa
+        if (gruppoToSettore[dato.gruppo]) {
+            var settoreTrovato = false;
+            for (var l = 0; l < settori.length; l++) {
+                if (settori[l] === gruppoToSettore[dato.gruppo]) {
+                    settoreTrovato = true;
+                    break;
+                }
+            }
+            if (!settoreTrovato) {
+                settori.push(gruppoToSettore[dato.gruppo]);
+            }
+        }
+    }
+    
+    console.log('Capitoli estratti:', capitoli);
+    console.log('Settori estratti:', settori);
+    console.log('Gruppi estratti:', gruppi);
+    
+    // Popola il select dei capitoli
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    if (selectCapitolo) {
+        selectCapitolo.innerHTML = '<option value="tutti">Tutti i Capitoli</option>';
+        
+        // Ordina capitoli
+        capitoli.sort();
+        
+        for (var m = 0; m < capitoli.length; m++) {
+            var option = document.createElement('option');
+            option.value = capitoli[m];
+            option.textContent = capitoli[m];
+            selectCapitolo.appendChild(option);
+        }
+        
+        // Aggiungi event listener per il cambio capitolo
+        selectCapitolo.onchange = function() {
+            aggiornaSottofiltri();
+        };
+        
+        console.log('Select capitolo popolato con', capitoli.length, 'opzioni');
+    } else {
+        console.error('Elemento filtroCapitolo non trovato');
+    }
+    
+    // Aggiungi event listener per il cambio settore
+    var selectSettore = document.getElementById('filtroSettore');
+    if (selectSettore) {
+        selectSettore.onchange = function() {
+            aggiornaGruppiPerSettore();
+        };
+    } else {
+        console.error('Elemento filtroSettore non trovato');
+    }
+    
+    aggiornaSottofiltri();
+}
+
+function aggiornaSottofiltri() {
+    console.log('Aggiornamento sottofiltri...');
+    
     var selectCapitolo = document.getElementById('filtroCapitolo');
     var selectSettore = document.getElementById('filtroSettore');
     var selectGruppo = document.getElementById('filtroGruppo');
     
     if (!selectCapitolo || !selectSettore || !selectGruppo) {
-        console.error('Elementi filtri non trovati');
+        console.error('Elementi DOM dei filtri non trovati');
         return;
     }
     
-    // Popola filtro capitoli
-    selectCapitolo.innerHTML = '<option value="tutti">Tutti i Capitoli</option>';
-    selectCapitolo.innerHTML += '<option value="Capitolo A">Capitolo A</option>';
+    var capitoloSelezionato = selectCapitolo.value;
+    console.log('Capitolo selezionato:', capitoloSelezionato);
     
-    // Popola filtro settori
+    // Reset settori e gruppi
     selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
-    selectSettore.innerHTML += '<option value="Settore 1">Settore 1</option>';
-    
-    // Popola filtro gruppi
     selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
-    for (var i = 0; i < gruppiDisponibili.length; i++) {
-        selectGruppo.innerHTML += '<option value="' + gruppiDisponibili[i] + '">' + gruppiDisponibili[i] + '</option>';
+    
+    var settoriDisponibili = [];
+    
+    // Se è selezionato "tutti" i capitoli, mostra tutti i settori
+    if (capitoloSelezionato === 'tutti') {
+        for (var i = 0; i < datiStorici.length; i++) {
+            var dato = datiStorici[i];
+            var settoreGruppo = gruppoToSettore[dato.gruppo];
+            
+            if (settoreGruppo) {
+                var settoreTrovato = false;
+                for (var j = 0; j < settoriDisponibili.length; j++) {
+                    if (settoriDisponibili[j] === settoreGruppo) {
+                        settoreTrovato = true;
+                        break;
+                    }
+                }
+                if (!settoreTrovato) {
+                    settoriDisponibili.push(settoreGruppo);
+                }
+            }
+        }
+    } else {
+        // Mostra solo i settori del capitolo selezionato
+        for (var k = 0; k < datiStorici.length; k++) {
+            var dato2 = datiStorici[k];
+            var capitoloGruppo = gruppoToCapitolo[dato2.gruppo];
+            var settoreGruppo2 = gruppoToSettore[dato2.gruppo];
+            
+            if (capitoloGruppo === capitoloSelezionato && settoreGruppo2) {
+                var settoreTrovato2 = false;
+                for (var l = 0; l < settoriDisponibili.length; l++) {
+                    if (settoriDisponibili[l] === settoreGruppo2) {
+                        settoreTrovato2 = true;
+                        break;
+                    }
+                }
+                if (!settoreTrovato2) {
+                    settoriDisponibili.push(settoreGruppo2);
+                }
+            }
+        }
     }
     
-    console.log('Filtri inizializzati');
+    console.log('Settori disponibili:', settoriDisponibili);
+    
+    // Ordina e popola settori
+    settoriDisponibili.sort();
+    for (var m = 0; m < settoriDisponibili.length; m++) {
+        var option = document.createElement('option');
+        option.value = settoriDisponibili[m];
+        option.textContent = settoriDisponibili[m];
+        selectSettore.appendChild(option);
+    }
+    
+    // Aggiorna anche i gruppi per il primo settore o tutti
+    aggiornaGruppiPerSettore();
+}
+
+// Aggiorna gruppi in base al settore selezionato
+function aggiornaGruppiPerSettore() {
+    console.log('Aggiornamento gruppi per settore...');
+    
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
+    
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
+        return;
+    }
+    
+    var capitoloSelezionato = selectCapitolo.value;
+    var settoreSelezionato = selectSettore.value;
+    
+    console.log('Filtri selezionati - Capitolo:', capitoloSelezionato, 'Settore:', settoreSelezionato);
+    
+    // Reset gruppi
+    selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
+    
+    var gruppiDisponibili = [];
+    
+    for (var i = 0; i < datiStorici.length; i++) {
+        var dato = datiStorici[i];
+        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+        var settoreGruppo = gruppoToSettore[dato.gruppo];
+        
+        var includiGruppo = false;
+        
+        // Logica di filtro a cascata
+        if (capitoloSelezionato === 'tutti' && settoreSelezionato === 'tutti') {
+            // Mostra tutti i gruppi
+            includiGruppo = true;
+        } else if (capitoloSelezionato === 'tutti' && settoreSelezionato !== 'tutti') {
+            // Mostra gruppi del settore selezionato (qualsiasi capitolo)
+            includiGruppo = (settoreGruppo === settoreSelezionato);
+        } else if (capitoloSelezionato !== 'tutti' && settoreSelezionato === 'tutti') {
+            // Mostra gruppi del capitolo selezionato (qualsiasi settore)
+            includiGruppo = (capitoloGruppo === capitoloSelezionato);
+        } else {
+            // Mostra gruppi del capitolo E settore selezionati
+            includiGruppo = (capitoloGruppo === capitoloSelezionato && settoreGruppo === settoreSelezionato);
+        }
+        
+        if (includiGruppo) {
+            var gruppoTrovato = false;
+            for (var j = 0; j < gruppiDisponibili.length; j++) {
+                if (gruppiDisponibili[j] === dato.gruppo) {
+                    gruppoTrovato = true;
+                    break;
+                }
+            }
+            if (!gruppoTrovato) {
+                gruppiDisponibili.push(dato.gruppo);
+            }
+        }
+    }
+    
+    console.log('Gruppi disponibili per filtri:', gruppiDisponibili);
+    
+    // Ordina e popola gruppi
+    gruppiDisponibili.sort();
+    for (var k = 0; k < gruppiDisponibili.length; k++) {
+        var option = document.createElement('option');
+        option.value = gruppiDisponibili[k];
+        option.textContent = gruppiDisponibili[k];
+        selectGruppo.appendChild(option);
+    }
 }
 
 // Aggrega dati (versione semplificata)
@@ -312,61 +531,138 @@ function applicaFiltri() {
     aggiornaRisultatiTestuali(datiAggregati);
 }
 
-// Aggiorna grafico (versione semplificata)
-function aggiornaGrafico(datiAggregati) {
-    var canvas = document.getElementById('graficoStorico');
+// Versione compatibile della funzione aggiornaGrafico
+function aggiornaGrafico(datiAggregati, filtri) {
+    console.log('Aggiornamento grafico con dati:', datiAggregati);
+    
+    var canvas = document.getElementById('mainChart');
     if (!canvas) {
-        console.error('Canvas grafico non trovato');
+        console.error('Canvas mainChart non trovato');
         return;
     }
     
     var ctx = canvas.getContext('2d');
-    
-    // Distruggi grafico esistente
-    if (chartInstance) {
-        chartInstance.destroy();
+    if (!ctx) {
+        console.error('Impossibile ottenere il context 2D del canvas');
+        return;
     }
     
-    var etichette = [];
+    // Distruggi il grafico esistente se presente
+    if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
+    
+    // Prepara i dati per il grafico
+    var labels = [];
     var datiMembri = [];
     var datiPresenze = [];
+    var datiPraticanti = [];
     
     for (var i = 0; i < datiAggregati.length; i++) {
         var dato = datiAggregati[i];
-        etichette.push(dato.nomeMese + ' ' + dato.anno);
-        datiMembri.push(dato.membri);
-        datiPresenze.push(dato.presenze);
+        // Capitalizza il nome del mese
+        var nomeMese = dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1);
+        labels.push(nomeMese + ' ' + dato.anno);
+        datiMembri.push(dato.membri || 0);
+        datiPresenze.push(dato.presenze || 0);
+        datiPraticanti.push(dato.praticanti || 0);
     }
     
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: etichette,
-            datasets: [{
-                label: 'Membri',
-                data: datiMembri,
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.1
-            }, {
-                label: 'Presenze',
-                data: datiPresenze,
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+    console.log('Labels grafico:', labels);
+    console.log('Dati membri:', datiMembri);
+    console.log('Dati presenze:', datiPresenze);
+    console.log('Dati praticanti:', datiPraticanti);
+    
+    // Aggiorna titolo grafico
+    var titoloGrafico = document.getElementById('titoloGrafico');
+    if (titoloGrafico) {
+        var testoFiltro = 'Tutti';
+        if (filtri.gruppo !== 'tutti') {
+            testoFiltro = filtri.gruppo;
+        } else if (filtri.settore !== 'tutti') {
+            testoFiltro = 'Settore ' + filtri.settore;
+        } else if (filtri.capitolo !== 'tutti') {
+            testoFiltro = 'Capitolo ' + filtri.capitolo;
+        }
+        titoloGrafico.innerHTML = '<i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - ' + testoFiltro;
+    }
+    
+    // Verifica che Chart.js sia disponibile
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js non è disponibile');
+        // Mostra un messaggio di errore nel canvas
+        ctx.fillStyle = '#333';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Grafico non disponibile su questo dispositivo', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    try {
+        // Crea il grafico con configurazione compatibile
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Membri',
+                        data: datiMembri,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        fill: true
+                    },
+                    {
+                        label: 'Presenze',
+                        data: datiPresenze,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        fill: true
+                    },
+                    {
+                        label: 'Praticanti',
+                        data: datiPraticanti,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        },
+                        gridLines: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }],
+                    xAxes: [{
+                        gridLines: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }]
                 }
             }
-        }
-    });
-    
-    console.log('Grafico aggiornato con', datiAggregati.length, 'punti dati');
+        });
+        
+        console.log('Grafico creato con successo');
+    } catch (error) {
+        console.error('Errore nella creazione del grafico:', error);
+        // Fallback: mostra un messaggio nel canvas
+        ctx.fillStyle = '#333';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Errore nella visualizzazione del grafico', canvas.width / 2, canvas.height / 2);
+    }
 }
 
 // Aggiorna risultati testuali
