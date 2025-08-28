@@ -68,34 +68,36 @@ function inizializzaApp() {
         try {
             mostraLoading(true);
             
-            // Carica prima i gruppi, poi i dati storici (sequenziale per compatibilità)
+            // Carica prima i gruppi, poi i dati storici (sequenziale invece di parallelo)
             caricaGruppi().then(function() {
-                console.log('Gruppi caricati, ora carico dati storici...');
+                console.log('Gruppi caricati, ora carico i dati storici...');
                 return caricaDatiStorici();
             }).then(function() {
-                console.log('Dati storici caricati, inizializzo filtri...');
+                console.log('Dati storici caricati, inizializzo i filtri...');
                 inizializzaFiltri();
                 applicaFiltri();
                 mostraLoading(false);
                 resolve();
             }).catch(function(error) {
-                console.error('Errore nel caricamento:', error);
-                // Fallback: usa dati di esempio
-                console.log('Uso dati di esempio come fallback...');
-                datiStorici = generaDatiEsempio();
-                inizializzaFiltri();
-                applicaFiltri();
-                mostraLoading(false);
-                resolve(); // Risolvi comunque per non bloccare l'app
+                console.error('Errore durante il caricamento:', error);
+                // Non bloccare l'app con alert, usa dati di esempio
+                console.log('Uso dati di esempio a causa dell\'errore');
+                try {
+                    generaDatiEsempio();
+                    inizializzaFiltri();
+                    applicaFiltri();
+                    mostraLoading(false);
+                    resolve();
+                } catch (fallbackError) {
+                    console.error('Errore anche con i dati di esempio:', fallbackError);
+                    mostraLoading(false);
+                    reject(fallbackError);
+                }
             });
         } catch (error) {
-            console.error('Errore critico:', error);
+            console.error('Errore nell\'inizializzazione:', error);
             mostraLoading(false);
-            // Fallback anche qui
-            datiStorici = generaDatiEsempio();
-            inizializzaFiltri();
-            applicaFiltri();
-            resolve();
+            reject(error);
         }
     });
 }
