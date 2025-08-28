@@ -655,8 +655,8 @@ function esportaPdf() {
     var mesePrec = mesePrecObj.mese;
     var annoPrec = mesePrecObj.anno;
     
-    // Crea il documento PDF
-    var doc = new jsPDF('landscape');
+    // Crea il documento PDF - Correzione per la versione legacy
+    var doc = new window.jspdf.jsPDF('landscape');
     
     // Titolo principale
     doc.setFontSize(18);
