@@ -772,7 +772,7 @@ function esportaPdf() {
             // ===== PRIMA: RIEPILOGO CAPITOLO DETTAGLIATO =====
             doc.setFontSize(12);
             doc.text('Riepilogo Capitolo: ' + capitolo, 20, yPosition);
-            yPosition += 8; // Spazio dopo titolo riepilogo capitolo
+            yPosition += 4; // Spazio dopo titolo riepilogo capitolo
             
             // Prepara tabella dettagliata capitolo
             var intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
