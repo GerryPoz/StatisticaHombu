@@ -9,10 +9,6 @@ var chartInstance = null;
 var gruppoToCapitolo = {};
 var gruppoToSettore = {};
 
-// Array dei mesi in italiano
-var mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-"Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-
 // Inizializza Firebase (SDK v8)
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -29,23 +25,22 @@ function convertiMeseInNumero(nomeMese) {
     return mesi[nomeMese.toLowerCase()] || 1;
 }
 
-// Funzione per ottenere il nome del mese in italiano
-function ottieniNomeMese(numeroMese) {
-    return mesiOrdine[numeroMese - 1] || 'Gennaio';
-}
-
 function calcolaTotaleCategoria(categoria) {
     if (!categoria || typeof categoria !== 'object') {
+        console.log('🔍 DEBUG calcolaTotaleCategoria: categoria non valida:', categoria);
         return 0;
     }
     
     var totale = 0;
     ['U', 'D', 'GU', 'GD'].forEach(function(sottoCat) {
         if (categoria[sottoCat] !== undefined) {
-            totale += parseInt(categoria[sottoCat]) || 0;
+            var valore = parseInt(categoria[sottoCat]) || 0;
+            totale += valore;
+            console.log('🔍 DEBUG calcolaTotaleCategoria:', sottoCat, '=', valore);
         }
     });
     
+    console.log('🔍 DEBUG calcolaTotaleCategoria: totale calcolato =', totale, 'da:', categoria);
     return totale;
 }
 
@@ -59,11 +54,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Inizializza l'applicazione (conversione da async/await a Promise)
 function inizializzaApp() {
     return new Promise(function(resolve, reject) {
         try {
             mostraLoading(true);
             
+            // Carica dati storici e gruppi in parallelo
             Promise.all([
                 caricaDatiStorici(),
                 caricaGruppi()
@@ -78,302 +75,317 @@ function inizializzaApp() {
                 reject(error);
             });
         } catch (error) {
-            console.error('Errore nell\'inizializzazione:', error);
             mostraLoading(false);
             reject(error);
         }
     });
 }
 
+// Carica dati storici (conversione da async/await a Promise)
 function caricaDatiStorici() {
     return new Promise(function(resolve, reject) {
-        console.log('🔄 Inizio caricamento dati storici...');
-        
-        // Prima carica i gruppi
-        caricaGruppi().then(function() {
-            database.ref('zadankai').once('value')
-                .then(function(snapshot) {
-                    var datiFirebase = snapshot.val();
-                    console.log('📊 Dati ricevuti dal database:', datiFirebase);
-                    
-                    if (!datiFirebase) {
-                        console.warn('⚠️ Nessun dato trovato nel database');
-                        datiStorici = [];
-                        resolve();
-                        return;
-                    }
-                    
+        try {
+            database.ref('zadankai').once('value').then(function(snapshot) {
+                var datiCompleti = snapshot.val();
+                console.log('🔍 DEBUG: Dati ricevuti dal database:', datiCompleti);
+                
+                if (datiCompleti) {
                     datiStorici = [];
                     
-                    // Elabora dati con struttura chiave "anno-mese-gruppo"
-                    Object.keys(datiFirebase).forEach(function(chiave) {
-                        console.log('📅 Elaborando chiave:', chiave);
-                        var sezioni = datiFirebase[chiave];
-                        
-                        // Dividi la chiave in anno-mese-gruppo
+                    // Elabora tutti gli anni e mesi
+                    Object.keys(datiCompleti).forEach(function(chiave) {
+                        console.log('🔍 DEBUG: Elaborando chiave:', chiave);
                         var parti = chiave.split('-');
-                        if (parti.length !== 3) {
-                            console.warn('Formato chiave non valido:', chiave);
-                            return;
-                        }
-                        
-                        var anno = parti[0];
-                        var mese = parti[1];
-                        var gruppo = parti[2];
-                        
-                        console.log('📅 Anno:', anno, 'Mese:', mese, 'Gruppo:', gruppo);
-                        
-                        // Converti il mese da nome a numero
-                        var numeroMese = convertiMeseInNumero(mese);
-                        var capitolo = gruppoToCapitolo[gruppo] || 'Sconosciuto';
-                        var settore = gruppoToSettore[gruppo] || 'Sconosciuto';
-                        
-                        console.log('👥 Elaborando gruppo:', gruppo, 'dati:', sezioni);
-                        
-                        if (sezioni && typeof sezioni === 'object') {
-                            var zadankaiData = sezioni.zadankai || {};
-                            var praticantiData = sezioni.praticanti || {};
+                        if (parti.length >= 3) {
+                            var anno = parseInt(parti[0]);
+                            var nomeMese = parti[1];
+                            var gruppo = parti.slice(2).join('-');
+                            var mese = convertiMeseInNumero(nomeMese);
                             
-                            console.log('🏮 Dati zadankai per', gruppo + ':', zadankaiData);
-                            console.log('🙏 Dati praticanti per', gruppo + ':', praticantiData);
+                            var datiGruppo = datiCompleti[chiave];
+                            console.log('🔍 DEBUG: Dati gruppo', gruppo, ':', datiGruppo);
                             
-                            // Calcola membri dalla sezione zadankai
-                            var membri = 0;
-                            if (zadankaiData.membri) {
-                                membri = calcolaTotaleCategoria(zadankaiData.membri);
+                            // Sezione zadankai
+                            if (datiGruppo.zadankai) {
+                                console.log('🔍 DEBUG: Sezione zadankai trovata:', datiGruppo.zadankai);
+                                
+                                // Calcola membri
+                                var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                console.log('🔍 DEBUG: Membri calcolati:', membri, 'da:', datiGruppo.zadankai.membri);
+                                
+                                // Calcola presenze come somma di membri + simpatizzanti + ospiti
+                                var membriPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                var simpatizzantiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {});
+                                var ospitiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                                var presenze = membriPresenze + simpatizzantiPresenze + ospitiPresenze;
+                                
+                                console.log('🔍 DEBUG: Calcolo presenze per', gruppo);
+                                console.log('  - Membri presenze:', membriPresenze, 'da:', datiGruppo.zadankai.membri);
+                                console.log('  - Simpatizzanti presenze:', simpatizzantiPresenze, 'da:', datiGruppo.zadankai.simpatizzanti);
+                                console.log('  - Ospiti presenze:', ospitiPresenze, 'da:', datiGruppo.zadankai.ospiti);
+                                console.log('  - TOTALE PRESENZE:', presenze);
+                                
+                                datiStorici.push({
+                                    anno: anno,
+                                    mese: mese,
+                                    nomeMese: nomeMese,
+                                    gruppo: gruppo,
+                                    membri: membri,
+                                    presenze: presenze,
+                                    praticanti: 0
+                                });
+                                
+                                console.log('🔍 DEBUG: Record aggiunto:', {
+                                    anno: anno,
+                                    mese: mese,
+                                    gruppo: gruppo,
+                                    membri: membri,
+                                    presenze: presenze
+                                });
+                            } else {
+                                console.log('⚠️ DEBUG: Nessuna sezione zadankai trovata per', gruppo);
                             }
                             
-                            // Calcola presenze dalla sezione zadankai (membri + simpatizzanti + ospiti)
-                            var presenze = 0;
-                            if (zadankaiData.membri) {
-                                presenze += calcolaTotaleCategoria(zadankaiData.membri);
+                            // Sezione praticanti
+                            if (datiGruppo.praticanti) {
+                                var ultimoIndice = datiStorici.length - 1;
+                                if (ultimoIndice >= 0 && 
+                                    datiStorici[ultimoIndice].anno === anno && 
+                                    datiStorici[ultimoIndice].mese === mese && 
+                                    datiStorici[ultimoIndice].gruppo === gruppo) {
+                                    
+                                    var membriPraticanti = calcolaTotaleCategoria(datiGruppo.praticanti.membri || {});
+                                    var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti || {});
+                                    datiStorici[ultimoIndice].praticanti = membriPraticanti + simpatizzanti;
+                                    
+                                    console.log('🔍 DEBUG: Praticanti aggiornati per', gruppo, ':', datiStorici[ultimoIndice].praticanti);
+                                }
                             }
-                            if (zadankaiData.simpatizzanti) {
-                                presenze += calcolaTotaleCategoria(zadankaiData.simpatizzanti);
-                            }
-                            if (zadankaiData.ospiti) {
-                                presenze += calcolaTotaleCategoria(zadankaiData.ospiti);
-                            }
-                            
-                            // Calcola praticanti
-                            var praticanti = 0;
-                            if (praticantiData.membri) {
-                                praticanti += calcolaTotaleCategoria(praticantiData.membri);
-                            }
-                            if (praticantiData.simpatizzanti) {
-                                praticanti += calcolaTotaleCategoria(praticantiData.simpatizzanti);
-                            }
-                            
-                            console.log('📊 Totali calcolati per', gruppo + ':', {
-                                membri: membri,
-                                presenze: presenze,
-                                praticanti: praticanti
-                            });
-                            
-                            datiStorici.push({
-                                anno: parseInt(anno),
-                                mese: numeroMese,
-                                nomeMese: mese.toLowerCase(),
-                                gruppo: gruppo,
-                                capitolo: capitolo,
-                                settore: settore,
-                                membri: membri,
-                                presenze: presenze,
-                                praticanti: praticanti
-                            });
                         }
                     });
                     
-                    console.log('✅ Dati storici caricati:', datiStorici.length, 'record');
-                    console.log('📋 Primi 3 record:', datiStorici.slice(0, 3));
+                    // Ordina i dati per data
+                    datiStorici.sort(function(a, b) {
+                        if (a.anno !== b.anno) return a.anno - b.anno;
+                        if (a.mese !== b.mese) return a.mese - b.mese;
+                        return a.gruppo.localeCompare(b.gruppo);
+                    });
+                    
+                    console.log('🔍 DEBUG: Dati storici finali elaborati:', datiStorici.length, 'record');
+                    console.log('🔍 DEBUG: Primi 5 record per verifica:', datiStorici.slice(0, 5));
+                } else {
+                    console.log('⚠️ Nessun dato trovato nel database, genero dati di esempio');
+                    datiStorici = generaDatiEsempio();
+                }
+                
+                resolve();
+            }).catch(function(error) {
+                console.error('❌ Errore nel caricamento dati:', error);
+                console.log('Genero dati di esempio a causa dell\'errore');
+                datiStorici = generaDatiEsempio();
+                resolve();
+            });
+        } catch (error) {
+            console.error('❌ Errore nella funzione caricaDatiStorici:', error);
+            datiStorici = generaDatiEsempio();
+            resolve();
+        }
+    });
+}
+
+// Carica gruppi (conversione da async/await a Promise)
+function caricaGruppi() {
+    return new Promise(function(resolve, reject) {
+        try {
+            // Carica il file gruppi.json
+            fetch('./gruppi.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Errore nel caricamento del file gruppi.json');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log('Dati gruppi ricevuti:', data);
+                    if (data && Array.isArray(data.gruppi) && data.gruppi.length > 0) {
+                        gruppiDisponibili = data.gruppi;
+                        
+                        // Crea le mappe gruppo -> capitolo e gruppo -> settore
+                        data.gruppi.forEach(function(gruppo) {
+                            gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
+                            gruppoToSettore[gruppo.nome] = gruppo.settore;
+                        });
+                        
+                        console.log('Gruppi caricati:', gruppiDisponibili.length);
+                    } else {
+                        console.warn('Struttura del file gruppi.json non valida o vuota');
+                        console.log('Struttura ricevuta:', data);
+                    }
                     resolve();
                 })
                 .catch(function(error) {
-                    console.error('❌ Errore nel caricamento dati storici:', error);
-                    reject(error);
+                    console.error('Errore nel caricamento gruppi:', error);
+                    resolve(); // Continua anche se non riesce a caricare i gruppi
                 });
-        }).catch(function(error) {
-            console.error('❌ Errore nel caricamento gruppi:', error);
-            reject(error);
-        });
+        } catch (error) {
+            console.error('Errore nella funzione caricaGruppi:', error);
+            resolve();
+        }
     });
 }
 
-function caricaGruppi() {
-    return new Promise(function(resolve, reject) {
-        fetch('gruppi.json')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Errore nel caricamento del file gruppi.json');
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                console.log('Dati gruppi ricevuti:', data);
-                
-                if (!data || !data['HOMBU 9']) {
-                    throw new Error('Struttura del file gruppi.json non valida');
-                }
-                
-                gruppiDisponibili = [];
-                
-                // Elabora la struttura gerarchica
-                var hombu9 = data['HOMBU 9'];
-                Object.keys(hombu9).forEach(function(capitolo) {
-                    var capitoloData = hombu9[capitolo];
-                    Object.keys(capitoloData).forEach(function(settore) {
-                        var gruppi = capitoloData[settore];
-                        if (Array.isArray(gruppi)) {
-                            gruppi.forEach(function(nomeGruppo) {
-                                gruppiDisponibili.push({
-                                    nome: nomeGruppo,
-                                    capitolo: capitolo,
-                                    settore: settore
-                                });
-                            });
-                        }
-                    });
-                });
-                
-                // Costruisci le mappe gruppo -> capitolo e gruppo -> settore
-                gruppiDisponibili.forEach(function(gruppo) {
-                    gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
-                    gruppoToSettore[gruppo.nome] = gruppo.settore;
-                });
-                
-                console.log('Gruppi caricati:', gruppiDisponibili.length);
-                console.log('Primi gruppi:', gruppiDisponibili.slice(0, 3));
-                resolve();
-            })
-            .catch(function(error) {
-                console.error('Errore nel caricamento gruppi:', error);
-                // Crea gruppi di fallback per non bloccare l'app
-                gruppiDisponibili = [
-                    { nome: 'AURORA', capitolo: 'Capitolo Asti', settore: 'Settore Fukyo' },
-                    { nome: 'DHARMA', capitolo: 'Capitolo Casale/Crescentino', settore: 'Settore Casale' }
-                ];
-                gruppiDisponibili.forEach(function(gruppo) {
-                    gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
-                    gruppoToSettore[gruppo.nome] = gruppo.settore;
-                });
-                resolve(); // Non bloccare l'app se i gruppi non si caricano
-            });
-    });
-}
-
-function inizializzaFiltri() {
-    var filtroCapitolo = document.getElementById('filtroCapitolo');
-    var filtroSettore = document.getElementById('filtroSettore');
-    var filtroGruppo = document.getElementById('filtroGruppo');
+// Genera dati di esempio
+function generaDatiEsempio() {
+    var datiEsempio = [];
+    var gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C', 'Gruppo D'];
+    var dataInizio = new Date(2025, 0, 1); // Gennaio 2025
     
-    if (!filtroCapitolo || !filtroSettore || !filtroGruppo) {
-        console.error('Elementi filtro non trovati nel DOM');
-        return;
+    for (var i = 0; i < 12; i++) {
+        var data = new Date(dataInizio);
+        data.setMonth(data.getMonth() + i);
+        
+        var anno = data.getFullYear();
+        var mese = data.getMonth() + 1;
+        var nomeMese = moment().month(data.getMonth()).format('MMMM').toLowerCase();
+        
+        gruppiEsempio.forEach(function(gruppo) {
+            var membri = Math.floor(Math.random() * 50) + 20;
+            var presenze = Math.floor(membri * (0.6 + Math.random() * 0.3));
+            var praticanti = Math.floor(Math.random() * 15) + 5;
+            
+            datiEsempio.push({
+                anno: anno,
+                mese: mese,
+                nomeMese: nomeMese,
+                gruppo: gruppo,
+                membri: membri,
+                presenze: presenze,
+                praticanti: praticanti
+            });
+        });
     }
     
-    // Popola filtro capitoli
-    var capitoli = [];
-    gruppiDisponibili.forEach(function(gruppo) {
-        if (capitoli.indexOf(gruppo.capitolo) === -1) {
-            capitoli.push(gruppo.capitolo);
+    return datiEsempio;
+}
+
+// Inizializza i filtri
+function inizializzaFiltri() {
+    var capitoli = new Set();
+    var settori = new Set();
+    var gruppi = new Set();
+    
+    // Estrai capitoli, settori e gruppi dai dati storici
+    datiStorici.forEach(function(dato) {
+        gruppi.add(dato.gruppo);
+        if (gruppoToCapitolo[dato.gruppo]) {
+            capitoli.add(gruppoToCapitolo[dato.gruppo]);
+        }
+        if (gruppoToSettore[dato.gruppo]) {
+            settori.add(gruppoToSettore[dato.gruppo]);
         }
     });
     
-    capitoli.forEach(function(capitolo) {
-        var option = document.createElement('option');
-        option.value = capitolo;
-        option.textContent = 'Capitolo ' + capitolo;
-        filtroCapitolo.appendChild(option);
-    });
-    
-    // Aggiungi event listeners
-    filtroCapitolo.addEventListener('change', aggiornaSottofiltri);
-    filtroSettore.addEventListener('change', aggiornaSottofiltri);
-    filtroGruppo.addEventListener('change', applicaFiltri);
+    // Popola il select dei capitoli
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    if (selectCapitolo) {
+        selectCapitolo.innerHTML = '<option value="tutti">Tutti i Capitoli</option>';
+        Array.from(capitoli).sort().forEach(function(capitolo) {
+            var option = document.createElement('option');
+            option.value = capitolo;
+            option.textContent = capitolo;
+            selectCapitolo.appendChild(option);
+        });
+    }
     
     aggiornaSottofiltri();
 }
 
+// Aggiorna sottofiltri in base al capitolo selezionato
 function aggiornaSottofiltri() {
-    var filtroCapitolo = document.getElementById('filtroCapitolo');
-    var filtroSettore = document.getElementById('filtroSettore');
-    var filtroGruppo = document.getElementById('filtroGruppo');
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
     
-    if (!filtroCapitolo || !filtroSettore || !filtroGruppo) {
-        console.error('Elementi filtro non trovati');
+    // Controlli di sicurezza
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
         return;
     }
     
-    var capitoloSelezionato = filtroCapitolo.value;
-    var settoreSelezionato = filtroSettore.value;
+    var capitoloSelezionato = selectCapitolo.value;
     
-    // Filtra settori in base al capitolo
-    filtroSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
-    var settori = [];
-    gruppiDisponibili.forEach(function(gruppo) {
-        if ((capitoloSelezionato === 'tutti' || gruppo.capitolo === capitoloSelezionato) &&
-            settori.indexOf(gruppo.settore) === -1) {
-            settori.push(gruppo.settore);
+    // Reset settori
+    selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
+    selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
+    
+    var settoriDisponibili = new Set();
+    var gruppiDisponibili = new Set();
+    
+    datiStorici.forEach(function(dato) {
+        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+        var settoreGruppo = gruppoToSettore[dato.gruppo];
+        
+        if (capitoloSelezionato === 'tutti' || capitoloGruppo === capitoloSelezionato) {
+            if (settoreGruppo) {
+                settoriDisponibili.add(settoreGruppo);
+            }
+            gruppiDisponibili.add(dato.gruppo);
         }
     });
     
-    settori.forEach(function(settore) {
+    // Popola settori
+    Array.from(settoriDisponibili).sort().forEach(function(settore) {
         var option = document.createElement('option');
         option.value = settore;
-        option.textContent = 'Settore ' + settore;
-        filtroSettore.appendChild(option);
+        option.textContent = settore;
+        selectSettore.appendChild(option);
     });
     
-    // Filtra gruppi in base a capitolo e settore
-    filtroGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
-    var gruppiFiltrati = gruppiDisponibili.filter(function(g) {
-        return (capitoloSelezionato === 'tutti' || g.capitolo === capitoloSelezionato) &&
-               (settoreSelezionato === 'tutti' || g.settore === settoreSelezionato);
-    });
-    
-    gruppiFiltrati.forEach(function(gruppo) {
+    // Popola gruppi
+    Array.from(gruppiDisponibili).sort().forEach(function(gruppo) {
         var option = document.createElement('option');
-        option.value = gruppo.nome;
-        option.textContent = gruppo.nome;
-        filtroGruppo.appendChild(option);
+        option.value = gruppo;
+        option.textContent = gruppo;
+        selectGruppo.appendChild(option);
     });
-    
-    applicaFiltri();
 }
 
+// Mostra/nasconde loading
 function mostraLoading(mostra) {
-    var loading = document.getElementById('loadingSpinner');
-    if (loading) {
-        loading.style.display = mostra ? 'block' : 'none';
+    var spinner = document.querySelector('.loading-spinner');
+    if (spinner) {
+        spinner.style.display = mostra ? 'block' : 'none';
     }
 }
 
+// Applica filtri
 function applicaFiltri() {
-    var filtroCapitolo = document.getElementById('filtroCapitolo');
-    var filtroSettore = document.getElementById('filtroSettore');
-    var filtroGruppo = document.getElementById('filtroGruppo');
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
     
-    if (!filtroCapitolo || !filtroSettore || !filtroGruppo) {
-        console.error('Elementi filtro non trovati');
+    // Controlli di sicurezza
+    if (!selectCapitolo || !selectSettore || !selectGruppo) {
+        console.error('Elementi DOM dei filtri non trovati');
         return;
     }
     
-    var filtri = {
-        capitolo: filtroCapitolo.value,
-        settore: filtroSettore.value,
-        gruppo: filtroGruppo.value
-    };
+    var capitolo = selectCapitolo.value;
+    var settore = selectSettore.value;
+    var gruppo = selectGruppo.value;
     
-    var datiAggregati = aggregaDatiUltimi12Mesi(filtri.capitolo, filtri.settore, filtri.gruppo);
+    var datiAggregati = aggregaDatiUltimi12Mesi(capitolo, settore, gruppo);
+    var filtri = { capitolo: capitolo, settore: settore, gruppo: gruppo };
     
     aggiornaGrafico(datiAggregati, filtri);
     aggiornaRisultatiTestuali(datiAggregati, filtri);
 }
 
+// Aggrega dati ultimi 12 mesi
 function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
-    if (capitolo === undefined) { capitolo = 'tutti'; }
-    if (settore === undefined) { settore = 'tutti'; }
-    if (gruppo === undefined) { gruppo = 'tutti'; }
+    if (capitolo === void 0) { capitolo = 'tutti'; }
+    if (settore === void 0) { settore = 'tutti'; }
+    if (gruppo === void 0) { gruppo = 'tutti'; }
     
     var oggi = new Date();
     var dataLimite = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1);
@@ -400,7 +412,7 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
             }
             
             if (includiDato) {
-                var chiave = dato.anno + '-' + (dato.mese < 10 ? '0' + dato.mese : dato.mese);
+                var chiave = dato.anno + '-' + String(dato.mese).padStart(2, '0');
                 
                 if (!datiAggregati[chiave]) {
                     datiAggregati[chiave] = {
@@ -420,17 +432,13 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
         }
     });
     
-    var risultato = [];
-    Object.keys(datiAggregati).forEach(function(chiave) {
-        risultato.push(datiAggregati[chiave]);
-    });
-    
-    return risultato.sort(function(a, b) {
+    return Object.values(datiAggregati).sort(function(a, b) {
         if (a.anno !== b.anno) return a.anno - b.anno;
         return a.mese - b.mese;
     });
 }
 
+// Aggiorna grafico
 function aggiornaGrafico(datiAggregati, filtri) {
     var ctx = document.getElementById('mainChart').getContext('2d');
     
@@ -522,27 +530,44 @@ function aggiornaGrafico(datiAggregati, filtri) {
     });
 }
 
+// Aggiorna risultati testuali
 function aggiornaRisultatiTestuali(datiAggregati, filtri) {
-    var risultatiDiv = document.getElementById('risultatiTestuali');
+    var container = document.getElementById('risultatiTestuali');
     
     if (datiAggregati.length === 0) {
-        risultatiDiv.innerHTML = '<p class="text-muted">Nessun dato disponibile per i filtri selezionati.</p>';
+        container.innerHTML = '<p class="text-muted">Nessun dato disponibile per i filtri selezionati.</p>';
         return;
     }
     
     var html = '<div class="row">';
     
     datiAggregati.forEach(function(dato, index) {
-        var nomeMeseCapitalizzato = dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1);
+        var percentualePresenze = dato.membri > 0 ? ((dato.presenze / dato.membri) * 100).toFixed(1) : '0.0';
         
-        html += '<div class="col-md-4 mb-3">';
+        html += '<div class="col-md-6 col-lg-4 mb-3">';
         html += '<div class="card h-100">';
         html += '<div class="card-body">';
-        html += '<h6 class="card-title">' + nomeMeseCapitalizzato + ' ' + dato.anno + '</h6>';
+        html += '<h6 class="card-title text-primary">';
+        html += '<i class="fas fa-calendar-alt me-2"></i>';
+        html += dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1) + ' ' + dato.anno;
+        html += '</h6>';
         html += '<div class="row text-center">';
-        html += '<div class="col-4"><small class="text-muted">Membri</small><br><strong>' + dato.membri + '</strong></div>';
-        html += '<div class="col-4"><small class="text-muted">Presenze</small><br><strong>' + dato.presenze + '</strong></div>';
-        html += '<div class="col-4"><small class="text-muted">Praticanti</small><br><strong>' + dato.praticanti + '</strong></div>';
+        html += '<div class="col-4">';
+        html += '<div class="text-info fw-bold fs-5">' + dato.membri + '</div>';
+        html += '<small class="text-muted">Membri</small>';
+        html += '</div>';
+        html += '<div class="col-4">';
+        html += '<div class="text-success fw-bold fs-5">' + dato.presenze + '</div>';
+        html += '<small class="text-muted">Presenze</small>';
+        html += '</div>';
+        html += '<div class="col-4">';
+        html += '<div class="text-warning fw-bold fs-5">' + dato.praticanti + '</div>';
+        html += '<small class="text-muted">Praticanti</small>';
+        html += '</div>';
+        html += '</div>';
+        html += '<hr>';
+        html += '<div class="text-center">';
+        html += '<span class="badge bg-primary">Partecipazione: ' + percentualePresenze + '%</span>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
@@ -550,11 +575,13 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
     });
     
     html += '</div>';
-    risultatiDiv.innerHTML = html;
+    container.innerHTML = html;
 }
 
+// Funzione logout
 function logout() {
     auth.signOut().then(function() {
+        console.log('Logout effettuato');
         window.location.href = 'index.html';
     }).catch(function(error) {
         console.error('Errore durante il logout:', error);
@@ -562,6 +589,6 @@ function logout() {
     });
 }
 
-// Esporta le funzioni globalmente per compatibilità
+// Esponi funzioni globalmente per compatibilità
 window.logout = logout;
 window.applicaFiltri = applicaFiltri;
