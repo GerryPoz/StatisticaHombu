@@ -1,14 +1,20 @@
-// Inizializzazione Firebase (SDK v8)
-firebase.initializeApp(firebaseConfig);
-var database = firebase.database();
-var auth = firebase.auth();
+// Versione Legacy compatibile con vecchi browser (ES5)
+// Rimozione degli import ES6 e utilizzo di Firebase SDK v8
 
 // Variabili globali
+var app, auth, database;
 var datiStorici = [];
 var gruppiDisponibili = [];
 var chartInstance = null;
 var gruppoToCapitolo = {};
 var gruppoToSettore = {};
+
+// Inizializza Firebase (SDK v8)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+auth = firebase.auth();
+database = firebase.database();
 
 function convertiMeseInNumero(nomeMese) {
     var mesi = {
@@ -25,12 +31,11 @@ function calcolaTotaleCategoria(categoria) {
     }
     
     var totale = 0;
-    var sottoCat = ['U', 'D', 'GU', 'GD'];
-    for (var i = 0; i < sottoCat.length; i++) {
-        if (categoria[sottoCat[i]] !== undefined) {
-            totale += parseInt(categoria[sottoCat[i]]) || 0;
+    ['U', 'D', 'GU', 'GD'].forEach(function(sottoCat) {
+        if (categoria[sottoCat] !== undefined) {
+            totale += parseInt(categoria[sottoCat]) || 0;
         }
-    }
+    });
     
     return totale;
 }
@@ -45,327 +50,275 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Inizializza l'applicazione
+// Inizializza l'applicazione (conversione da async/await a Promise)
 function inizializzaApp() {
     return new Promise(function(resolve, reject) {
-        auth.onAuthStateChanged(function(user) {
-            if (user) {
-                console.log('Utente autenticato:', user.email);
-                Promise.all([
-                    caricaDatiStorici(),
-                    caricaGruppi()
-                ]).then(function() {
-                    inizializzaFiltri();
-                    applicaFiltri();
-                    resolve();
-                }).catch(function(error) {
-                    console.error('Errore nel caricamento dati:', error);
-                    reject(error);
-                });
-            } else {
-                console.log('Utente non autenticato, reindirizzamento al login');
-                window.location.href = 'index1.html';
-                reject(new Error('Utente non autenticato'));
-            }
-        });
+        try {
+            mostraLoading(true);
+            
+            // Carica dati storici e gruppi in parallelo
+            Promise.all([
+                caricaDatiStorici(),
+                caricaGruppi()
+            ]).then(function() {
+                inizializzaFiltri();
+                applicaFiltri();
+                mostraLoading(false);
+                resolve();
+            }).catch(function(error) {
+                console.error('Errore durante il caricamento:', error);
+                mostraLoading(false);
+                reject(error);
+            });
+        } catch (error) {
+            mostraLoading(false);
+            reject(error);
+        }
     });
 }
 
+// Carica dati storici (conversione da async/await a Promise)
 function caricaDatiStorici() {
     return new Promise(function(resolve, reject) {
-        console.log('Caricamento dati storici...');
-        mostraLoading(true);
-        
-        // Reset array dati
-        datiStorici = [];
-        
-        // Prima carica i gruppi per avere la mappatura gruppo->capitolo/settore
-        caricaGruppi().then(function() {
-            // Carica dati zadankai dal database reale
-            var zadankaiRef = database.ref('zadankai');
-            return zadankaiRef.once('value');
-        }).then(function(zadankaiSnapshot) {
-            if (zadankaiSnapshot.exists()) {
-                var zadankaiData = zadankaiSnapshot.val();
-                console.log('Dati zadankai trovati:', Object.keys(zadankaiData).length, 'record');
+        try {
+            database.ref('zadankai').once('value').then(function(snapshot) {
+                var datiCompleti = snapshot.val();
+                console.log('Dati ricevuti dal database:', datiCompleti);
                 
-                // Elabora dati zadankai dal database reale
-                for (var chiave in zadankaiData) {
-                    if (zadankaiData.hasOwnProperty(chiave)) {
-                        var sezioni = zadankaiData[chiave];
-                        console.log('Elaborando chiave:', chiave, 'Sezioni:', sezioni);
+                if (datiCompleti) {
+                    datiStorici = [];
+                    
+                    // Elabora tutti gli anni e mesi
+                    Object.keys(datiCompleti).forEach(function(chiave) {
                         var parti = chiave.split('-');
-                        var anno = parti[0];
-                        var mese = parti[1];
-                        var gruppo = parti[2];
-                        
-                        if (!anno || !mese || !gruppo) {
-                            console.warn('Formato chiave non valido:', chiave);
-                            continue;
-                        }
-                        
-                        // Converti il mese da nome a numero
-                        var numeroMese = convertiMeseInNumero(mese);
-                        var data = new Date(parseInt(anno), numeroMese - 1, 1);
-                        var capitolo = gruppoToCapitolo[gruppo] || 'Sconosciuto';
-                        var settore = gruppoToSettore[gruppo] || 'Sconosciuto';
-                        
-                        console.log('Data elaborata:', data, 'Gruppo:', gruppo, 'Capitolo:', capitolo, 'Settore:', settore);
-                        
-                        // Elabora sezione zadankai
-                        if (sezioni.zadankai) {
-                            var zadankai = sezioni.zadankai;
-                            console.log('Dati zadankai per', gruppo, ':', zadankai);
+                        if (parti.length >= 3) {
+                            var anno = parseInt(parti[0]);
+                            var nomeMese = parti[1];
+                            var gruppo = parti.slice(2).join('-');
+                            var mese = convertiMeseInNumero(nomeMese);
                             
-                            // Membri Zadankai - somma tutte le sottocategorie
-                            if (zadankai.membri) {
-                                var membri = calcolaTotaleCategoria(zadankai.membri);
-                                console.log('Aggiungendo membri zadankai:', membri, 'Dettaglio:', zadankai.membri);
+                            var datiGruppo = datiCompleti[chiave];
+                            
+                            // Sezione zadankai
+                            if (datiGruppo.zadankai) {
+                                var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri);
+                                var presenze = calcolaTotaleCategoria(datiGruppo.zadankai.presenze);
+                                
                                 datiStorici.push({
-                                    id: chiave + '-zadankai-membri',
-                                    data: data,
+                                    anno: anno,
+                                    mese: mese,
+                                    nomeMese: nomeMese,
                                     gruppo: gruppo,
-                                    settore: settore,
-                                    capitolo: capitolo,
-                                    tipo: 'zadankai',
-                                    categoria: 'membri',
-                                    valore: membri
+                                    membri: membri,
+                                    presenze: presenze,
+                                    praticanti: 0
                                 });
                             }
                             
-                            // Presenze Zadankai - calcola come somma di membri + simpatizzanti + ospiti
-                            var presenzeTotali = calcolaTotaleCategoria(zadankai.membri) + 
-                                               calcolaTotaleCategoria(zadankai.simpatizzanti) + 
-                                               calcolaTotaleCategoria(zadankai.ospiti);
-                            
-                            console.log('Aggiungendo presenze zadankai:', presenzeTotali);
-                            datiStorici.push({
-                                id: chiave + '-zadankai-presenze',
-                                data: data,
-                                gruppo: gruppo,
-                                settore: settore,
-                                capitolo: capitolo,
-                                tipo: 'zadankai',
-                                categoria: 'presenze',
-                                valore: presenzeTotali
-                            });
-                        }
-                        
-                        // Elabora sezione praticanti
-                        if (sezioni.praticanti) {
-                            var praticanti = sezioni.praticanti;
-                            console.log('Dati praticanti per', gruppo, ':', praticanti);
-                            
-                            // Calcola totale praticanti sommando membri e simpatizzanti
-                            var totalePraticanti = calcolaTotaleCategoria(praticanti.membri) + 
-                                                  calcolaTotaleCategoria(praticanti.simpatizzanti);
-                            
-                            console.log('Totale praticanti calcolato:', totalePraticanti, 
-                                      'Membri:', calcolaTotaleCategoria(praticanti.membri),
-                                      'Simpatizzanti:', calcolaTotaleCategoria(praticanti.simpatizzanti));
-                            
-                            datiStorici.push({
-                                id: chiave + '-praticanti-totale',
-                                data: data,
-                                gruppo: gruppo,
-                                settore: settore,
-                                capitolo: capitolo,
-                                tipo: 'praticanti',
-                                categoria: 'totale',
-                                valore: totalePraticanti
-                            });
-                        }
-                    }
-                }
-            }
-            
-            // Se non ci sono dati reali, genera dati di esempio
-            if (datiStorici.length === 0) {
-                console.log('Nessun dato reale trovato, generazione dati di esempio...');
-                datiStorici = generaDatiEsempio();
-            }
-            
-            console.log('Dati storici caricati totali:', datiStorici.length);
-            console.log('Primi 5 dati:', datiStorici.slice(0, 5));
-            mostraLoading(false);
-            resolve();
-            
-        }).catch(function(error) {
-            console.error('Errore durante il caricamento dei dati:', error);
-            mostraLoading(false);
-            // Fallback ai dati di esempio in caso di errore
-            datiStorici = generaDatiEsempio();
-            resolve();
-        });
-    });
-}
-
-function caricaGruppi() {
-    return new Promise(function(resolve, reject) {
-        var gruppiRef = database.ref('gruppi/HOMBU 9');
-        gruppiRef.once('value').then(function(snapshot) {
-            var gruppiData = snapshot.val();
-            
-            if (!gruppiData) {
-                console.log('Nessun gruppo trovato');
-                resolve();
-                return;
-            }
-            
-            gruppiDisponibili = [];
-            gruppoToCapitolo = {};
-            gruppoToSettore = {};
-            
-            for (var capitolo in gruppiData) {
-                if (gruppiData.hasOwnProperty(capitolo)) {
-                    for (var settore in gruppiData[capitolo]) {
-                        if (gruppiData[capitolo].hasOwnProperty(settore)) {
-                            var gruppiSettore = gruppiData[capitolo][settore];
-                            for (var i = 0; i < gruppiSettore.length; i++) {
-                                var gruppo = gruppiSettore[i];
-                                gruppiDisponibili.push(gruppo);
-                                gruppoToCapitolo[gruppo] = capitolo;
-                                gruppoToSettore[gruppo] = settore;
+                            // Sezione praticanti
+                            if (datiGruppo.praticanti) {
+                                var ultimoIndice = datiStorici.length - 1;
+                                if (ultimoIndice >= 0 && 
+                                    datiStorici[ultimoIndice].anno === anno && 
+                                    datiStorici[ultimoIndice].mese === mese && 
+                                    datiStorici[ultimoIndice].gruppo === gruppo) {
+                                    
+                                    var membriPraticanti = calcolaTotaleCategoria(datiGruppo.praticanti.membri);
+                                    var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti);
+                                    datiStorici[ultimoIndice].praticanti = membriPraticanti + simpatizzanti;
+                                }
                             }
                         }
-                    }
+                    });
+                    
+                    // Ordina i dati per data
+                    datiStorici.sort(function(a, b) {
+                        if (a.anno !== b.anno) return a.anno - b.anno;
+                        if (a.mese !== b.mese) return a.mese - b.mese;
+                        return a.gruppo.localeCompare(b.gruppo);
+                    });
+                    
+                    console.log('Dati storici elaborati:', datiStorici.length, 'record');
+                } else {
+                    console.log('Nessun dato trovato nel database, genero dati di esempio');
+                    datiStorici = generaDatiEsempio();
                 }
-            }
-            
-            console.log('Gruppi caricati:', gruppiDisponibili.length);
+                
+                resolve();
+            }).catch(function(error) {
+                console.error('Errore nel caricamento dati:', error);
+                console.log('Genero dati di esempio a causa dell\'errore');
+                datiStorici = generaDatiEsempio();
+                resolve();
+            });
+        } catch (error) {
+            console.error('Errore nella funzione caricaDatiStorici:', error);
+            datiStorici = generaDatiEsempio();
             resolve();
-        }).catch(function(error) {
-            console.error('Errore nel caricamento gruppi:', error);
-            resolve();
-        });
+        }
     });
 }
 
+// Carica gruppi (conversione da async/await a Promise)
+function caricaGruppi() {
+    return new Promise(function(resolve, reject) {
+        try {
+            // Carica il file gruppi.json
+            fetch('./gruppi.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Errore nel caricamento del file gruppi.json');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data && data.gruppi) {
+                        gruppiDisponibili = data.gruppi;
+                        
+                        // Crea le mappe gruppo -> capitolo e gruppo -> settore
+                        data.gruppi.forEach(function(gruppo) {
+                            gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
+                            gruppoToSettore[gruppo.nome] = gruppo.settore;
+                        });
+                        
+                        console.log('Gruppi caricati:', gruppiDisponibili.length);
+                    } else {
+                        console.warn('Struttura del file gruppi.json non valida');
+                    }
+                    resolve();
+                })
+                .catch(function(error) {
+                    console.error('Errore nel caricamento gruppi:', error);
+                    resolve(); // Continua anche se non riesce a caricare i gruppi
+                });
+        } catch (error) {
+            console.error('Errore nella funzione caricaGruppi:', error);
+            resolve();
+        }
+    });
+}
+
+// Genera dati di esempio
 function generaDatiEsempio() {
     var datiEsempio = [];
-    var oggi = new Date();
-    var mesiNomi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
-                   'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+    var gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C', 'Gruppo D'];
+    var dataInizio = new Date(2025, 0, 1); // Gennaio 2025
     
-    // Genera dati per gli ultimi 12 mesi
     for (var i = 0; i < 12; i++) {
-        var data = new Date(oggi.getFullYear(), oggi.getMonth() - i, 1);
-        var anno = data.getFullYear();
-        var meseIndice = data.getMonth();
-        var mese = mesiNomi[meseIndice];
+        var data = new Date(dataInizio);
+        data.setMonth(data.getMonth() + i);
         
-        // Genera dati per alcuni gruppi di esempio
-        var gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C'];
-        for (var j = 0; j < gruppiEsempio.length; j++) {
-            var gruppo = gruppiEsempio[j];
-            var baseValue = 50 + Math.floor(Math.random() * 30);
+        var anno = data.getFullYear();
+        var mese = data.getMonth() + 1;
+        var nomeMese = moment().month(data.getMonth()).format('MMMM').toLowerCase();
+        
+        gruppiEsempio.forEach(function(gruppo) {
+            var membri = Math.floor(Math.random() * 50) + 20;
+            var presenze = Math.floor(membri * (0.6 + Math.random() * 0.3));
+            var praticanti = Math.floor(Math.random() * 15) + 5;
             
             datiEsempio.push({
                 anno: anno,
                 mese: mese,
-                meseNumero: meseIndice + 1,
+                nomeMese: nomeMese,
                 gruppo: gruppo,
-                totaleResponsabili: Math.floor(baseValue * 0.1),
-                totaleYD: Math.floor(baseValue * 0.2),
-                totaleYM: Math.floor(baseValue * 0.2),
-                totaleMD: Math.floor(baseValue * 0.25),
-                totaleMM: Math.floor(baseValue * 0.2),
-                totaleSimpatizzanti: Math.floor(baseValue * 0.05),
-                totaleGenerale: baseValue
+                membri: membri,
+                presenze: presenze,
+                praticanti: praticanti
             });
-        }
+        });
     }
     
     return datiEsempio;
 }
 
+// Inizializza i filtri
 function inizializzaFiltri() {
-    var capitoloSelect = document.getElementById('capitoloFiltro');
-    var settoreSelect = document.getElementById('settoreFiltro');
-    var gruppoSelect = document.getElementById('gruppoFiltro');
+    var capitoli = new Set();
+    var settori = new Set();
+    var gruppi = new Set();
     
-    // Popola filtro capitoli
-    var capitoli = [];
-    for (var gruppo in gruppoToCapitolo) {
-        if (gruppoToCapitolo.hasOwnProperty(gruppo)) {
-            var capitolo = gruppoToCapitolo[gruppo];
-            if (capitoli.indexOf(capitolo) === -1) {
-                capitoli.push(capitolo);
-            }
+    // Estrai capitoli, settori e gruppi dai dati storici
+    datiStorici.forEach(function(dato) {
+        gruppi.add(dato.gruppo);
+        if (gruppoToCapitolo[dato.gruppo]) {
+            capitoli.add(gruppoToCapitolo[dato.gruppo]);
         }
-    }
+        if (gruppoToSettore[dato.gruppo]) {
+            settori.add(gruppoToSettore[dato.gruppo]);
+        }
+    });
     
-    capitoli.sort();
-    for (var i = 0; i < capitoli.length; i++) {
-        var option = document.createElement('option');
-        option.value = capitoli[i];
-        option.textContent = capitoli[i];
-        capitoloSelect.appendChild(option);
+    // Popola il select dei capitoli
+    var selectCapitolo = document.getElementById('filtroCapitolo');
+    if (selectCapitolo) {
+        selectCapitolo.innerHTML = '<option value="tutti">Tutti i Capitoli</option>';
+        Array.from(capitoli).sort().forEach(function(capitolo) {
+            var option = document.createElement('option');
+            option.value = capitolo;
+            option.textContent = capitolo;
+            selectCapitolo.appendChild(option);
+        });
     }
-    
-    // Event listener per aggiornare sottofiltri
-    capitoloSelect.addEventListener('change', aggiornaSottofiltri);
-    settoreSelect.addEventListener('change', aggiornaSottofiltri);
     
     aggiornaSottofiltri();
 }
 
+// Aggiorna sottofiltri in base al capitolo selezionato
 function aggiornaSottofiltri() {
-    var capitoloSelezionato = document.getElementById('capitoloFiltro').value;
-    var settoreSelect = document.getElementById('settoreFiltro');
-    var gruppoSelect = document.getElementById('gruppoFiltro');
+    var capitoloSelezionato = document.getElementById('filtroCapitolo').value;
+    var selectSettore = document.getElementById('filtroSettore');
+    var selectGruppo = document.getElementById('filtroGruppo');
     
     // Reset settori
-    settoreSelect.innerHTML = '<option value="tutti">Tutti i settori</option>';
+    selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
+    selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
     
-    if (capitoloSelezionato !== 'tutti') {
-        var settori = [];
-        for (var gruppo in gruppoToSettore) {
-            if (gruppoToSettore.hasOwnProperty(gruppo) && gruppoToCapitolo[gruppo] === capitoloSelezionato) {
-                var settore = gruppoToSettore[gruppo];
-                if (settori.indexOf(settore) === -1) {
-                    settori.push(settore);
-                }
-            }
-        }
+    var settoriDisponibili = new Set();
+    var gruppiDisponibili = new Set();
+    
+    datiStorici.forEach(function(dato) {
+        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+        var settoreGruppo = gruppoToSettore[dato.gruppo];
         
-        settori.sort();
-        for (var i = 0; i < settori.length; i++) {
-            var option = document.createElement('option');
-            option.value = settori[i];
-            option.textContent = settori[i];
-            settoreSelect.appendChild(option);
+        if (capitoloSelezionato === 'tutti' || capitoloGruppo === capitoloSelezionato) {
+            if (settoreGruppo) {
+                settoriDisponibili.add(settoreGruppo);
+            }
+            gruppiDisponibili.add(dato.gruppo);
         }
-    }
-    
-    // Reset gruppi
-    var settoreSelezionato = settoreSelect.value;
-    gruppoSelect.innerHTML = '<option value="tutti">Tutti i gruppi</option>';
-    
-    var gruppiFiltrati = gruppiDisponibili.filter(function(gruppo) {
-        var matchCapitolo = capitoloSelezionato === 'tutti' || gruppoToCapitolo[gruppo] === capitoloSelezionato;
-        var matchSettore = settoreSelezionato === 'tutti' || gruppoToSettore[gruppo] === settoreSelezionato;
-        return matchCapitolo && matchSettore;
     });
     
-    gruppiFiltrati.sort();
-    for (var i = 0; i < gruppiFiltrati.length; i++) {
+    // Popola settori
+    Array.from(settoriDisponibili).sort().forEach(function(settore) {
         var option = document.createElement('option');
-        option.value = gruppiFiltrati[i];
-        option.textContent = gruppiFiltrati[i];
-        gruppoSelect.appendChild(option);
+        option.value = settore;
+        option.textContent = settore;
+        selectSettore.appendChild(option);
+    });
+    
+    // Popola gruppi
+    Array.from(gruppiDisponibili).sort().forEach(function(gruppo) {
+        var option = document.createElement('option');
+        option.value = gruppo;
+        option.textContent = gruppo;
+        selectGruppo.appendChild(option);
+    });
+}
+
+// Mostra/nasconde loading
+function mostraLoading(mostra) {
+    var spinner = document.querySelector('.loading-spinner');
+    if (spinner) {
+        spinner.style.display = mostra ? 'block' : 'none';
     }
 }
 
-function mostraLoading(mostra) {
-    var spinner = document.getElementById('loadingSpinner');
-    spinner.style.display = mostra ? 'block' : 'none';
-}
-
+// Applica filtri
 function applicaFiltri() {
-    var capitolo = document.getElementById('capitoloFiltro').value;
-    var settore = document.getElementById('settoreFiltro').value;
-    var gruppo = document.getElementById('gruppoFiltro').value;
+    var capitolo = document.getElementById('filtroCapitolo').value;
+    var settore = document.getElementById('filtroSettore').value;
+    var gruppo = document.getElementById('filtroGruppo').value;
     
     var datiAggregati = aggregaDatiUltimi12Mesi(capitolo, settore, gruppo);
     var filtri = { capitolo: capitolo, settore: settore, gruppo: gruppo };
@@ -374,169 +327,156 @@ function applicaFiltri() {
     aggiornaRisultatiTestuali(datiAggregati, filtri);
 }
 
+// Aggrega dati ultimi 12 mesi
 function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
+    if (capitolo === void 0) { capitolo = 'tutti'; }
+    if (settore === void 0) { settore = 'tutti'; }
+    if (gruppo === void 0) { gruppo = 'tutti'; }
+    
     var oggi = new Date();
-    var risultati = [];
+    var dataLimite = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1);
     
-    // Genera gli ultimi 12 mesi
-    for (var i = 0; i < 12; i++) {
-        var data = new Date(oggi.getFullYear(), oggi.getMonth() - i, 1);
-        var anno = data.getFullYear();
-        var meseNumero = data.getMonth() + 1;
+    var datiAggregati = {};
+    
+    datiStorici.forEach(function(dato) {
+        var dataDato = new Date(dato.anno, dato.mese - 1, 1);
         
-        // Filtra i dati per questo mese
-        var datiMese = datiStorici.filter(function(record) {
-            var matchAnno = record.anno === anno;
-            var matchMese = record.meseNumero === meseNumero;
-            var matchCapitolo = capitolo === 'tutti' || gruppoToCapitolo[record.gruppo] === capitolo;
-            var matchSettore = settore === 'tutti' || gruppoToSettore[record.gruppo] === settore;
-            var matchGruppo = gruppo === 'tutti' || record.gruppo === gruppo;
+        if (dataDato >= dataLimite) {
+            var capitoloGruppo = gruppoToCapitolo[dato.gruppo] || 'Sconosciuto';
+            var settoreGruppo = gruppoToSettore[dato.gruppo] || 'Sconosciuto';
             
-            return matchAnno && matchMese && matchCapitolo && matchSettore && matchGruppo;
-        });
-        
-        // Aggrega i dati del mese
-        var totali = {
-            responsabili: 0,
-            giovaniDonne: 0,
-            giovaniUomini: 0,
-            donne: 0,
-            uomini: 0,
-            simpatizzanti: 0,
-            generale: 0
-        };
-        
-        for (var j = 0; j < datiMese.length; j++) {
-            var record = datiMese[j];
-            totali.responsabili += record.totaleResponsabili || 0;
-            totali.giovaniDonne += record.totaleYD || 0;
-            totali.giovaniUomini += record.totaleYM || 0;
-            totali.donne += record.totaleMD || 0;
-            totali.uomini += record.totaleMM || 0;
-            totali.simpatizzanti += record.totaleSimpatizzanti || 0;
-            totali.generale += record.totaleGenerale || 0;
-        }
-        
-        risultati.push({
-            anno: anno,
-            mese: meseNumero,
-            meseNome: moment().month(meseNumero - 1).format('MMMM'),
-            totali: totali,
-            numeroGruppi: datiMese.length
-        });
-    }
-    
-    // Ordina dal più vecchio al più recente per il grafico
-    risultati.reverse();
-    
-    return risultati;
-}
-
-function aggiornaGrafico(datiAggregati, filtri) {
-    var ctx = document.getElementById('mainChart').getContext('2d');
-    
-    // Distruggi il grafico esistente se presente
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-    
-    // Prepara i dati per Chart.js v2
-    var labels = datiAggregati.map(function(item) {
-        return item.meseNome + ' ' + item.anno;
-    });
-    
-    var datasets = [
-        {
-            label: 'Totale Generale',
-            data: datiAggregati.map(function(item) { return item.totali.generale; }),
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-        },
-        {
-            label: 'Responsabili',
-            data: datiAggregati.map(function(item) { return item.totali.responsabili; }),
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.1
-        },
-        {
-            label: 'Giovani Donne',
-            data: datiAggregati.map(function(item) { return item.totali.giovaniDonne; }),
-            borderColor: 'rgb(255, 205, 86)',
-            backgroundColor: 'rgba(255, 205, 86, 0.2)',
-            tension: 0.1
-        },
-        {
-            label: 'Giovani Uomini',
-            data: datiAggregati.map(function(item) { return item.totali.giovaniUomini; }),
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            tension: 0.1
-        },
-        {
-            label: 'Donne',
-            data: datiAggregati.map(function(item) { return item.totali.donne; }),
-            borderColor: 'rgb(153, 102, 255)',
-            backgroundColor: 'rgba(153, 102, 255, 0.2)',
-            tension: 0.1
-        },
-        {
-            label: 'Uomini',
-            data: datiAggregati.map(function(item) { return item.totali.uomini; }),
-            borderColor: 'rgb(255, 159, 64)',
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            tension: 0.1
-        }
-    ];
-    
-    // Crea il nuovo grafico
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                yAxes: [{
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }],
-                xAxes: [{
-                    ticks: {
-                        maxRotation: 45
-                    }
-                }]
-            },
-            legend: {
-                position: 'top'
-            },
-            title: {
-                display: true,
-                text: 'Andamento Ultimi 12 Mesi'
+            var includiDato = true;
+            
+            if (capitolo !== 'tutti' && capitoloGruppo !== capitolo) {
+                includiDato = false;
+            }
+            if (settore !== 'tutti' && settoreGruppo !== settore) {
+                includiDato = false;
+            }
+            if (gruppo !== 'tutti' && dato.gruppo !== gruppo) {
+                includiDato = false;
+            }
+            
+            if (includiDato) {
+                var chiave = dato.anno + '-' + String(dato.mese).padStart(2, '0');
+                
+                if (!datiAggregati[chiave]) {
+                    datiAggregati[chiave] = {
+                        anno: dato.anno,
+                        mese: dato.mese,
+                        nomeMese: dato.nomeMese,
+                        membri: 0,
+                        presenze: 0,
+                        praticanti: 0
+                    };
+                }
+                
+                datiAggregati[chiave].membri += dato.membri;
+                datiAggregati[chiave].presenze += dato.presenze;
+                datiAggregati[chiave].praticanti += dato.praticanti;
             }
         }
     });
     
-    // Aggiorna il titolo
-    var titoloFiltro = 'Tutti';
-    if (filtri.gruppo !== 'tutti') {
-        titoloFiltro = filtri.gruppo;
-    } else if (filtri.settore !== 'tutti') {
-        titoloFiltro = filtri.settore;
-    } else if (filtri.capitolo !== 'tutti') {
-        titoloFiltro = filtri.capitolo;
-    }
-    
-    document.getElementById('titoloGrafico').innerHTML = 
-        '<i class="fas fa-chart-line mr-2"></i>Andamento Ultimi 12 Mesi - ' + titoloFiltro;
+    return Object.values(datiAggregati).sort(function(a, b) {
+        if (a.anno !== b.anno) return a.anno - b.anno;
+        return a.mese - b.mese;
+    });
 }
 
+// Aggiorna grafico
+function aggiornaGrafico(datiAggregati, filtri) {
+    var ctx = document.getElementById('mainChart').getContext('2d');
+    
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    
+    var labels = datiAggregati.map(function(dato) {
+        return dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1) + ' ' + dato.anno;
+    });
+    
+    var datiMembri = datiAggregati.map(function(dato) { return dato.membri; });
+    var datiPresenze = datiAggregati.map(function(dato) { return dato.presenze; });
+    var datiPraticanti = datiAggregati.map(function(dato) { return dato.praticanti; });
+    
+    // Aggiorna titolo grafico
+    var titoloGrafico = document.getElementById('titoloGrafico');
+    var testoFiltro = 'Tutti';
+    if (filtri.gruppo !== 'tutti') {
+        testoFiltro = filtri.gruppo;
+    } else if (filtri.settore !== 'tutti') {
+        testoFiltro = 'Settore ' + filtri.settore;
+    } else if (filtri.capitolo !== 'tutti') {
+        testoFiltro = 'Capitolo ' + filtri.capitolo;
+    }
+    titoloGrafico.innerHTML = '<i class="fas fa-chart-line me-2"></i>Andamento Ultimi 12 Mesi - ' + testoFiltro;
+    
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Membri',
+                    data: datiMembri,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Presenze',
+                    data: datiPresenze,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Praticanti',
+                    data: datiPraticanti,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+}
+
+// Aggiorna risultati testuali
 function aggiornaRisultatiTestuali(datiAggregati, filtri) {
     var container = document.getElementById('risultatiTestuali');
     
@@ -545,41 +485,56 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
         return;
     }
     
-    var html = '';
+    var html = '<div class="row">';
     
-    // Inverti l'ordine per mostrare dal più recente
-    var datiInvertiti = datiAggregati.slice().reverse();
-    
-    for (var i = 0; i < datiInvertiti.length; i++) {
-        var item = datiInvertiti[i];
-        var totali = item.totali;
+    datiAggregati.forEach(function(dato, index) {
+        var percentualePresenze = dato.membri > 0 ? ((dato.presenze / dato.membri) * 100).toFixed(1) : '0.0';
         
-        html += '<div class="month-result">';
-        html += '<div class="month-title">' + item.meseNome + ' ' + item.anno + '</div>';
-        html += '<span class="metric">Totale: <span class="metric-value">' + totali.generale + '</span></span>';
-        html += '<span class="metric">Responsabili: <span class="metric-value">' + totali.responsabili + '</span></span>';
-        html += '<span class="metric">GD: <span class="metric-value">' + totali.giovaniDonne + '</span></span>';
-        html += '<span class="metric">GU: <span class="metric-value">' + totali.giovaniUomini + '</span></span>';
-        html += '<span class="metric">Donne: <span class="metric-value">' + totali.donne + '</span></span>';
-        html += '<span class="metric">Uomini: <span class="metric-value">' + totali.uomini + '</span></span>';
-        html += '<span class="metric">Simpatizzanti: <span class="metric-value">' + totali.simpatizzanti + '</span></span>';
-        html += '<span class="metric">Gruppi: <span class="metric-value">' + item.numeroGruppi + '</span></span>';
+        html += '<div class="col-md-6 col-lg-4 mb-3">';
+        html += '<div class="card h-100">';
+        html += '<div class="card-body">';
+        html += '<h6 class="card-title text-primary">';
+        html += '<i class="fas fa-calendar-alt me-2"></i>';
+        html += dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1) + ' ' + dato.anno;
+        html += '</h6>';
+        html += '<div class="row text-center">';
+        html += '<div class="col-4">';
+        html += '<div class="text-info fw-bold fs-5">' + dato.membri + '</div>';
+        html += '<small class="text-muted">Membri</small>';
         html += '</div>';
-    }
+        html += '<div class="col-4">';
+        html += '<div class="text-success fw-bold fs-5">' + dato.presenze + '</div>';
+        html += '<small class="text-muted">Presenze</small>';
+        html += '</div>';
+        html += '<div class="col-4">';
+        html += '<div class="text-warning fw-bold fs-5">' + dato.praticanti + '</div>';
+        html += '<small class="text-muted">Praticanti</small>';
+        html += '</div>';
+        html += '</div>';
+        html += '<hr>';
+        html += '<div class="text-center">';
+        html += '<span class="badge bg-primary">Partecipazione: ' + percentualePresenze + '%</span>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+    });
     
+    html += '</div>';
     container.innerHTML = html;
 }
 
+// Funzione logout
 function logout() {
     auth.signOut().then(function() {
         console.log('Logout effettuato');
-        window.location.href = 'index1.html';
+        window.location.href = 'index.html';
     }).catch(function(error) {
         console.error('Errore durante il logout:', error);
-        window.location.href = 'index1.html';
+        alert('Errore durante il logout');
     });
 }
 
-// Esponi le funzioni globalmente
+// Esponi funzioni globalmente per compatibilità
 window.logout = logout;
 window.applicaFiltri = applicaFiltri;
