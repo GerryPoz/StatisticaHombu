@@ -101,8 +101,17 @@ function caricaDatiStorici() {
                             
                             // Sezione zadankai
                             if (datiGruppo.zadankai) {
-                                var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri);
-                                var presenze = calcolaTotaleCategoria(datiGruppo.zadankai.presenze);
+                                var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                
+                                // CORREZIONE: calcola presenze come somma di membri + simpatizzanti + ospiti
+                                var presenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {}) + 
+                                              calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {}) + 
+                                              calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                                
+                                console.log('Gruppo:', gruppo, 'Membri:', membri, 'Presenze calcolate:', presenze);
+                                console.log('Dettaglio presenze - Membri:', calcolaTotaleCategoria(datiGruppo.zadankai.membri || {}), 
+                                           'Simpatizzanti:', calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {}), 
+                                           'Ospiti:', calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {}));
                                 
                                 datiStorici.push({
                                     anno: anno,
@@ -123,9 +132,12 @@ function caricaDatiStorici() {
                                     datiStorici[ultimoIndice].mese === mese && 
                                     datiStorici[ultimoIndice].gruppo === gruppo) {
                                     
-                                    var membriPraticanti = calcolaTotaleCategoria(datiGruppo.praticanti.membri);
-                                    var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti);
+                                    var membriPraticanti = calcolaTotaleCategoria(datiGruppo.praticanti.membri || {});
+                                    var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti || {});
                                     datiStorici[ultimoIndice].praticanti = membriPraticanti + simpatizzanti;
+                                    
+                                    console.log('Praticanti per', gruppo, ':', datiStorici[ultimoIndice].praticanti, 
+                                               '(Membri:', membriPraticanti, 'Simpatizzanti:', simpatizzanti, ')');
                                 }
                             }
                         }
@@ -139,6 +151,7 @@ function caricaDatiStorici() {
                     });
                     
                     console.log('Dati storici elaborati:', datiStorici.length, 'record');
+                    console.log('Primi 3 record per verifica:', datiStorici.slice(0, 3));
                 } else {
                     console.log('Nessun dato trovato nel database, genero dati di esempio');
                     datiStorici = generaDatiEsempio();
