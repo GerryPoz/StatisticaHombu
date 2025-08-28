@@ -667,7 +667,7 @@ function esportaPdf() {
         // ===== RIEPILOGO HOMBU GENERALE DETTAGLIATO =====
         doc.setFontSize(14);
         doc.text('RIEPILOGO HOMBU GENERALE', 20, yPosition);
-        yPosition += 10;
+        yPosition += 10; // Spazio dopo titolo Hombu
         
         // Prepara tabella dettagliata Hombu
         var intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
@@ -765,14 +765,14 @@ function esportaPdf() {
             
             doc.setFontSize(16);
             doc.text('CAPITOLO: ' + capitolo, 20, yPosition);
-            yPosition += 15;
+            yPosition += 15; // Spazio dopo titolo capitolo
             
             var righeFiltrateCap = righeFiltrate.filter(function(r) { return gruppoToCapitolo[r.gruppo] === capitolo; });
             
             // ===== PRIMA: RIEPILOGO CAPITOLO DETTAGLIATO =====
             doc.setFontSize(12);
             doc.text('Riepilogo Capitolo: ' + capitolo, 20, yPosition);
-            yPosition += 8;
+            yPosition += 8; // Spazio dopo titolo riepilogo capitolo
             
             // Prepara tabella dettagliata capitolo
             var intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
@@ -883,7 +883,7 @@ function esportaPdf() {
                 
                 doc.setFontSize(12);
                 doc.text('Settore: ' + settore, 20, yPosition);
-                yPosition += 5;
+                yPosition += 5; // Spazio tra titolo settore e tabella
                 
                 // Ottieni lista gruppi del settore
                 var gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
@@ -971,7 +971,7 @@ function esportaPdf() {
                     }
                 });
                 
-                yPosition = doc.lastAutoTable.finalY + 4;
+                yPosition = doc.lastAutoTable.finalY + 10; // Spazio dopo ogni tabella settore
             });
         });
         
