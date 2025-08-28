@@ -323,7 +323,7 @@ function aggiornaSottofiltri() {
 }
 
 function mostraLoading(mostra) {
-    var loading = document.getElementById('loading');
+    var loading = document.getElementById('loadingSpinner'); // Cambiato da 'loading' a 'loadingSpinner'
     if (loading) {
         loading.style.display = mostra ? 'block' : 'none';
     }
