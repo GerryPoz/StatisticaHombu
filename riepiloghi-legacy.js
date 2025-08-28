@@ -859,7 +859,7 @@ function esportaPdf() {
             
             yPosition = doc.lastAutoTable.finalY + 15;
             
-            // ===== POI: TABELLE DETTAGLIATE PER SETTORE =====
+            // ===== POI: TABELLE DETTAGLIATE PER SETTORE (ORDINATI ALFABETICAMENTE) =====
             // Raggruppa per settore
             var settori = {};
             righeFiltrateCap.forEach(function(r) {
@@ -875,7 +875,10 @@ function esportaPdf() {
                 }
             });
             
-            for (var settore in settori) {
+            // Ordina i settori alfabeticamente
+            var nomiSettori = Object.keys(settori).sort();
+            
+            nomiSettori.forEach(function(settore) {
                 var righeSettore = settori[settore];
                 
                 doc.setFontSize(12);
@@ -969,18 +972,15 @@ function esportaPdf() {
                 });
                 
                 yPosition = doc.lastAutoTable.finalY + 10;
-            }
+            });
         });
         
         // Salva il PDF
-        var nomeFile = 'Riepiloghi_HOMBU9_' + meseSelezionato + '_' + annoSelezionato + '.pdf';
-        doc.save(nomeFile);
-        
-        console.log('PDF esportato con successo:', nomeFile);
+        doc.save('Riepiloghi_HOMBU9_' + meseSelezionato + '_' + annoSelezionato + '.pdf');
         
     } catch (error) {
-        console.error('Errore durante l\'esportazione PDF:', error);
-        alert('Errore durante l\'esportazione del PDF: ' + error.message);
+        console.error('Errore durante la generazione del PDF:', error);
+        alert('Errore durante la generazione del PDF: ' + error.message);
     }
 }
 
