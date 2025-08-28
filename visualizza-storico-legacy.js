@@ -51,32 +51,12 @@ function calcolaTotaleCategoria(categoria) {
 
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', function() {
-    // Controllo compatibilità browser
-    try {
-        if (typeof firebase === 'undefined') {
-            throw new Error('Firebase non caricato');
-        }
-        
-        inizializzaApp().then(function() {
-            console.log('App inizializzata con successo');
-        }).catch(function(error) {
-            console.error('Errore durante l\'inizializzazione:', error);
-            // Fallback per browser molto vecchi
-            setTimeout(function() {
-                try {
-                    caricaGruppi();
-                    inizializzaFiltri();
-                    applicaFiltri();
-                } catch (fallbackError) {
-                    console.error('Errore nel fallback:', fallbackError);
-                    alert('Il browser non è compatibile con questa applicazione. Si prega di utilizzare un browser più recente.');
-                }
-            }, 1000);
-        });
-    } catch (initError) {
-        console.error('Errore critico di inizializzazione:', initError);
-        alert('Errore durante l\'inizializzazione dell\'applicazione. Browser non compatibile.');
-    }
+    inizializzaApp().then(function() {
+        console.log('App inizializzata con successo');
+    }).catch(function(error) {
+        console.error('Errore durante l\'inizializzazione:', error);
+        alert('Errore durante l\'inizializzazione dell\'applicazione');
+    });
 });
 
 function inizializzaApp() {
@@ -243,7 +223,13 @@ function inizializzaFiltri() {
     }
     
     // Popola filtro capitoli
-    var capitoli = Array.from(new Set(gruppiDisponibili.map(function(g) { return g.capitolo; })));
+    var capitoli = [];
+    gruppiDisponibili.forEach(function(gruppo) {
+        if (capitoli.indexOf(gruppo.capitolo) === -1) {
+            capitoli.push(gruppo.capitolo);
+        }
+    });
+    
     capitoli.forEach(function(capitolo) {
         var option = document.createElement('option');
         option.value = capitolo;
@@ -274,10 +260,13 @@ function aggiornaSottofiltri() {
     
     // Filtra settori in base al capitolo
     filtroSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
-    var settori = gruppiDisponibili
-        .filter(function(g) { return capitoloSelezionato === 'tutti' || g.capitolo === capitoloSelezionato; })
-        .map(function(g) { return g.settore; })
-        .filter(function(value, index, self) { return self.indexOf(value) === index; });
+    var settori = [];
+    gruppiDisponibili.forEach(function(gruppo) {
+        if ((capitoloSelezionato === 'tutti' || gruppo.capitolo === capitoloSelezionato) &&
+            settori.indexOf(gruppo.settore) === -1) {
+            settori.push(gruppo.settore);
+        }
+    });
     
     settori.forEach(function(settore) {
         var option = document.createElement('option');
@@ -333,9 +322,9 @@ function applicaFiltri() {
 }
 
 function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
-    if (capitolo === void 0) { capitolo = 'tutti'; }
-    if (settore === void 0) { settore = 'tutti'; }
-    if (gruppo === void 0) { gruppo = 'tutti'; }
+    if (capitolo === undefined) { capitolo = 'tutti'; }
+    if (settore === undefined) { settore = 'tutti'; }
+    if (gruppo === undefined) { gruppo = 'tutti'; }
     
     var oggi = new Date();
     var dataLimite = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1);
@@ -362,7 +351,7 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
             }
             
             if (includiDato) {
-                var chiave = dato.anno + '-' + String(dato.mese).padStart(2, '0');
+                var chiave = dato.anno + '-' + (dato.mese < 10 ? '0' + dato.mese : dato.mese);
                 
                 if (!datiAggregati[chiave]) {
                     datiAggregati[chiave] = {
@@ -382,7 +371,12 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
         }
     });
     
-    return Object.values(datiAggregati).sort(function(a, b) {
+    var risultato = [];
+    Object.keys(datiAggregati).forEach(function(chiave) {
+        risultato.push(datiAggregati[chiave]);
+    });
+    
+    return risultato.sort(function(a, b) {
         if (a.anno !== b.anno) return a.anno - b.anno;
         return a.mese - b.mese;
     });
