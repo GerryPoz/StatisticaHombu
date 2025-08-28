@@ -857,7 +857,7 @@ function esportaPdf() {
                 }
             });
             
-            yPosition = doc.lastAutoTable.finalY + 10;
+            yPosition = doc.lastAutoTable.finalY + 8;
             
             // ===== POI: TABELLE DETTAGLIATE PER SETTORE (ORDINATI ALFABETICAMENTE) =====
             // Raggruppa per settore
@@ -883,7 +883,7 @@ function esportaPdf() {
                 
                 doc.setFontSize(12);
                 doc.text('Settore: ' + settore, 20, yPosition);
-                yPosition += 3;
+                yPosition += 5;
                 
                 // Ottieni lista gruppi del settore
                 var gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
@@ -971,7 +971,7 @@ function esportaPdf() {
                     }
                 });
                 
-                yPosition = doc.lastAutoTable.finalY + 5;
+                yPosition = doc.lastAutoTable.finalY + 4;
             });
         });
         
