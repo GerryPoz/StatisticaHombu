@@ -857,7 +857,7 @@ function esportaPdf() {
                 }
             });
             
-            yPosition = doc.lastAutoTable.finalY + 15;
+            yPosition = doc.lastAutoTable.finalY + 10;
             
             // ===== POI: TABELLE DETTAGLIATE PER SETTORE (ORDINATI ALFABETICAMENTE) =====
             // Raggruppa per settore
@@ -971,7 +971,7 @@ function esportaPdf() {
                     }
                 });
                 
-                yPosition = doc.lastAutoTable.finalY + 10;
+                yPosition = doc.lastAutoTable.finalY + 5;
             });
         });
         
