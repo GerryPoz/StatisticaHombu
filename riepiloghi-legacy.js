@@ -1,4 +1,5 @@
-import { firebaseConfig } from './firebase-config.js';
+<script src="firebase-config.js"></script>
+<script src="riepiloghi-legacy.js"></script>
 
 // Inizializza Firebase
 firebase.initializeApp(firebaseConfig);
