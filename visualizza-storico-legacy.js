@@ -194,49 +194,39 @@ function caricaDatiStorici() {
 }
 
 // Carica gruppi (conversione da async/await a Promise)
-/ Carica gruppi (VERSIONE CORRETTA CON XMLHttpRequest per compatibilità Safari)
 function caricaGruppi() {
     return new Promise(function(resolve, reject) {
         try {
-            // Usa XMLHttpRequest invece di fetch per compatibilità Safari
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', './gruppi.json', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            console.log('Dati gruppi ricevuti:', data);
-                            if (data && Array.isArray(data.gruppi) && data.gruppi.length > 0) {
-                                gruppiDisponibili = data.gruppi;
-                                
-                                // Crea le mappe gruppo -> capitolo e gruppo -> settore
-                                data.gruppi.forEach(function(gruppo) {
-                                    gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
-                                    gruppoToSettore[gruppo.nome] = gruppo.settore;
-                                });
-                                
-                                console.log('Gruppi caricati:', gruppiDisponibili.length);
-                            } else {
-                                console.warn('Struttura del file gruppi.json non valida o vuota');
-                                console.log('Struttura ricevuta:', data);
-                            }
-                            resolve();
-                        } catch (parseError) {
-                            console.error('Errore nel parsing JSON:', parseError);
-                            resolve();
-                        }
-                    } else {
-                        console.error('Errore nel caricamento del file gruppi.json:', xhr.status);
-                        resolve();
+            // Carica il file gruppi.json
+            fetch('./gruppi.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Errore nel caricamento del file gruppi.json');
                     }
-                }
-            };
-            xhr.onerror = function() {
-                console.error('Errore di rete nel caricamento gruppi');
-                resolve();
-            };
-            xhr.send();
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log('Dati gruppi ricevuti:', data);
+                    if (data && Array.isArray(data.gruppi) && data.gruppi.length > 0) {
+                        gruppiDisponibili = data.gruppi;
+                        
+                        // Crea le mappe gruppo -> capitolo e gruppo -> settore
+                        data.gruppi.forEach(function(gruppo) {
+                            gruppoToCapitolo[gruppo.nome] = gruppo.capitolo;
+                            gruppoToSettore[gruppo.nome] = gruppo.settore;
+                        });
+                        
+                        console.log('Gruppi caricati:', gruppiDisponibili.length);
+                    } else {
+                        console.warn('Struttura del file gruppi.json non valida o vuota');
+                        console.log('Struttura ricevuta:', data);
+                    }
+                    resolve();
+                })
+                .catch(function(error) {
+                    console.error('Errore nel caricamento gruppi:', error);
+                    resolve(); // Continua anche se non riesce a caricare i gruppi
+                });
         } catch (error) {
             console.error('Errore nella funzione caricaGruppi:', error);
             resolve();
@@ -244,13 +234,10 @@ function caricaGruppi() {
     });
 }
 
-
-// Genera dati di esempio (VERSIONE CORRETTA SENZA MOMENT.JS)
+// Genera dati di esempio
 function generaDatiEsempio() {
     var datiEsempio = [];
     var gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C', 'Gruppo D'];
-    var mesiNomi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
-                    'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
     var dataInizio = new Date(2025, 0, 1); // Gennaio 2025
     
     for (var i = 0; i < 12; i++) {
@@ -259,7 +246,7 @@ function generaDatiEsempio() {
         
         var anno = data.getFullYear();
         var mese = data.getMonth() + 1;
-        var nomeMese = mesiNomi[data.getMonth()];
+        var nomeMese = moment().month(data.getMonth()).format('MMMM').toLowerCase();
         
         gruppiEsempio.forEach(function(gruppo) {
             var membri = Math.floor(Math.random() * 50) + 20;
@@ -281,22 +268,20 @@ function generaDatiEsempio() {
     return datiEsempio;
 }
 
-// Inizializza i filtri (VERSIONE CORRETTA SENZA Set() per compatibilità Safari)
+// Inizializza i filtri
 function inizializzaFiltri() {
-    var capitoli = [];
-    var settori = [];
-    var gruppi = [];
+    var capitoli = new Set();
+    var settori = new Set();
+    var gruppi = new Set();
     
     // Estrai capitoli, settori e gruppi dai dati storici
     datiStorici.forEach(function(dato) {
-        if (gruppi.indexOf(dato.gruppo) === -1) {
-            gruppi.push(dato.gruppo);
+        gruppi.add(dato.gruppo);
+        if (gruppoToCapitolo[dato.gruppo]) {
+            capitoli.add(gruppoToCapitolo[dato.gruppo]);
         }
-        if (gruppoToCapitolo[dato.gruppo] && capitoli.indexOf(gruppoToCapitolo[dato.gruppo]) === -1) {
-            capitoli.push(gruppoToCapitolo[dato.gruppo]);
-        }
-        if (gruppoToSettore[dato.gruppo] && settori.indexOf(gruppoToSettore[dato.gruppo]) === -1) {
-            settori.push(gruppoToSettore[dato.gruppo]);
+        if (gruppoToSettore[dato.gruppo]) {
+            settori.add(gruppoToSettore[dato.gruppo]);
         }
     });
     
@@ -304,7 +289,7 @@ function inizializzaFiltri() {
     var selectCapitolo = document.getElementById('filtroCapitolo');
     if (selectCapitolo) {
         selectCapitolo.innerHTML = '<option value="tutti">Tutti i Capitoli</option>';
-        capitoli.sort().forEach(function(capitolo) {
+        Array.from(capitoli).sort().forEach(function(capitolo) {
             var option = document.createElement('option');
             option.value = capitolo;
             option.textContent = capitolo;
@@ -315,12 +300,13 @@ function inizializzaFiltri() {
     aggiornaSottofiltri();
 }
 
-// Aggiorna sottofiltri (VERSIONE CORRETTA SENZA Set())
+// Aggiorna sottofiltri in base al capitolo selezionato
 function aggiornaSottofiltri() {
     var selectCapitolo = document.getElementById('filtroCapitolo');
     var selectSettore = document.getElementById('filtroSettore');
     var selectGruppo = document.getElementById('filtroGruppo');
     
+    // Controlli di sicurezza
     if (!selectCapitolo || !selectSettore || !selectGruppo) {
         console.error('Elementi DOM dei filtri non trovati');
         return;
@@ -328,28 +314,27 @@ function aggiornaSottofiltri() {
     
     var capitoloSelezionato = selectCapitolo.value;
     
+    // Reset settori
     selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
     selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
     
-    var settoriDisponibili = [];
-    var gruppiDisponibili = [];
+    var settoriDisponibili = new Set();
+    var gruppiDisponibili = new Set();
     
     datiStorici.forEach(function(dato) {
         var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
         var settoreGruppo = gruppoToSettore[dato.gruppo];
         
         if (capitoloSelezionato === 'tutti' || capitoloGruppo === capitoloSelezionato) {
-            if (settoreGruppo && settoriDisponibili.indexOf(settoreGruppo) === -1) {
-                settoriDisponibili.push(settoreGruppo);
+            if (settoreGruppo) {
+                settoriDisponibili.add(settoreGruppo);
             }
-            if (gruppiDisponibili.indexOf(dato.gruppo) === -1) {
-                gruppiDisponibili.push(dato.gruppo);
-            }
+            gruppiDisponibili.add(dato.gruppo);
         }
     });
     
     // Popola settori
-    settoriDisponibili.sort().forEach(function(settore) {
+    Array.from(settoriDisponibili).sort().forEach(function(settore) {
         var option = document.createElement('option');
         option.value = settore;
         option.textContent = settore;
@@ -357,7 +342,7 @@ function aggiornaSottofiltri() {
     });
     
     // Popola gruppi
-    gruppiDisponibili.sort().forEach(function(gruppo) {
+    Array.from(gruppiDisponibili).sort().forEach(function(gruppo) {
         var option = document.createElement('option');
         option.value = gruppo;
         option.textContent = gruppo;
@@ -365,9 +350,9 @@ function aggiornaSottofiltri() {
     });
 }
 
-// Mostra/nasconde loading (CORREZIONE SELETTORE CSS)
+// Mostra/nasconde loading
 function mostraLoading(mostra) {
-    var spinner = document.getElementById('loadingSpinner');
+    var spinner = document.querySelector('.loading-spinner');
     if (spinner) {
         spinner.style.display = mostra ? 'block' : 'none';
     }
