@@ -883,7 +883,7 @@ function esportaPdf() {
                 
                 doc.setFontSize(12);
                 doc.text('Settore: ' + settore, 20, yPosition);
-                yPosition += 5;
+                yPosition += 3;
                 
                 // Ottieni lista gruppi del settore
                 var gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
