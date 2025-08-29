@@ -26,14 +26,14 @@
 
     <!-- Menu Principale -->
     <div class="row justify-content-center">
-      <div class="col-lg-8">
+      <div class="col-lg-10">
         <div class="row g-4">
           <!-- Card Inserimento Dati -->
-          <div class="col-md-6">
+          <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0">
               <div class="card-header bg-primary text-white text-center py-4">
                 <i class="fas fa-plus-circle fa-3x mb-3"></i>
-                <h4 class="mb-0">Inserimento Dati</h4>
+                <h5 class="mb-0">Inserimento Dati</h5>
               </div>
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
@@ -56,11 +56,11 @@
           </div>
 
           <!-- Card Visualizzazione Dati -->
-          <div class="col-md-6">
+          <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0">
               <div class="card-header bg-success text-white text-center py-4">
                 <i class="fas fa-chart-bar fa-3x mb-3"></i>
-                <h4 class="mb-0">Visualizzazione Dati</h4>
+                <h5 class="mb-0">Visualizzazione Dati</h5>
               </div>
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
@@ -82,102 +82,82 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Sezione Informazioni -->
-    <div class="row justify-content-center mt-5">
-      <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-          <div class="card-header bg-info text-white">
-            <h5 class="mb-0">
-              <i class="fas fa-info-circle me-2"></i>
-              Informazioni Sistema
-            </h5>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sezioni Aggiuntive -->
-    <div class="row justify-content-center mt-5">
-      <div class="col-lg-10">
-        <div class="row g-4">
-          <!-- Card Gestione Gruppi -->
-          <div class="col-md-4">
+          <!-- Card Riepiloghi -->
+          <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0">
-              <div class="card-header bg-primary text-white text-center py-4">
-                <i class="fas fa-users fa-3x mb-3"></i>
-                <h5 class="mb-0">Struttura Capitoli</h5>
+              <div class="card-header bg-info text-white text-center py-4">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <h5 class="mb-0">Riepiloghi</h5>
               </div>
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
                   <p class="card-text text-muted mb-4">
-                    Organizzazione dei gruppi per capitoli e settori.
+                    Genera riepiloghi e report dettagliati per analisi approfondite.
                   </p>
                   <ul class="list-unstyled">
-                    <li><i class="fas fa-check text-success me-2"></i>Gestione capitoli e settori</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Lista gruppi</li>
-                  </ul>
-                </div>
-                <div class="text-center mt-4">
-                  <a href="gestione-gruppi.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-cogs me-2"></i>Visualizza Capitoli
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-    
-          <!-- Card Dati Mensili -->
-          <div class="col-md-4">
-            <div class="card shadow-lg h-100 border-0">
-              <div class="card-header bg-warning text-white text-center py-4">
-                <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                <h5 class="mb-0">Dati Mensili</h5>
-              </div>
-              <div class="card-body d-flex flex-column justify-content-between">
-                <div>
-                  <p class="card-text text-muted mb-4">
-                    Tracciamento temporale completo e analisi storiche.
-                  </p>
-                  <ul class="list-unstyled">
-                    <li><i class="fas fa-check text-success me-2"></i>Vista calendario</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Storico completo</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Report mensili</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Statistiche aggregate</li>
                     <li><i class="fas fa-check text-success me-2"></i>Confronti temporali</li>
                   </ul>
                 </div>
                 <div class="text-center mt-4">
-                  <a href="visualizza-storico-legacy.html" class="btn btn-warning btn-lg">
-                    <i class="fas fa-history me-2"></i>Visualizza Storico
+                  <a href="riepiloghi.html" class="btn btn-info btn-lg">
+                    <i class="fas fa-chart-pie me-2"></i>Visualizza Riepiloghi
                   </a>
                 </div>
               </div>
             </div>
           </div>
-    
-          <!-- Card Analisi Avanzate -->
-          <div class="col-md-4">
+
+          <!-- Card Storico Dati -->
+          <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0">
-              <div class="card-header bg-info text-white text-center py-4">
-                <i class="fas fa-chart-pie fa-3x mb-3"></i>
-                <h5 class="mb-0">Analisi Avanzate</h5>
+              <div class="card-header bg-warning text-white text-center py-4">
+                <i class="fas fa-history fa-3x mb-3"></i>
+                <h5 class="mb-0">Storico Dati</h5>
               </div>
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
                   <p class="card-text text-muted mb-4">
-                    Dashboard avanzato con confronti e tendenze.
+                    Analizza l'andamento storico dei dati con grafici temporali.
                   </p>
                   <ul class="list-unstyled">
-                    <li><i class="fas fa-check text-success me-2"></i>Dashboard KPI</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Grafici tendenze</li>
-                    <li><i class="fas fa-check text-success me-2"></i>Report automatici</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Grafici temporali</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Filtri per periodo</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Tendenze e pattern</li>
                   </ul>
                 </div>
                 <div class="text-center mt-4">
-                  <a href="manutenzione.html" class="btn btn-info btn-lg">
-                    <i class="fas fa-analytics me-2"></i>Analizza Dati
+                  <a href="visualizza-storico-legacy.html" class="btn btn-warning btn-lg">
+                    <i class="fas fa-calendar-alt me-2"></i>Visualizza Storico
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Gestione Gruppi -->
+          <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg h-100 border-0">
+              <div class="card-header bg-secondary text-white text-center py-4">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <h5 class="mb-0">Gestione Gruppi</h5>
+              </div>
+              <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                  <p class="card-text text-muted mb-4">
+                    Organizza e gestisci i gruppi per capitoli e settori.
+                  </p>
+                  <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i>Organizzazione capitoli</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Gestione settori</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Lista gruppi</li>
+                  </ul>
+                </div>
+                <div class="text-center mt-4">
+                  <a href="gestione-gruppi.html" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-cogs me-2"></i>Gestisci Gruppi
                   </a>
                 </div>
               </div>
