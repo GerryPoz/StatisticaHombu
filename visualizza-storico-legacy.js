@@ -676,15 +676,18 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
         html += '</h6>';
         html += '<div class="row text-center">';
         html += '<div class="col-4">';
-        html += '<div class="text-info fw-bold fs-5">' + dato.membri + '</div>';
+        // UNIFORMATO: Membri - colore turchese come nel grafico
+        html += '<div style="color: rgb(75, 192, 192);" class="fw-bold fs-5">' + dato.membri + '</div>';
         html += '<small class="text-muted">Membri</small>';
         html += '</div>';
         html += '<div class="col-4">';
-        html += '<div class="text-success fw-bold fs-5">' + dato.presenze + '</div>';
+        // UNIFORMATO: Zadankai - colore rosa come nel grafico
+        html += '<div style="color: rgb(255, 99, 132);" class="fw-bold fs-5">' + dato.presenze + '</div>';
         html += '<small class="text-muted">Zadankai</small>';
         html += '</div>';
         html += '<div class="col-4">';
-        html += '<div class="text-warning fw-bold fs-5">' + dato.praticanti + '</div>';
+        // UNIFORMATO: Praticanti - colore blu come nel grafico
+        html += '<div style="color: rgb(54, 162, 235);" class="fw-bold fs-5">' + dato.praticanti + '</div>';
         html += '<small class="text-muted">Praticanti</small>';
         html += '</div>';
         html += '</div>';
