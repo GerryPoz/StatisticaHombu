@@ -46,20 +46,12 @@ function calcolaTotaleCategoria(categoria) {
 
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', function() {
-    // Versione più robusta per iPadOS 12
-    setTimeout(function() {
-        inizializzaApp().then(function() {
-            console.log('App inizializzata con successo');
-        }).catch(function(error) {
-            console.error('Errore durante l\'inizializzazione:', error);
-            // Non mostrare alert, ma continua con dati di esempio
-            console.log('Continuo con dati di esempio...');
-            datiStorici = generaDatiEsempio();
-            inizializzaFiltri();
-            applicaFiltri();
-            mostraLoading(false);
-        });
-    }, 100); // Piccolo delay per assicurare che tutto sia caricato
+    inizializzaApp().then(function() {
+        console.log('App inizializzata con successo');
+    }).catch(function(error) {
+        console.error('Errore durante l\'inizializzazione:', error);
+        alert('Errore durante l\'inizializzazione dell\'applicazione');
+    });
 });
 
 // Inizializza l'applicazione (conversione da async/await a Promise)
@@ -68,34 +60,21 @@ function inizializzaApp() {
         try {
             mostraLoading(true);
             
-            // Carica prima i gruppi, poi i dati storici (sequenziale invece di parallelo)
-            caricaGruppi().then(function() {
-                console.log('Gruppi caricati, ora carico i dati storici...');
-                return caricaDatiStorici();
-            }).then(function() {
-                console.log('Dati storici caricati, inizializzo i filtri...');
+            // Carica dati storici e gruppi in parallelo
+            Promise.all([
+                caricaDatiStorici(),
+                caricaGruppi()
+            ]).then(function() {
                 inizializzaFiltri();
                 applicaFiltri();
                 mostraLoading(false);
                 resolve();
             }).catch(function(error) {
                 console.error('Errore durante il caricamento:', error);
-                // Non bloccare l'app con alert, usa dati di esempio
-                console.log('Uso dati di esempio a causa dell\'errore');
-                try {
-                    generaDatiEsempio();
-                    inizializzaFiltri();
-                    applicaFiltri();
-                    mostraLoading(false);
-                    resolve();
-                } catch (fallbackError) {
-                    console.error('Errore anche con i dati di esempio:', fallbackError);
-                    mostraLoading(false);
-                    reject(fallbackError);
-                }
+                mostraLoading(false);
+                reject(error);
             });
         } catch (error) {
-            console.error('Errore nell\'inizializzazione:', error);
             mostraLoading(false);
             reject(error);
         }
@@ -113,79 +92,103 @@ function caricaDatiStorici() {
                 if (datiCompleti) {
                     datiStorici = [];
                     
-                    // Sostituisce Object.keys() con ciclo for...in
-                    for (var chiave in datiCompleti) {
-                        if (datiCompleti.hasOwnProperty(chiave)) {
-                            console.log('🔍 DEBUG: Elaborando chiave:', chiave);
-                            var parti = chiave.split('-');
-                            if (parti.length >= 3) {
-                                var anno = parseInt(parti[0]);
-                                var nomeMese = parti[1];
-                                var gruppo = parti.slice(2).join('-');
-                                var mese = convertiMeseInNumero(nomeMese);
+                    // Elabora tutti gli anni e mesi
+                    Object.keys(datiCompleti).forEach(function(chiave) {
+                        console.log('🔍 DEBUG: Elaborando chiave:', chiave);
+                        var parti = chiave.split('-');
+                        if (parti.length >= 3) {
+                            var anno = parseInt(parti[0]);
+                            var nomeMese = parti[1];
+                            var gruppo = parti.slice(2).join('-');
+                            var mese = convertiMeseInNumero(nomeMese);
+                            
+                            var datiGruppo = datiCompleti[chiave];
+                            console.log('🔍 DEBUG: Dati gruppo', gruppo, ':', datiGruppo);
+                            
+                            // Sezione zadankai
+                            if (datiGruppo.zadankai) {
+                                console.log('🔍 DEBUG: Sezione zadankai trovata:', datiGruppo.zadankai);
                                 
-                                var datiGruppo = datiCompleti[chiave];
-                                console.log('🔍 DEBUG: Dati gruppo', gruppo, ':', datiGruppo);
+                                // Calcola membri
+                                var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                console.log('🔍 DEBUG: Membri calcolati:', membri, 'da:', datiGruppo.zadankai.membri);
                                 
-                                // Sezione zadankai
-                                if (datiGruppo.zadankai) {
-                                    console.log('🔍 DEBUG: Sezione zadankai trovata:', datiGruppo.zadankai);
+                                // Calcola presenze come somma di membri + simpatizzanti + ospiti
+                                var membriPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
+                                var simpatizzantiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {});
+                                var ospitiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
+                                var presenze = membriPresenze + simpatizzantiPresenze + ospitiPresenze;
+                                
+                                console.log('🔍 DEBUG: Calcolo presenze per', gruppo);
+                                console.log('  - Membri presenze:', membriPresenze, 'da:', datiGruppo.zadankai.membri);
+                                console.log('  - Simpatizzanti presenze:', simpatizzantiPresenze, 'da:', datiGruppo.zadankai.simpatizzanti);
+                                console.log('  - Ospiti presenze:', ospitiPresenze, 'da:', datiGruppo.zadankai.ospiti);
+                                console.log('  - TOTALE PRESENZE:', presenze);
+                                
+                                datiStorici.push({
+                                    anno: anno,
+                                    mese: mese,
+                                    nomeMese: nomeMese,
+                                    gruppo: gruppo,
+                                    membri: membri,
+                                    presenze: presenze,
+                                    praticanti: 0
+                                });
+                                
+                                console.log('🔍 DEBUG: Record aggiunto:', {
+                                    anno: anno,
+                                    mese: mese,
+                                    gruppo: gruppo,
+                                    membri: membri,
+                                    presenze: presenze
+                                });
+                            } else {
+                                console.log('⚠️ DEBUG: Nessuna sezione zadankai trovata per', gruppo);
+                            }
+                            
+                            // Sezione praticanti
+                            if (datiGruppo.praticanti) {
+                                var ultimoIndice = datiStorici.length - 1;
+                                if (ultimoIndice >= 0 && 
+                                    datiStorici[ultimoIndice].anno === anno && 
+                                    datiStorici[ultimoIndice].mese === mese && 
+                                    datiStorici[ultimoIndice].gruppo === gruppo) {
                                     
-                                    // Calcola membri
-                                    var membri = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
-                                    console.log('🔍 DEBUG: Membri calcolati:', membri, 'da:', datiGruppo.zadankai.membri);
+                                    var membriPraticanti = calcolaTotaleCategoria(datiGruppo.praticanti.membri || {});
+                                    var simpatizzanti = calcolaTotaleCategoria(datiGruppo.praticanti.simpatizzanti || {});
+                                    datiStorici[ultimoIndice].praticanti = membriPraticanti + simpatizzanti;
                                     
-                                    // Calcola presenze come somma di membri + simpatizzanti + ospiti
-                                    var membriPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.membri || {});
-                                    var simpatizzantiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.simpatizzanti || {});
-                                    var ospitiPresenze = calcolaTotaleCategoria(datiGruppo.zadankai.ospiti || {});
-                                    var presenze = membriPresenze + simpatizzantiPresenze + ospitiPresenze;
-                                    
-                                    console.log('🔍 DEBUG: Calcolo presenze per', gruppo);
-                                    console.log('  - Membri presenze:', membriPresenze, 'da:', datiGruppo.zadankai.membri);
-                                    console.log('  - Simpatizzanti presenze:', simpatizzantiPresenze, 'da:', datiGruppo.zadankai.simpatizzanti);
-                                    console.log('  - Ospiti presenze:', ospitiPresenze, 'da:', datiGruppo.zadankai.ospiti);
-                                    console.log('  - TOTALE PRESENZE:', presenze);
-                                    
-                                    datiStorici.push({
-                                        anno: anno,
-                                        mese: mese,
-                                        nomeMese: nomeMese,
-                                        gruppo: gruppo,
-                                        membri: membri,
-                                        presenze: presenze,
-                                        praticanti: 0
-                                    });
+                                    console.log('🔍 DEBUG: Praticanti aggiornati per', gruppo, ':', datiStorici[ultimoIndice].praticanti);
                                 }
                             }
                         }
-                    }
+                    });
                     
-                    console.log('🔍 DEBUG: Totale dati storici caricati:', datiStorici.length);
+                    // Ordina i dati per data
+                    datiStorici.sort(function(a, b) {
+                        if (a.anno !== b.anno) return a.anno - b.anno;
+                        if (a.mese !== b.mese) return a.mese - b.mese;
+                        return a.gruppo.localeCompare(b.gruppo);
+                    });
                     
-                    // Se non ci sono dati, usa dati di esempio
-                    if (datiStorici.length === 0) {
-                        console.log('🔍 DEBUG: Nessun dato trovato, uso dati di esempio');
-                        datiStorici = generaDatiEsempio();
-                    }
-                    
-                    resolve();
+                    console.log('🔍 DEBUG: Dati storici finali elaborati:', datiStorici.length, 'record');
+                    console.log('🔍 DEBUG: Primi 5 record per verifica:', datiStorici.slice(0, 5));
                 } else {
-                    console.log('🔍 DEBUG: Nessun dato nel database, uso dati di esempio');
+                    console.log('⚠️ Nessun dato trovato nel database, genero dati di esempio');
                     datiStorici = generaDatiEsempio();
-                    resolve();
                 }
+                
+                resolve();
             }).catch(function(error) {
-                console.error('Errore nel caricamento dati:', error);
-                console.log('🔍 DEBUG: Errore Firebase, uso dati di esempio');
+                console.error('❌ Errore nel caricamento dati:', error);
+                console.log('Genero dati di esempio a causa dell\'errore');
                 datiStorici = generaDatiEsempio();
-                resolve(); // Non rifiutare, usa i dati di esempio
+                resolve();
             });
         } catch (error) {
-            console.error('Errore nella funzione caricaDatiStorici:', error);
-            console.log('🔍 DEBUG: Errore generale, uso dati di esempio');
+            console.error('❌ Errore nella funzione caricaDatiStorici:', error);
             datiStorici = generaDatiEsempio();
-            resolve(); // Non rifiutare, usa i dati di esempio
+            resolve();
         }
     });
 }
@@ -275,8 +278,6 @@ function generaDatiEsempio() {
     var datiEsempio = [];
     var gruppiEsempio = ['Gruppo A', 'Gruppo B', 'Gruppo C', 'Gruppo D'];
     var dataInizio = new Date(2025, 0, 1); // Gennaio 2025
-    var nomiMesi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
-                    'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
     
     for (var i = 0; i < 12; i++) {
         var data = new Date(dataInizio);
@@ -284,7 +285,7 @@ function generaDatiEsempio() {
         
         var anno = data.getFullYear();
         var mese = data.getMonth() + 1;
-        var nomeMese = nomiMesi[data.getMonth()];
+        var nomeMese = moment().month(data.getMonth()).format('MMMM').toLowerCase();
         
         gruppiEsempio.forEach(function(gruppo) {
             var membri = Math.floor(Math.random() * 50) + 20;
@@ -303,11 +304,10 @@ function generaDatiEsempio() {
         });
     }
     
-    console.log('🔍 DEBUG: Generati', datiEsempio.length, 'record di esempio');
     return datiEsempio;
 }
 
-// Inizializza i filtri (VERSIONE CORRETTA con event listeners)
+// Inizializza i filtri (VERSIONE CORRETTA senza Set() per compatibilità Safari)
 function inizializzaFiltri() {
     var capitoli = [];
     var settori = [];
@@ -336,25 +336,12 @@ function inizializzaFiltri() {
             option.textContent = capitolo;
             selectCapitolo.appendChild(option);
         });
-        
-        // Aggiungi event listener per il cambio capitolo
-        selectCapitolo.addEventListener('change', function() {
-            aggiornaSottofiltri();
-        });
-    }
-    
-    // Aggiungi event listener per il cambio settore
-    var selectSettore = document.getElementById('filtroSettore');
-    if (selectSettore) {
-        selectSettore.addEventListener('change', function() {
-            aggiornaGruppiPerSettore();
-        });
     }
     
     aggiornaSottofiltri();
 }
 
-// Aggiorna sottofiltri in base al capitolo selezionato
+// Aggiorna sottofiltri (VERSIONE CORRETTA senza Set())
 function aggiornaSottofiltri() {
     var selectCapitolo = document.getElementById('filtroCapitolo');
     var selectSettore = document.getElementById('filtroSettore');
@@ -367,31 +354,25 @@ function aggiornaSottofiltri() {
     
     var capitoloSelezionato = selectCapitolo.value;
     
-    // Reset settori e gruppi
     selectSettore.innerHTML = '<option value="tutti">Tutti i Settori</option>';
     selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
     
     var settoriDisponibili = [];
+    var gruppiDisponibili = [];
     
-    // Se è selezionato "tutti" i capitoli, mostra tutti i settori
-    if (capitoloSelezionato === 'tutti') {
-        datiStorici.forEach(function(dato) {
-            var settoreGruppo = gruppoToSettore[dato.gruppo];
+    datiStorici.forEach(function(dato) {
+        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
+        var settoreGruppo = gruppoToSettore[dato.gruppo];
+        
+        if (capitoloSelezionato === 'tutti' || capitoloGruppo === capitoloSelezionato) {
             if (settoreGruppo && settoriDisponibili.indexOf(settoreGruppo) === -1) {
                 settoriDisponibili.push(settoreGruppo);
             }
-        });
-    } else {
-        // Mostra solo i settori del capitolo selezionato
-        datiStorici.forEach(function(dato) {
-            var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
-            var settoreGruppo = gruppoToSettore[dato.gruppo];
-            
-            if (capitoloGruppo === capitoloSelezionato && settoreGruppo && settoriDisponibili.indexOf(settoreGruppo) === -1) {
-                settoriDisponibili.push(settoreGruppo);
+            if (gruppiDisponibili.indexOf(dato.gruppo) === -1) {
+                gruppiDisponibili.push(dato.gruppo);
             }
-        });
-    }
+        }
+    });
     
     // Popola settori
     settoriDisponibili.sort().forEach(function(settore) {
@@ -399,55 +380,6 @@ function aggiornaSottofiltri() {
         option.value = settore;
         option.textContent = settore;
         selectSettore.appendChild(option);
-    });
-    
-    // Aggiorna anche i gruppi per il primo settore o tutti
-    aggiornaGruppiPerSettore();
-}
-
-// Aggiorna gruppi in base al settore selezionato
-function aggiornaGruppiPerSettore() {
-    var selectCapitolo = document.getElementById('filtroCapitolo');
-    var selectSettore = document.getElementById('filtroSettore');
-    var selectGruppo = document.getElementById('filtroGruppo');
-    
-    if (!selectCapitolo || !selectSettore || !selectGruppo) {
-        console.error('Elementi DOM dei filtri non trovati');
-        return;
-    }
-    
-    var capitoloSelezionato = selectCapitolo.value;
-    var settoreSelezionato = selectSettore.value;
-    
-    // Reset gruppi
-    selectGruppo.innerHTML = '<option value="tutti">Tutti i Gruppi</option>';
-    
-    var gruppiDisponibili = [];
-    
-    datiStorici.forEach(function(dato) {
-        var capitoloGruppo = gruppoToCapitolo[dato.gruppo];
-        var settoreGruppo = gruppoToSettore[dato.gruppo];
-        
-        var includiGruppo = false;
-        
-        // Logica di filtro a cascata
-        if (capitoloSelezionato === 'tutti' && settoreSelezionato === 'tutti') {
-            // Mostra tutti i gruppi
-            includiGruppo = true;
-        } else if (capitoloSelezionato === 'tutti' && settoreSelezionato !== 'tutti') {
-            // Mostra gruppi del settore selezionato (qualsiasi capitolo)
-            includiGruppo = (settoreGruppo === settoreSelezionato);
-        } else if (capitoloSelezionato !== 'tutti' && settoreSelezionato === 'tutti') {
-            // Mostra gruppi del capitolo selezionato (qualsiasi settore)
-            includiGruppo = (capitoloGruppo === capitoloSelezionato);
-        } else {
-            // Mostra gruppi del capitolo E settore selezionati
-            includiGruppo = (capitoloGruppo === capitoloSelezionato && settoreGruppo === settoreSelezionato);
-        }
-        
-        if (includiGruppo && gruppiDisponibili.indexOf(dato.gruppo) === -1) {
-            gruppiDisponibili.push(dato.gruppo);
-        }
     });
     
     // Popola gruppi
@@ -501,14 +433,6 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
     
     var datiAggregati = {};
     
-    // Controllo di sicurezza per datiStorici
-    if (!datiStorici || datiStorici.length === 0) {
-        console.log('🔍 DEBUG: datiStorici è vuoto o non definito');
-        return [];
-    }
-    
-    console.log('🔍 DEBUG aggregaDatiUltimi12Mesi: Elaboro', datiStorici.length, 'elementi');
-    
     datiStorici.forEach(function(dato) {
         var dataDato = new Date(dato.anno, dato.mese - 1, 1);
         
@@ -529,12 +453,7 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
             }
             
             if (includiDato) {
-                // Sostituisce String.padStart() con implementazione ES5
-                var meseStr = String(dato.mese);
-                if (meseStr.length < 2) {
-                    meseStr = '0' + meseStr;
-                }
-                var chiave = dato.anno + '-' + meseStr;
+                var chiave = dato.anno + '-' + String(dato.mese).padStart(2, '0');
                 
                 if (!datiAggregati[chiave]) {
                     datiAggregati[chiave] = {
@@ -554,21 +473,10 @@ function aggregaDatiUltimi12Mesi(capitolo, settore, gruppo) {
         }
     });
     
-    // Sostituisce Object.values() con implementazione ES5
-    var valori = [];
-    for (var chiave in datiAggregati) {
-        if (datiAggregati.hasOwnProperty(chiave)) {
-            valori.push(datiAggregati[chiave]);
-        }
-    }
-    
-    var risultato = valori.sort(function(a, b) {
+    return Object.values(datiAggregati).sort(function(a, b) {
         if (a.anno !== b.anno) return a.anno - b.anno;
         return a.mese - b.mese;
     });
-    
-    console.log('🔍 DEBUG aggregaDatiUltimi12Mesi: Risultato finale:', risultato.length, 'elementi');
-    return risultato;
 }
 
 // Aggiorna grafico
