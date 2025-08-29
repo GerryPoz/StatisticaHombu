@@ -351,6 +351,14 @@ function inizializzaFiltri() {
         });
     }
     
+    // AGGIUNTO: Aggiungi event listener per il cambio gruppo
+    var selectGruppo = document.getElementById('filtroGruppo');
+    if (selectGruppo) {
+        selectGruppo.addEventListener('change', function() {
+            applicaFiltri();
+        });
+    }
+    
     aggiornaSottofiltri();
 }
 
@@ -403,6 +411,9 @@ function aggiornaSottofiltri() {
     
     // Aggiorna anche i gruppi per il primo settore o tutti
     aggiornaGruppiPerSettore();
+    
+    // AGGIUNTO: Aggiorna automaticamente i dati quando cambia il capitolo
+    applicaFiltri();
 }
 
 // Aggiorna gruppi in base al settore selezionato
@@ -457,6 +468,9 @@ function aggiornaGruppiPerSettore() {
         option.textContent = gruppo;
         selectGruppo.appendChild(option);
     });
+    
+    // AGGIUNTO: Aggiorna automaticamente i dati quando cambia il settore
+    applicaFiltri();
 }
 
 // Mostra/nasconde loading
