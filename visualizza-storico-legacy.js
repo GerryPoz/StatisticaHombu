@@ -665,7 +665,7 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
     var html = '<div class="row">';
     
     datiAggregati.forEach(function(dato, index) {
-        var percentualePresenze = dato.membri > 0 ? ((dato.presenze / dato.membri) * 100).toFixed(1) : '0.0';
+        var percentualePresenze = dato.praticanti > 0 ? ((dato.presenze / dato.praticanti) * 100).toFixed(1) : '0.0';
         
         html += '<div class="col-md-6 col-lg-4 mb-3">';
         html += '<div class="card h-100">';
