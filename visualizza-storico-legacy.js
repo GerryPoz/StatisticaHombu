@@ -674,21 +674,21 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
         html += '<i class="fas fa-calendar-alt me-2"></i>';
         html += dato.nomeMese.charAt(0).toUpperCase() + dato.nomeMese.slice(1) + ' ' + dato.anno;
         html += '</h6>';
-        html += '<div class="row text-center">';
+        // MIGLIORATO: Aggiunto text-nowrap per evitare il wrap del testo
+        html += '<div class="row text-center text-nowrap">';
         html += '<div class="col-4">';
-        // UNIFORMATO: Membri - colore turchese come nel grafico
         html += '<div style="color: rgb(75, 192, 192);" class="fw-bold fs-5">' + dato.membri + '</div>';
+        // MIGLIORATO: Ridotto il testo per risparmiare spazio
         html += '<small class="text-muted">Membri</small>';
         html += '</div>';
         html += '<div class="col-4">';
-        // UNIFORMATO: Zadankai - colore rosa come nel grafico
         html += '<div style="color: rgb(255, 99, 132);" class="fw-bold fs-5">' + dato.presenze + '</div>';
         html += '<small class="text-muted">Zadankai</small>';
         html += '</div>';
         html += '<div class="col-4">';
-        // UNIFORMATO: Praticanti - colore blu come nel grafico
         html += '<div style="color: rgb(54, 162, 235);" class="fw-bold fs-5">' + dato.praticanti + '</div>';
-        html += '<small class="text-muted">Praticanti</small>';
+        // MIGLIORATO: Abbreviato "Praticanti" in "Pratic." per risparmiare spazio
+        html += '<small class="text-muted">Pratic.</small>';
         html += '</div>';
         html += '</div>';
         html += '<hr>';
