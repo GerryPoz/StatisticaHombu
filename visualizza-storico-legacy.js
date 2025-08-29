@@ -603,7 +603,7 @@ function aggiornaGrafico(datiAggregati, filtri) {
                     fill: true
                 },
                 {
-                    label: 'Presenze',
+                    label: 'Zadankai',
                     data: datiPresenze,
                     borderColor: 'rgb(255, 99, 132)',
                     backgroundColor: 'rgba(255, 99, 132, 0.1)',
@@ -681,7 +681,7 @@ function aggiornaRisultatiTestuali(datiAggregati, filtri) {
         html += '</div>';
         html += '<div class="col-4">';
         html += '<div class="text-success fw-bold fs-5">' + dato.presenze + '</div>';
-        html += '<small class="text-muted">Presenze</small>';
+        html += '<small class="text-muted">Zadankai</small>';
         html += '</div>';
         html += '<div class="col-4">';
         html += '<div class="text-warning fw-bold fs-5">' + dato.praticanti + '</div>';
