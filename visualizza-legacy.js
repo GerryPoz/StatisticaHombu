@@ -393,6 +393,7 @@ function creaRigaZadankaiLegacy(nome, dati, classe){
     var td = document.createElement("td");
     td.textContent = (i === 17 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
     if (i===0) td.className = "text-start fw-bold cella-nome";
+    if (i===5 || i===10 || i===15 || i===16 || i===17) td.classList.add('fw-bold');
     tr.appendChild(td);
   }
   return tr;
@@ -410,6 +411,7 @@ function creaRigaPraticantiLegacy(nome, dati, classe){
     var td = document.createElement("td");
     td.textContent = (i === 12 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
     if (i===0) td.className = "text-start fw-bold cella-nome";
+    if (i===5 || i===10 || i===11 || i===12) td.classList.add('fw-bold');
     tr.appendChild(td);
   }
   return tr;
