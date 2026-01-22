@@ -301,6 +301,7 @@ function creaRigaZadankai(nome, dati, classe){
     const td = document.createElement('td');
     td.textContent = (i === 17 && typeof val === 'number' && val > 0) ? `+${val}` : val;
     if (i===0) td.className='text-start fw-bold cella-nome';
+    if (i===5 || i===10 || i===15 || i===16 || i===17) td.classList.add('fw-bold');
     tr.appendChild(td);
   });
   return tr;
@@ -317,6 +318,7 @@ function creaRigaPraticanti(nome, dati, classe){
     const td = document.createElement('td');
     td.textContent = (i === 12 && typeof val === 'number' && val > 0) ? `+${val}` : val;
     if (i===0) td.className='text-start fw-bold cella-nome';
+    if (i===5 || i===10 || i===11 || i===12) td.classList.add('fw-bold');
     tr.appendChild(td);
   });
   return tr;
