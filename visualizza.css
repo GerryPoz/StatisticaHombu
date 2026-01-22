@@ -51,17 +51,17 @@ body {
 /* Righe Aggregazione */
 .riga-settore td {
   background-color: #FFFACD !important; /* LemonChiffon */
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .riga-capitolo td {
   background-color: #98FB98 !important; /* PaleGreen */
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .riga-centro td {
   background-color: #87CEEB !important; /* SkyBlue */
-  font-weight: bold;
+  font-weight: normal;
   color: #000;
 }
 
