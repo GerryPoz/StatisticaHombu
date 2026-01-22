@@ -23,7 +23,7 @@ var database;
 var filtroAnno = document.getElementById("filtro-anno");
 var filtroMese = document.getElementById("filtro-mese");
 var filtroCapitolo = document.getElementById("filtro-capitolo");
-var tbody = document.querySelector("#tabella-dati tbody");
+var containerTabelle = document.getElementById("container-tabelle");
 var btnExportExcel = document.getElementById("btn-export-excel");
 var btnExportPdf = document.getElementById("btn-export-pdf");
 var btnPrint = document.getElementById("btn-print");
@@ -218,7 +218,7 @@ function inizializzaFiltri() {
 
 // 🔹 Aggiorna la tabella
 function aggiornaTabella() {
-  tbody.innerHTML = "";
+  containerTabelle.innerHTML = "";
   var anno = String(filtroAnno.value);
   var mese = filtroMese.value;
   var capitolo = filtroCapitolo.value;
@@ -226,309 +226,193 @@ function aggiornaTabella() {
   var mesePrec = meseAnnoPrec.mese;
   var annoPrec = meseAnnoPrec.anno;
   
-  // Filtra le righe in base ai filtri selezionati
-  var righeFiltrate = righe.filter(function(r) {
+  // Filtra i dati base
+  var datiAnnoMese = righe.filter(function(r) {
     return String(r.anno) === String(anno) &&
            r.mese === mese &&
            gruppoToCapitolo[r.gruppo] === capitolo;
   });
+  var datiPrec = righe.filter(function(r) {
+    return String(r.anno) === String(annoPrec) &&
+           r.mese === mesePrec &&
+           gruppoToCapitolo[r.gruppo] === capitolo;
+  });
   
-  // Ottieni la struttura dei settori e gruppi
-  var settorePerGruppo = {};
+  // Struttura gerarchica e totali
   var strutturaCapitolo = gruppiData["HOMBU 9"][capitolo];
+  var datiGerarchici = [];
+  var totCapitoloZ = { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 };
+  var totCapitoloP = { membri: initTot(), simp: initTot(), totG: 0, var: 0 };
+  
   for (var settore in strutturaCapitolo) {
-    var listaGruppi = strutturaCapitolo[settore];
-    for (var i = 0; i < listaGruppi.length; i++) {
-      settorePerGruppo[listaGruppi[i]] = settore;
+    var gruppi = strutturaCapitolo[settore].slice().sort();
+    var datiSettore = {
+      nome: settore,
+      gruppi: [],
+      totZ: { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 },
+      totP: { membri: initTot(), simp: initTot(), totG: 0, var: 0 }
+    };
+    
+    for (var i = 0; i < gruppi.length; i++) {
+      var gruppo = gruppi[i];
+      // Zadankai
+      var rz = datiAnnoMese.filter(function(r){ return r.gruppo === gruppo && r.tipo === "ZADANKAI"; });
+      var rzPrec = datiPrec.filter(function(r){ return r.gruppo === gruppo && r.tipo === "ZADANKAI"; });
+      var zM = trovaDatiSezione(rz, "membri");
+      var zS = trovaDatiSezione(rz, "simpatizzanti");
+      var zO = trovaDatiSezione(rz, "ospiti");
+      var zTotG = zM.Tot + zS.Tot + zO.Tot;
+      var zFut = (zM.FUT||0) + (zS.FUT||0) + (zO.FUT||0);
+      var zStu = (zM.STU||0) + (zS.STU||0) + (zO.STU||0);
+      var zTotPrec = 0; for (var a=0;a<rzPrec.length;a++){ var rr=rzPrec[a]; zTotPrec += rr.U+rr.D+rr.GU+rr.GD; }
+      var zVar = zTotG - zTotPrec;
+      var datiGruppoZ = { membri: zM, simp: zS, ospiti: zO, totG: zTotG, var: zVar, fut: zFut, stu: zStu };
+      sommaTotali(datiSettore.totZ.membri, zM);
+      sommaTotali(datiSettore.totZ.simp, zS);
+      sommaTotali(datiSettore.totZ.ospiti, zO);
+      datiSettore.totZ.totG += zTotG; datiSettore.totZ.var += zVar; datiSettore.totZ.fut += zFut; datiSettore.totZ.stu += zStu;
+      
+      // Praticanti
+      var rp = datiAnnoMese.filter(function(r){ return r.gruppo === gruppo && r.tipo === "PRATICANTI"; });
+      var rpPrec = datiPrec.filter(function(r){ return r.gruppo === gruppo && r.tipo === "PRATICANTI"; });
+      var pM = trovaDatiSezione(rp, "membri");
+      var pS = trovaDatiSezione(rp, "simpatizzanti");
+      var pTotG = pM.Tot + pS.Tot;
+      var pTotPrec = 0; for (var b=0;b<rpPrec.length;b++){ var rrp=rpPrec[b]; pTotPrec += rrp.U+rrp.D+rrp.GU+rrp.GD; }
+      var pVar = pTotG - pTotPrec;
+      var datiGruppoP = { membri: pM, simp: pS, totG: pTotG, var: pVar };
+      sommaTotali(datiSettore.totP.membri, pM);
+      sommaTotali(datiSettore.totP.simp, pS);
+      datiSettore.totP.totG += pTotG; datiSettore.totP.var += pVar;
+      
+      datiSettore.gruppi.push({ nome: gruppo, zadankai: datiGruppoZ, praticanti: datiGruppoP });
+    }
+    
+    // Accumula capitolo
+    sommaTotali(totCapitoloZ.membri, datiSettore.totZ.membri);
+    sommaTotali(totCapitoloZ.simp, datiSettore.totZ.simp);
+    sommaTotali(totCapitoloZ.ospiti, datiSettore.totZ.ospiti);
+    totCapitoloZ.totG += datiSettore.totZ.totG; totCapitoloZ.var += datiSettore.totZ.var; totCapitoloZ.fut += datiSettore.totZ.fut; totCapitoloZ.stu += datiSettore.totZ.stu;
+    sommaTotali(totCapitoloP.membri, datiSettore.totP.membri);
+    sommaTotali(totCapitoloP.simp, datiSettore.totP.simp);
+    totCapitoloP.totG += datiSettore.totP.totG; totCapitoloP.var += datiSettore.totP.var;
+    
+    datiGerarchici.push(datiSettore);
+  }
+  
+  // Genera Tabella Zadankai
+  var tableZ = document.createElement("table"); tableZ.className = "table-custom table-zadankai mb-5"; tableZ.innerHTML = getHeaderZadankaiLegacy();
+  var tbodyZ = document.createElement("tbody");
+  for (var s=0; s<datiGerarchici.length; s++){
+    var settore = datiGerarchici[s];
+    for (var g=0; g<settore.gruppi.length; g++){
+      var gruppo = settore.gruppi[g];
+      tbodyZ.appendChild(creaRigaZadankaiLegacy(gruppo.nome, gruppo.zadankai));
+    }
+    tbodyZ.appendChild(creaRigaZadankaiLegacy("- " + settore.nome.toUpperCase(), settore.totZ, "riga-settore"));
+  }
+  tbodyZ.appendChild(creaRigaZadankaiLegacy(("- " + capitolo).toUpperCase(), totCapitoloZ, "riga-capitolo"));
+  tableZ.appendChild(tbodyZ); containerTabelle.appendChild(tableZ);
+  
+  // Genera Tabella Praticanti
+  var tableP = document.createElement("table"); tableP.className = "table-custom table-praticanti mb-5"; tableP.innerHTML = getHeaderPraticantiLegacy();
+  var tbodyP = document.createElement("tbody");
+  for (var s2=0; s2<datiGerarchici.length; s2++){
+    var settore2 = datiGerarchici[s2];
+    for (var g2=0; g2<settore2.gruppi.length; g2++){
+      var gruppo2 = settore2.gruppi[g2];
+      tbodyP.appendChild(creaRigaPraticantiLegacy(gruppo2.nome, gruppo2.praticanti));
+    }
+    tbodyP.appendChild(creaRigaPraticantiLegacy("- " + settore2.nome.toUpperCase(), settore2.totP, "riga-settore"));
+  }
+  tbodyP.appendChild(creaRigaPraticantiLegacy(("- " + capitolo).toUpperCase(), totCapitoloP, "riga-capitolo"));
+  tableP.appendChild(tbodyP); containerTabelle.appendChild(tableP);
+  
+  // Aggiorna altre sezioni
+  mostraGruppiMancanti(datiAnnoMese, anno, mese, capitolo);
+}
+ 
+function initTot(){ return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 }; }
+function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.GU+=src.GU; dest.GD+=src.GD; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
+function trovaDatiSezione(righe, sezione){
+  for (var i=0; i<righe.length; i++){
+    if (righe[i].sezione === sezione){
+      var r = righe[i];
+      return { U:r.U, D:r.D, GU:r.GU, GD:r.GD, Tot:(r.U+r.D+r.GU+r.GD), FUT:r.FUT, STU:r.STU };
     }
   }
-  
-  // Raggruppa i gruppi per settore e ordina alfabeticamente
-  var gruppiPresenti = [];
-  for (var i = 0; i < righeFiltrate.length; i++) {
-    var gruppo = righeFiltrate[i].gruppo;
-    if (gruppiPresenti.indexOf(gruppo) === -1) {
-      gruppiPresenti.push(gruppo);
-    }
-  }
-  
-  // Crea una mappa settore -> gruppi ordinati alfabeticamente
-  var gruppiPerSettore = {};
-  for (var i = 0; i < gruppiPresenti.length; i++) {
-    var gruppo = gruppiPresenti[i];
-    var settore = settorePerGruppo[gruppo];
-    if (!gruppiPerSettore[settore]) {
-      gruppiPerSettore[settore] = [];
-    }
-    gruppiPerSettore[settore].push(gruppo);
-  }
-  
-  // Ordina i settori alfabeticamente e i gruppi all'interno di ogni settore
-  var settoriOrdinati = Object.keys(gruppiPerSettore).sort();
-  var gruppiOrdinati = [];
-  for (var i = 0; i < settoriOrdinati.length; i++) {
-    var settore = settoriOrdinati[i];
-    gruppiPerSettore[settore].sort();
-    gruppiOrdinati = gruppiOrdinati.concat(gruppiPerSettore[settore]);
-  }
-  
-  if (righeFiltrate.length === 0) {
-    var tr = document.createElement("tr");
+  return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
+}
+function getHeaderZadankaiLegacy(){
+  return [
+    '<thead>',
+    '<tr class="header-main">',
+    '<th rowspan="2" class="col-zona">REPORT ZADANKAI<br>ZONA</th>',
+    '<th colspan="5" class="col-membri">MEMBRI</th>',
+    '<th colspan="5" class="col-simp">SIMPATIZZANTI</th>',
+    '<th colspan="5" class="col-nuove">OSPITI</th>',
+    '<th colspan="4" class="col-totali">TOTALI</th>',
+    '</tr>',
+    '<tr class="header-sub">',
+    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
+    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
+    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
+    '<th>TOT G.</th><th>VAR</th><th>FUT</th><th>STU</th>',
+    '</tr>',
+    '</thead>'
+  ].join('');
+}
+function getHeaderPraticantiLegacy(){
+  return [
+    '<thead>',
+    '<tr class="header-main">',
+    '<th rowspan="2" class="col-zona">Report Praticanti<br>Zona</th>',
+    '<th colspan="5" class="col-praticanti-membri">Praticanti Membri</th>',
+    '<th colspan="5" class="col-praticanti-simp">Praticanti Simpatizzanti</th>',
+    '<th rowspan="2" class="col-totg">TOT G.</th>',
+    '<th rowspan="2" class="col-var">Var</th>',
+    '</tr>',
+    '<tr class="header-sub">',
+    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>',
+    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>',
+    '</tr>',
+    '</thead>'
+  ].join('');
+}
+function creaRigaZadankaiLegacy(nome, dati, classe){
+  var tr = document.createElement("tr");
+  if (classe) tr.className = classe;
+  var celle = [
+    nome,
+    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.ospiti.U, dati.ospiti.D, dati.ospiti.GU, dati.ospiti.GD, dati.ospiti.Tot,
+    dati.totG, dati.var, dati.fut, dati.stu
+  ];
+  for (var i=0;i<celle.length;i++){
     var td = document.createElement("td");
-    td.colSpan = 12;
-    td.textContent = "Nessun dato disponibile per i filtri selezionati";
-    td.style.textAlign = "center";
-    td.style.fontStyle = "italic";
-    td.style.color = "#666";
+    td.textContent = (i === 17 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
+    if (i===0) td.className = "text-start fw-bold cella-nome";
     tr.appendChild(td);
-    tbody.appendChild(tr);
-    
-    // Nascondi i riepiloghi
-    document.getElementById("riepilogo-settori").innerHTML = "";
-    document.getElementById("riepilogo-capitolo").innerHTML = "";
-    
-    return;
   }
-  
-  var settoreCorrente = null;
-  
-  // Genera la tabella
-  for (var g = 0; g < gruppiOrdinati.length; g++) {
-    var gruppo = gruppiOrdinati[g];
-    var settore = settorePerGruppo[gruppo];
-    
-    // Intestazione settore
-    if (settore !== settoreCorrente) {
-      // Riga separatrice settore
-      var separatore = document.createElement("tr");
-      var td = document.createElement("td");
-      td.colSpan = 12;
-      td.textContent = "Settore: " + settore;
-      td.style.backgroundColor = "#6c757d";
-      td.style.color = "white";
-      td.style.fontWeight = "bold";
-      td.style.textAlign = "center";
-      td.style.padding = "8px";
-      separatore.appendChild(td);
-      tbody.appendChild(separatore);
-      
-      // Intestazione tabella
-      var headerRow = document.createElement("tr");
-      var headers = [
-        "Nome Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD",
-        "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
-      ];
-      for (var h = 0; h < headers.length; h++) {
-        var th = document.createElement("th");
-        th.textContent = headers[h];
-        th.style.backgroundColor = "#f8f9fa";
-        th.style.fontWeight = "bold";
-        th.style.textAlign = "center";
-        th.style.padding = "8px";
-        th.style.border = "1px solid #dee2e6";
-        headerRow.appendChild(th);
-      }
-      tbody.appendChild(headerRow);
-      
-      settoreCorrente = settore;
-    }
-    
-    // Righe dei dati per gruppo
-    var righeGruppo = righeFiltrate.filter(function(r) {
-      return r.gruppo === gruppo;
-    });
-    
-    var gruppoStampato = false;
-    var tipoStampati = {};
-    var totaleStampati = {};
-    var primaRigaGruppo = true;
-    
-    var tipi = ["ZADANKAI", "PRATICANTI"];
-    for (var t = 0; t < tipi.length; t++) {
-      var tipo = tipi[t];
-      var righeCategoria = righeGruppo.filter(function(r) {
-        return r.tipo === tipo;
-      });
-      
-      if (righeCategoria.length === 0) continue;
-      
-      // Ordina sezioni ZADANKAI
-      if (tipo === "ZADANKAI") {
-        var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
-        righeCategoria.sort(function(a, b) {
-          return sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione);
-        });
-      }
-      
-      // Calcola totale categoria
-      var totaleCategoria = 0;
-      for (var rc = 0; rc < righeCategoria.length; rc++) {
-        var r = righeCategoria[rc];
-        totaleCategoria += r.U + r.D + r.GU + r.GD;
-      }
-      
-      // Calcola totale precedente
-      var righePrec = righe.filter(function(r) {
-        return String(r.anno) === String(annoPrec) &&
-               r.mese === mesePrec &&
-               r.gruppo === gruppo &&
-               r.tipo === tipo;
-      });
-      
-      var totalePrec = 0;
-      for (var rp = 0; rp < righePrec.length; rp++) {
-        var r = righePrec[rp];
-        totalePrec += r.U + r.D + r.GU + r.GD;
-      }
-      
-      var delta = totaleCategoria - totalePrec;
-      
-      for (var rc = 0; rc < righeCategoria.length; rc++) {
-        var r = righeCategoria[rc];
-        var somma = r.U + r.D + r.GU + r.GD;
-        
-        // Calcola precedente per sezione
-        var righePrecSezione = righePrec.filter(function(x) {
-          return x.sezione === r.sezione;
-        });
-        var sommaPrec = 0;
-        for (var rps = 0; rps < righePrecSezione.length; rps++) {
-          var x = righePrecSezione[rps];
-          sommaPrec += x.U + x.D + x.GU + x.GD;
-        }
-        
-        var tr = document.createElement("tr");
-        tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info"; //Colori tabella Gruppi
-       // if (tipo === "ZADANKAI") {
-       //   tr.style.backgroundColor = "#fff9c4"; // Giallo chiaro
-       // } else {
-       //   tr.style.backgroundColor = "#e3f2fd"; // Azzurro chiaro
-       // }
-        
-        // Applica bordo più spesso per separare i gruppi
-        if (primaRigaGruppo && rc === 0 && g > 0) {
-          tr.style.borderTop = BORDER_CONFIG.getHorizontalBorder();
-        }
-        
-        var colIndex = 0;
-        
-        // Nome Gruppo
-        if (!gruppoStampato && rc === 0) {
-          var tdGruppo = document.createElement("td");
-          tdGruppo.textContent = gruppo;
-          tdGruppo.rowSpan = righeGruppo.length;
-          tdGruppo.style.fontWeight = "bold";
-          tdGruppo.style.textAlign = "center";
-          tdGruppo.style.verticalAlign = "middle";
-          tdGruppo.style.border = "1px solid #dee2e6";
-          tr.appendChild(tdGruppo);
-          gruppoStampato = true;
-        }
-        colIndex++;
-        
-        // Categoria
-        if (!tipoStampati[tipo]) {
-          var tdTipo = document.createElement("td");
-          tdTipo.textContent = tipo;
-          tdTipo.rowSpan = righeCategoria.length;
-          tdTipo.style.fontWeight = "bold";
-          tdTipo.style.textAlign = "center";
-          tdTipo.style.verticalAlign = "middle";
-          tdTipo.style.border = "1px solid #dee2e6";
-          tr.appendChild(tdTipo);
-          tipoStampati[tipo] = true;
-        }
-        colIndex++;
-        
-        // Dati ordinati con bordi blu applicati direttamente
-        var celle = [
-          r.sezione, r.U, r.D, r.GU, r.GD,
-          somma,
-          sommaPrec
-        ];
-        
-        for (var c = 0; c < celle.length; c++) {
-          var val = celle[c];
-          var td = document.createElement("td");
-          td.textContent = val;
-          td.style.border = "1px solid #dee2e6";
-          td.style.textAlign = "center";
-          
-          // Applica bordi blu per le colonne specifiche
-          var currentCol = colIndex + c + 1;
-          if (currentCol === 4) { // Separazione tra Sezione e U
-            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          } else if (currentCol === 8) { // Separazione tra GD e Somma
-            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          } else if (currentCol === 10) { // Separazione tra Prec. e Totale Gruppo
-            td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          }
-          
-          // Applica grassetto alla colonna Somma (indice 5 nell'array celle)
-          if (c === 5) {
-            td.style.fontWeight = "bold";
-          }
-          
-          tr.appendChild(td);
-        }
-        colIndex += celle.length;
-        
-        // Totale categoria
-        if (!totaleStampati[tipo]) {
-          var tdTot = document.createElement("td");
-          tdTot.rowSpan = righeCategoria.length;
-          
-          // Applica prima i bordi generici top e bottom
-          tdTot.style.borderTop = "1px solid #dee2e6";
-          tdTot.style.borderBottom = "1px solid #dee2e6";
-          
-          // Poi applica i bordi verticali blu
-          tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          tdTot.style.borderRight = BORDER_CONFIG.getVerticalBorder();
-          
-          tdTot.style.textAlign = "center";
-          tdTot.style.verticalAlign = "middle";
-          
-          var contenutoTotale = '<div style="font-size: 1.2em;"><strong>' + totaleCategoria + '</strong></div>';
-          contenutoTotale += '<div style="font-size: 0.8em;">Prec: ' + totalePrec + '</div>';
-          if (delta >= 0) {
-            contenutoTotale += '<div style="color: #28a745; font-weight: bold;">Δ +' + delta + '</div>';
-          } else {
-            contenutoTotale += '<div style="color: #dc3545; font-weight: bold;">Δ ' + delta + '</div>';
-          }
-          
-          tdTot.innerHTML = contenutoTotale;
-          tr.appendChild(tdTot);
-          totaleStampati[tipo] = true;
-        }
-        colIndex++;
-        
-        // Futuro e Studenti
-        var tdFuturo = document.createElement("td");
-        tdFuturo.textContent = r.FUT;
-        tdFuturo.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-        tdFuturo.style.border = "1px solid #dee2e6";
-        tdFuturo.style.textAlign = "center";
-        tr.appendChild(tdFuturo);
-        
-        var tdStudenti = document.createElement("td");
-        tdStudenti.textContent = r.STU;
-        tdStudenti.style.border = "1px solid #dee2e6";
-        tdStudenti.style.textAlign = "center";
-        tr.appendChild(tdStudenti);
-        
-        tbody.appendChild(tr);
-        
-        if (primaRigaGruppo && rc === 0) {
-          primaRigaGruppo = false;
-        }
-      }
-    }
+  return tr;
+}
+function creaRigaPraticantiLegacy(nome, dati, classe){
+  var tr = document.createElement("tr");
+  if (classe) tr.className = classe;
+  var celle = [
+    nome,
+    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.totG, dati.var
+  ];
+  for (var i=0;i<celle.length;i++){
+    var td = document.createElement("td");
+    td.textContent = (i === 12 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
+    if (i===0) td.className = "text-start fw-bold cella-nome";
+    tr.appendChild(td);
   }
-  
-  // Aggiorna le altre sezioni
-  mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo);
-  generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, annoPrec, capitolo);
+  return tr;
 }
 
 // 🔹 Mostra gruppi mancanti

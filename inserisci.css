@@ -386,127 +386,13 @@ tr.praticanti:hover td {
 
 /* Sfondi diversi per le intestazioni delle sezioni */
 .zadankai-header {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+  background-color: #fff3cd !important; /* Giallo chiaro per Zadankai */
   color: #856404 !important;
-  border: 2px solid #ffc107 !important;
-  border-radius: 0.375rem !important;
-  padding: 1rem !important;
-  margin-bottom: 1rem !important;
-  box-shadow: 0 0.125rem 0.25rem rgba(255, 193, 7, 0.3) !important;
+  border-bottom: 2px solid #ffc107 !important;
 }
 
 .praticanti-header {
-  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%) !important;
+  background-color: #d1ecf1 !important; /* Azzurro chiaro per Praticanti */
   color: #0c5460 !important;
-  border: 2px solid #17a2b8 !important;
-  border-radius: 0.375rem !important;
-  padding: 1rem !important;
-  margin-bottom: 1rem !important;
-  box-shadow: 0 0.125rem 0.25rem rgba(23, 162, 184, 0.3) !important;
-}
-
-/* Stili migliorati per le tabelle */
-#zadankai-table {
-  border: 3px solid #ffc107 !important;
-  border-radius: 0.5rem !important;
-  overflow: hidden;
-  box-shadow: 0 0.25rem 0.5rem rgba(255, 193, 7, 0.2) !important;
-}
-
-#praticanti-table {
-  border: 3px solid #17a2b8 !important;
-  border-radius: 0.5rem !important;
-  overflow: hidden;
-  box-shadow: 0 0.25rem 0.5rem rgba(23, 162, 184, 0.2) !important;
-}
-
-/* Header delle tabelle con colori più intensi */
-#zadankai-table .table-primary {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-  color: white !important;
-}
-
-#zadankai-table .table-primary th {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
-  color: #856404 !important;
-  font-weight: 700 !important;
-  border-bottom: 2px solid #e0a800 !important;
-}
-
-#praticanti-table .table-success {
-  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
-  color: white !important;
-}
-
-#praticanti-table .table-success th {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
-  color: white !important;
-  font-weight: 700 !important;
-  border-bottom: 2px solid #138496 !important;
-}
-
-/* Righe delle tabelle con sfondo leggero */
-#zadankai-table tbody tr {
-  background-color: #fffbf0 !important;
-}
-
-#zadankai-table tbody tr:nth-child(even) {
-  background-color: #fff8e1 !important;
-}
-
-#praticanti-table tbody tr {
-  background-color: #f0fdff !important;
-}
-
-#praticanti-table tbody tr:nth-child(even) {
-  background-color: #e8f8fd !important;
-}
-
-/* Effetti hover migliorati */
-#zadankai-table tbody tr:hover {
-  background-color: #fff3cd !important;
-  transform: scale(1.01);
-  transition: all 0.2s ease;
-  box-shadow: 0 0.125rem 0.25rem rgba(255, 193, 7, 0.3);
-}
-
-#praticanti-table tbody tr:hover {
-  background-color: #d1ecf1 !important;
-  transform: scale(1.01);
-  transition: all 0.2s ease;
-  box-shadow: 0 0.125rem 0.25rem rgba(23, 162, 184, 0.3);
-}
-
-/* Input fields con bordi colorati */
-#zadankai-table input.form-control {
-  border: 2px solid #ffc107 !important;
-  border-radius: 0.25rem !important;
-}
-
-#zadankai-table input.form-control:focus {
-  border-color: #e0a800 !important;
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
-}
-
-#praticanti-table input.form-control {
-  border: 2px solid #17a2b8 !important;
-  border-radius: 0.25rem !important;
-}
-
-#praticanti-table input.form-control:focus {
-  border-color: #138496 !important;
-  box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25) !important;
-}
-
-/* Totali con colori distintivi */
-#zadankai-table .table-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
-  color: #856404 !important;
-  font-weight: 700 !important;
-}
-
-#praticanti-table .table-warning {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
-  color: white !important;
-  font-weight: 700 !important;
+  border-bottom: 2px solid #17a2b8 !important;
 }

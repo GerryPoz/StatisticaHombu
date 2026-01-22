@@ -167,7 +167,6 @@ function inizializzaFiltri() {
     filtroAnno.addEventListener('change', aggiornaRiepiloghi);
     filtroMese.addEventListener('change', aggiornaRiepiloghi);
     
-    // Genera riepiloghi iniziali
     aggiornaRiepiloghi();
 }
 
@@ -183,174 +182,144 @@ function aggiornaRiepiloghi() {
     
     console.log('Aggiornamento riepiloghi:', { annoSelezionato, meseSelezionato });
 
-    // Pulisci il contenitore prima di generare i nuovi riepiloghi
-    document.getElementById('contenitore-riepiloghi').innerHTML = '';
-  
-    // Filtra i dati
-    const righeFiltrate = righe.filter(r => 
-        r.anno === annoSelezionato && r.mese === meseSelezionato
-    );
-    
+    const container = document.getElementById('container-tabelle');
+    container.innerHTML = '';
+    const righeFiltrate = righe.filter(r => r.anno === annoSelezionato && r.mese === meseSelezionato);
     const { mese: mesePrec, anno: annoPrec } = mesePrecedente(meseSelezionato, annoSelezionato);
-    
-    // Genera riepiloghi
-    generaRiepilogoHombu(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
-    generaRiepiloghiCapitoli(righeFiltrate, meseSelezionato, annoSelezionato, mesePrec, annoPrec);
+    const strutturaHombu = gruppiData["HOMBU 9"];
+    const tableZ = document.createElement('table'); tableZ.className = 'table-custom table-zadankai mb-5'; tableZ.innerHTML = getHeaderZadankai();
+    const tbodyZ = document.createElement('tbody');
+    const tableP = document.createElement('table'); tableP.className = 'table-custom table-praticanti mb-5'; tableP.innerHTML = getHeaderPraticanti();
+    const tbodyP = document.createElement('tbody');
+  const totH9Z = { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 };
+  const totH9P = { membri: initTot(), simp: initTot(), totG: 0, var: 0 };
+    Object.entries(strutturaHombu).forEach(([capitolo, settori]) => {
+      const totCapZ = { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 };
+      const totCapP = { membri: initTot(), simp: initTot(), totG: 0, var: 0 };
+      Object.entries(settori).forEach(([settore, gruppi]) => {
+        const datiSettore = { totZ: { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 },
+                              totP: { membri: initTot(), simp: initTot(), totG: 0, var: 0 } };
+        // Aggrega SOLO per SETTORE (nessun dettaglio gruppo)
+        gruppi.slice().sort().forEach(gruppo => {
+          // ZADANKAI
+          const rz = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === 'ZADANKAI');
+          const rzPrec = righe.filter(r => r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo && r.tipo === 'ZADANKAI');
+          const zM = trovaDatiSezione(rz, 'membri');
+          const zS = trovaDatiSezione(rz, 'simpatizzanti');
+          const zO = trovaDatiSezione(rz, 'ospiti');
+          const zTotG = zM.Tot + zS.Tot + zO.Tot;
+          const zFut = (zM.FUT||0) + (zS.FUT||0) + (zO.FUT||0);
+          const zStu = (zM.STU||0) + (zS.STU||0) + (zO.STU||0);
+          let zTotPrec = 0; rzPrec.forEach(rr => { zTotPrec += rr.U + rr.D + rr.GU + rr.GD; });
+          const zVar = zTotG - zTotPrec;
+          sommaTotali(datiSettore.totZ.membri, zM); sommaTotali(datiSettore.totZ.simp, zS); sommaTotali(datiSettore.totZ.ospiti, zO);
+          datiSettore.totZ.totG += zTotG; datiSettore.totZ.var += zVar; datiSettore.totZ.fut += zFut; datiSettore.totZ.stu += zStu;
+          // PRATICANTI
+          const rp = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === 'PRATICANTI');
+          const rpPrec = righe.filter(r => r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo && r.tipo === 'PRATICANTI');
+          const pM = trovaDatiSezione(rp, 'membri'); const pS = trovaDatiSezione(rp, 'simpatizzanti');
+          const pTotG = pM.Tot + pS.Tot; let pTotPrec = 0; rpPrec.forEach(rr => { pTotPrec += rr.U + rr.D + rr.GU + rr.GD; });
+          const pVar = pTotG - pTotPrec;
+          sommaTotali(datiSettore.totP.membri, pM); sommaTotali(datiSettore.totP.simp, pS);
+          datiSettore.totP.totG += pTotG; datiSettore.totP.var += pVar;
+        });
+        tbodyZ.appendChild(creaRigaZadankai(`- ${settore.toUpperCase()}`, datiSettore.totZ, 'riga-settore'));
+        tbodyP.appendChild(creaRigaPraticanti(`- ${settore.toUpperCase()}`, datiSettore.totP, 'riga-settore'));
+        sommaTotali(totCapZ.membri, datiSettore.totZ.membri); sommaTotali(totCapZ.simp, datiSettore.totZ.simp); sommaTotali(totCapZ.ospiti, datiSettore.totZ.ospiti);
+        totCapZ.totG += datiSettore.totZ.totG; totCapZ.var += datiSettore.totZ.var; totCapZ.fut += datiSettore.totZ.fut; totCapZ.stu += datiSettore.totZ.stu;
+        sommaTotali(totCapP.membri, datiSettore.totP.membri); sommaTotali(totCapP.simp, datiSettore.totP.simp);
+        totCapP.totG += datiSettore.totP.totG; totCapP.var += datiSettore.totP.var;
+      });
+      tbodyZ.appendChild(creaRigaZadankai(`- ${capitolo.toUpperCase()}`, totCapZ, 'riga-capitolo'));
+      tbodyP.appendChild(creaRigaPraticanti(`- ${capitolo.toUpperCase()}`, totCapP, 'riga-capitolo'));
+      // Accumula HOMBU 9
+      sommaTotali(totH9Z.membri, totCapZ.membri); sommaTotali(totH9Z.simp, totCapZ.simp); sommaTotali(totH9Z.ospiti, totCapZ.ospiti);
+      totH9Z.totG += totCapZ.totG; totH9Z.var += totCapZ.var; totH9Z.fut += totCapZ.fut; totH9Z.stu += totCapZ.stu;
+      sommaTotali(totH9P.membri, totCapP.membri); sommaTotali(totH9P.simp, totCapP.simp);
+      totH9P.totG += totCapP.totG; totH9P.var += totCapP.var;
+    });
+  // Riga finale HOMBU 9
+  tbodyZ.appendChild(creaRigaZadankai('CENTRO HOMBU 9', totH9Z, 'riga-centro'));
+  tbodyP.appendChild(creaRigaPraticanti('CENTRO HOMBU 9', totH9P, 'riga-centro'));
+    tableZ.appendChild(tbodyZ); container.appendChild(tableZ);
+    tableP.appendChild(tbodyP); container.appendChild(tableP);
 }
 
-// Genera riepilogo Hombu generale
-function generaRiepilogoHombu(righeFiltrate, mese, anno, mesePrec, annoPrec) {
-    const contenitore = document.getElementById('contenitore-riepiloghi');
-    
-    // Crea card per Hombu
-    const cardHombu = document.createElement('div');
-    cardHombu.className = 'card shadow-sm mb-4';
-    
-    const cardHeader = document.createElement('div');
-    cardHeader.className = 'card-header bg-success text-white';
-    cardHeader.innerHTML = `<h5 class="mb-0"><i class="fas fa-home me-2"></i>Riepilogo Generale: HOMBU 9 - ${mese} ${anno}</h5>`;
-    cardHombu.appendChild(cardHeader);
-    
-    const cardBody = document.createElement('div');
-    cardBody.className = 'card-body table-responsive';
-    
-    const tabella = document.createElement('table');
-    tabella.className = 'table table-striped table-bordered';
-    
-    const thead = document.createElement('thead');
-    thead.innerHTML = `<tr>
-      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
-      <th>Somma</th><th>Prec.</th><th>Totale Hombu</th><th>Futuro</th><th>Studenti</th>
-    </tr>`;
-    tabella.appendChild(thead);
-    
-    const tbody = document.createElement('tbody');
-    
-    ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
-        const righeTipo = righeFiltrate.filter(r => r.tipo === tipo);
-        if (righeTipo.length === 0) return;
-        
-        const sezioni = [...new Set(righeTipo.map(r => r.sezione))];
-        if (tipo === "ZADANKAI") {
-            const ordine = ["membri", "simpatizzanti", "ospiti"];
-            sezioni.sort((a, b) => ordine.indexOf(a) - ordine.indexOf(b));
-        }
-        
-        const tipoRowSpan = sezioni.length;
-        const sezioniRilevanti = tipo === "ZADANKAI"
-            ? ["membri", "simpatizzanti", "ospiti"]
-            : ["membri", "simpatizzanti"];
-        
-        const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
-        const sumTot = righeTotali.reduce((acc, r) => ({
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
-        
-        const righePrecTot = righe.filter(r =>
-            r.anno === annoPrec && r.mese === mesePrec &&
-            r.tipo === tipo &&
-            sezioniRilevanti.includes(r.sezione)
-        );
-        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
-        const delta = totaleMese - totalePrec;
-        
-        sezioni.forEach((sezione, index) => {
-            const righeSezione = righeTipo.filter(r => r.sezione === sezione);
-            const sum = righeSezione.reduce((acc, r) => ({
-                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
-            
-            const righePrec = righe.filter(r =>
-                r.anno === annoPrec && r.mese === mesePrec &&
-                r.tipo === tipo && r.sezione === sezione
-            );
-            const sommaPrec = righePrec.reduce((acc, r) =>
-                acc + r.U + r.D + r.GU + r.GD, 0);
-            
-            const tr = document.createElement('tr');
-            tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
-            
-            if (index === 0) {
-                const tdTipo = document.createElement('td');
-                tdTipo.textContent = tipo;
-                tdTipo.rowSpan = tipoRowSpan;
-                tdTipo.className = 'fw-bold';
-                tr.appendChild(tdTipo);
-            }
-            
-            const celle = [
-                sezione, sum.U, sum.D, sum.GU, sum.GD,
-                sommaTot, sommaPrec
-            ];
-            celle.forEach((val, i) => {
-                const td = document.createElement('td');
-                td.textContent = val;
-                if (i === 1) { // U
-                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-                } else if (i === 5) { // Somma
-                    td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-                    td.style.fontWeight = "bold";
-                }
-                tr.appendChild(td);
-            });
-            
-            if (index === 0) {
-                const tdTot = document.createElement('td');
-                tdTot.rowSpan = tipoRowSpan;
-                tdTot.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-                tdTot.innerHTML = `
-                    <div style="font-size: 1.2em;"><strong>${totaleMese}</strong></div>
-                    <div class="small">Prec: ${totalePrec}</div>
-                    <div class="${delta >= 0 ? 'text-success' : 'text-danger'} fw-bold">
-                        Δ ${delta >= 0 ? "+" : ""}${delta}
-                    </div>`;
-                tdTot.className = 'text-center';
-                tr.appendChild(tdTot);
-            }
-            
-            const tdFUT = document.createElement('td');
-            tdFUT.textContent = sum.FUT;
-            tdFUT.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-            const tdSTU = document.createElement('td');
-            tdSTU.textContent = sum.STU;
-            tr.appendChild(tdFUT);
-            tr.appendChild(tdSTU);
-            
-            tbody.appendChild(tr);
-        });
-    });
-    
-    tabella.appendChild(tbody);
-    cardBody.appendChild(tabella);
-    cardHombu.appendChild(cardBody);
-    contenitore.appendChild(cardHombu);
+function initTot(){ return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 }; }
+function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.GU+=src.GU; dest.GD+=src.GD; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
+function trovaDatiSezione(righeSez, sezione){
+  const r = righeSez.find(x => x.sezione === sezione);
+  if (r) return { U:r.U, D:r.D, GU:r.GU, GD:r.GD, Tot:(r.U+r.D+r.GU+r.GD), FUT:r.FUT, STU:r.STU };
+  return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
 }
-
-// Genera riepiloghi per capitoli
-function generaRiepiloghiCapitoli(righeFiltrate, mese, anno, mesePrec, annoPrec) {
-    const contenitore = document.getElementById('contenitore-riepiloghi');
-    const struttura = gruppiData["HOMBU 9"];
-    
-    // Per ogni capitolo
-    Object.entries(struttura).forEach(([capitolo, settori]) => {
-        const righeFiltrateCap = righeFiltrate.filter(r => gruppoToCapitolo[r.gruppo] === capitolo);
-        if (righeFiltrateCap.length === 0) return;
-        
-        // Genera riepiloghi per settori del capitolo
-        Object.entries(settori).forEach(([settore, gruppiSettore]) => {
-            const righeSettore = righeFiltrateCap.filter(r => gruppiSettore.includes(r.gruppo));
-            if (righeSettore.length === 0) return;
-            
-            generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, annoPrec, gruppiSettore, contenitore);
-        });
-        
-        // Genera riepilogo capitolo
-        generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePrec, annoPrec, contenitore);
-    });
+function getHeaderZadankai(){
+  return `
+    <thead>
+      <tr class="header-main">
+        <th rowspan="2" class="col-zona"> REPORT ZADANKAI<br>ZONA</th>
+        <th colspan="5" class="col-membri">MEMBRI</th>
+        <th colspan="5" class="col-simp">SIMPATIZZANTI</th>
+        <th colspan="5" class="col-nuove">OSPITI</th>
+        <th colspan="4" class="col-totali">TOTALI</th>
+      </tr>
+      <tr class="header-sub">
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
+        <th>TOT G.</th><th>VAR</th><th>FUT</th><th>STU</th>
+      </tr>
+    </thead>
+  `;
+}
+function getHeaderPraticanti(){
+  return `
+    <thead>
+      <tr class="header-main">
+        <th rowspan="2" class="col-zona">Report Praticanti<br>Zona</th>
+        <th colspan="5" class="col-praticanti-membri">Praticanti Membri</th>
+        <th colspan="5" class="col-praticanti-simp">Praticanti Simpatizzanti</th>
+        <th rowspan="2" class="col-totg">TOT G.</th>
+        <th rowspan="2" class="col-var">Var</th>
+      </tr>
+      <tr class="header-sub">
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+      </tr>
+    </thead>
+  `;
+}
+function creaRigaZadankai(nome, dati, classe){
+  const tr = document.createElement('tr'); if (classe) tr.className = classe;
+  const celle = [
+    nome,
+    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.ospiti.U, dati.ospiti.D, dati.ospiti.GU, dati.ospiti.GD, dati.ospiti.Tot,
+    dati.totG, dati.var, dati.fut, dati.stu
+  ];
+  celle.forEach((val, i) => {
+    const td = document.createElement('td');
+    td.textContent = (i === 17 && typeof val === 'number' && val > 0) ? `+${val}` : val;
+    if (i===0) td.className='text-start fw-bold cella-nome';
+    tr.appendChild(td);
+  });
+  return tr;
+}
+function creaRigaPraticanti(nome, dati, classe){
+  const tr = document.createElement('tr'); if (classe) tr.className = classe;
+  const celle = [
+    nome,
+    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.totG, dati.var
+  ];
+  celle.forEach((val, i) => {
+    const td = document.createElement('td');
+    td.textContent = (i === 12 && typeof val === 'number' && val > 0) ? `+${val}` : val;
+    if (i===0) td.className='text-start fw-bold cella-nome';
+    tr.appendChild(td);
+  });
+  return tr;
 }
 
 // Genera riepilogo per un settore

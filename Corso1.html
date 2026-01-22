@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corso Responsabili 15-16 Novembre</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            text-align: center;
+            padding: 40px 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.3"/><circle cx="80" cy="30" r="1.5" fill="white" opacity="0.4"/><circle cx="40" cy="70" r="1" fill="white" opacity="0.5"/><circle cx="90" cy="80" r="2.5" fill="white" opacity="0.2"/></svg>');
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .date {
+            font-size: 1.3em;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .quote {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-style: italic;
+            font-size: 1.1em;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .quote::before {
+            content: '"';
+            font-size: 4em;
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            opacity: 0.3;
+        }
+
+        .quote-author {
+            text-align: right;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .greeting {
+            font-size: 1.2em;
+            color: #2d3436;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .main-text {
+            color: #636e72;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-size: 1.05em;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .highlight-box h3 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 5px solid #00b894;
+        }
+
+        .info-section h4 {
+            color: #00b894;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .price-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .price-item:last-child {
+            border-bottom: none;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #e17055;
+            font-size: 1.1em;
+        }
+
+        .deadline {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 25px 0;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            background: #2d3436;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .decorative-element {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 2em;
+            color: #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CORSO RESPONSABILI</h1>
+            <div class="date">15-16 NOVEMBRE</div>
+        </div>
+
+        <div class="content">
+            <div class="quote">
+                «La pace non è un'astrazione fuori della nostra portata. Inizia con la creazione di un circolo di persone che provano fiducia e amicizia le une per le altre, esattamente dove siamo. Man mano che questi cerchi si espandono includendo più persone, realizzeremo la pace globale»
+                <div class="quote-author">- Daisaku Ikeda (NRU, 21, 52)</div>
+            </div>
+
+            <div class="greeting">
+                Cari amici e amiche,
+            </div>
+
+            <div class="main-text">
+                ci stiamo preparando al corso che si terrà il <strong>15 e 16 novembre</strong>, in concomitanza con il secondo anniversario della morte del nostro maestro Ikeda.
+            </div>
+
+            <div class="highlight-box">
+                <h3>🤝 CREARE LEGAMI DI AMICIZIA 🤝</h3>
+                <p>Il tema e lo scopo del corso</p>
+            </div>
+
+            <div class="info-section">
+                <h4>👥 A chi è rivolto il corso?</h4>
+                <p>A tutti i <strong>responsabili</strong> e ai <strong>giovani (membri)</strong>.</p>
+            </div>
+
+            <div class="info-section">
+                <h4>🎯 Come prepararci al corso?</h4>
+                <p>Ogni corso della Soka Gakkai è un'occasione per creare un'esperienza di profonda trasformazione nella vita e nell'attività. Rinfrescare la decisione che sta alla base della nostra vita.</p>
+            </div>
+
+            <div class="decorative-element">✦ ✦ ✦</div>
+
+            <div class="info-section">
+                <h4>💰 Informazioni sui costi:</h4>
+                <div class="price-list">
+                    <div class="price-item">
+                        <span>Camera doppia</span>
+                        <span class="price">215 €</span>
+                    </div>
+                    <div class="price-item">
+                        <span>Camera singola</span>
+                        <span class="price">260 €</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="deadline">
+                ⏰ ADESIONI: PREFERIBILMENTE ENTRO IL 31 AGOSTO ⏰
+            </div>
+
+            <div class="main-text">
+                Considerando che abbiamo un posto per ogni gruppo, settore e capitolo, nel caso che entrambi i responsabili desiderino partecipare, ci sarà anche una <strong>lista d'attesa</strong>.
+            </div>
+
+            <div class="info-section">
+                <h4>📝 Modalità di iscrizione:</h4>
+                <p>Le iscrizioni si apriranno ufficialmente a <strong>metà settembre</strong>, e sarà opportuno pagare la quota di partecipazione all'atto di iscriversi.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            Grazie a tutte e tutti ❤️
+        </div>
+    </div>
+</body>
+</html>

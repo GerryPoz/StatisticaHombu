@@ -4,257 +4,190 @@ body {
   color: #333;
 }
 
-/* Stili per le tabelle di riepilogo */
-.riepilogo {
+/* Container */
+#container-tabelle {
+  overflow-x: auto;
+}
+
+/* Tabelle Custom */
+.table-custom {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  font-size: 0.9rem;
   background-color: white;
+  margin-bottom: 2rem;
 }
 
-.riepilogo caption {
-  caption-side: top;
-  padding: 0.75rem;
-  background-color: #e9ecef;
-  font-weight: bold;
-  color: #495057;
-  border: 1px solid #dee2e6;
-}
-
-.riepilogo th, .riepilogo td {
-  padding: 0.75rem;
-  border: 1px solid #dee2e6;
+.table-custom th, .table-custom td {
+  border: 1px solid #000;
+  padding: 4px 6px;
   text-align: center;
+  vertical-align: middle;
 }
 
-.riepilogo th {
+/* Headers */
+.header-main th {
+  background-color: #FFD700; /* Gold */
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.header-sub th {
   background-color: #f8f9fa;
+  font-size: 0.85rem;
+}
+
+/* Colori colonne Header */
+.col-zona { background-color: #90EE90 !important; /* LightGreen */ }
+.col-membri { background-color: #FFD700 !important; }
+.col-simp { background-color: #FFD700 !important; }
+.col-nuove { background-color: #FFD700 !important; }
+.col-totali { background-color: #FFD700 !important; }
+
+/* Praticanti Header Colors */
+.col-praticanti-membri { background-color: #FFD700 !important; }
+.col-praticanti-simp { background-color: #FFD700 !important; }
+
+/* Righe Aggregazione */
+.riga-settore td {
+  background-color: #FFFACD !important; /* LemonChiffon */
+  font-weight: bold;
+}
+
+.riga-capitolo td {
+  background-color: #98FB98 !important; /* PaleGreen */
+  font-weight: bold;
+}
+
+.riga-centro td {
+  background-color: #87CEEB !important; /* SkyBlue */
+  font-weight: bold;
+  color: #000;
+}
+
+/* Colonna Nome Gruppo */
+.cella-nome {
+  background-color: #f0f0f0;
+  white-space: nowrap;
+}
+
+/* Bordi spessi tra sezioni */
+.table-custom th:nth-child(n), .table-custom td:nth-child(n) {
+  border-right: 1px solid #ccc;
+}
+
+/* Bordi neri specifici per separare sezioni */
+/* Zadankai: Zona(1) | Membri(7) | Simp(7) | Nuove(5) | Totali(4) */
+/* Colonne effettive: 1, 2-8, 9-15, 16-20, 21-24 */
+
+/* Bordo destro Zona */
+.table-zadankai td:nth-child(1), .table-zadankai thead .header-main th:nth-child(1) {
+  border-right: 2px solid #000 !important;
+}
+
+/* Bordo destro Membri (5 colonne dopo ZONA) */
+.table-zadankai td:nth-child(6), .table-zadankai thead .header-sub th:nth-child(5) {
+  border-right: 2px solid #000 !important;
+}
+
+/* Bordo destro Simp (altre 5 colonne) */
+.table-zadankai td:nth-child(11), .table-zadankai thead .header-sub th:nth-child(10) {
+  border-right: 2px solid #000 !important;
+}
+
+/* Bordo destro Ospiti (altre 5 colonne) */
+.table-zadankai td:nth-child(16), .table-zadankai thead .header-sub th:nth-child(15) {
+  border-right: 2px solid #000 !important;
+}
+
+/* Evidenzia colonne TOT nelle sezioni (Membri, Simpatizzanti, Ospiti) */
+.table-zadankai thead .header-sub th:nth-child(5),
+.table-zadankai thead .header-sub th:nth-child(10),
+.table-zadankai thead .header-sub th:nth-child(15) {
+  background-color: #FFE4B5 !important;
+}
+.table-zadankai td:nth-child(6),
+.table-zadankai td:nth-child(11),
+.table-zadankai td:nth-child(16) {
+  background-color: #FFF1D6 !important;
   font-weight: 600;
 }
 
-/* Stili per le tabelle principali */
-#tabella-dati {
-  border-collapse: collapse;
-  width: 100%;
+/* Praticanti: Zona(1) | P.Membri(5) | P.Simp(5) | TotG(1) | Var(1) */
+/* Colonne effettive: 1, 2-6, 7-11, 12, 13 */
+
+/* Bordo destro Zona */
+.table-praticanti td:nth-child(1), .table-praticanti th:nth-child(1) {
+  border-right: 2px solid #000 !important;
 }
 
-#tabella-dati th, #tabella-dati td {
-  border: 1px solid #dee2e6;
-  padding: 0.75rem;
-  text-align: center;
+/* Bordo destro P. Membri */
+.table-praticanti td:nth-child(6), .header-sub th:nth-child(5) {
+  border-right: 2px solid #000 !important;
 }
 
-/* Stili per le categorie */
-tr.zadankai td {
-  background-color: #fff3cd !important;
+/* Bordo destro P. Simp */
+.table-praticanti td:nth-child(11), .header-sub th:nth-child(10) {
+  border-right: 2px solid #000 !important;
 }
 
-tr.praticanti td {
-  background-color: #d1ecf1 !important;
+/* Bordo destro TotG */
+.table-praticanti td:nth-child(12), .col-totg {
+  border-right: 2px solid #000 !important;
 }
 
-/* Stili per i gruppi */
-td.nome-gruppo {
-  background-color: #FFFD55 !important;
-  font-weight: bold;
-  border-left: 4px solid #ffc107 !important;
+/* Evidenzia colonne TOT nelle sezioni Praticanti */
+.table-praticanti thead .header-sub th:nth-child(5),
+.table-praticanti thead .header-sub th:nth-child(10) {
+  background-color: #FFE4B5 !important;
 }
-
-/* Stili migliorati per le intestazioni settore */
-.bg-primary, .bg-secondary {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  font-size: 1.1rem;
-  letter-spacing: 1px;
+.table-praticanti td:nth-child(6),
+.table-praticanti td:nth-child(11) {
+  background-color: #FFF1D6 !important;
+  font-weight: 600;
 }
+/* Utilities */
+.text-start { text-align: left !important; }
+.fw-bold { font-weight: bold; }
+.text-success { color: green; }
+.text-danger { color: red; }
 
-/* Effetto hover per le righe dei gruppi */
-.nome-gruppo:hover {
-  background-color: #ffeaa7 !important;
-  transform: translateX(2px);
-  transition: all 0.3s ease;
-}
-
-/* Miglioramento visivo per le categorie */
-tr.zadankai:hover td {
-  background-color: #fff8e1 !important;
-  transition: background-color 0.2s ease;
-}
-
-tr.praticanti:hover td {
-  background-color: #e3f2fd !important;
-  transition: background-color 0.2s ease;
-}
-
-/* Stili per le tabelle Bootstrap nelle card */
-.table {
-  border-collapse: collapse;
-}
-
-.table th, .table td {
-  border: 1px solid #dee2e6;
-  padding: 0.75rem;
-  text-align: center;
-}
-
-/* Stili per le card */
-.card {
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.card-header {
-  padding: 0.75rem 1.25rem;
-  margin-bottom: 0;
-  border-bottom: 1px solid #dee2e6;
-  border-top-left-radius: calc(0.375rem - 1px);
-  border-top-right-radius: calc(0.375rem - 1px);
-}
-
-.card-body {
-  flex: 1 1 auto;
-  padding: 1.25rem;
-}
-
-/* Stili per gli alert */
-.alert {
-  position: relative;
-  padding: 0.75rem 1.25rem;
-  margin-bottom: 1rem;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
-}
-
-.alert-warning {
-  color: #856404;
-  background-color: #fff3cd;
-  border-color: #ffeaa7;
-}
-
-.alert-success {
-  color: #155724;
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-}
-
-/* Stili per i colori di sfondo delle tabelle Bootstrap */
-.table-warning {
-  background-color: #fff3cd !important;
-}
-
-.table-info {
-  background-color: #d1ecf1 !important;
-}
-
-/* Stili per il testo */
-.text-success {
-  color: #28a745 !important;
-}
-
-.text-danger {
-  color: #dc3545 !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.fw-bold {
-  font-weight: bold !important;
-}
-
-.small {
-  font-size: 0.875em;
-}
-
-/* Stili per la stampa */
+/* Print Styles */
 @media print {
-  .btn-group, .no-print {
+  .no-print, header, .card-header, .btn-group {
     display: none !important;
-  }
-  
-  body {
-    padding: 0;
-    background-color: white;
-  }
-  
-  .container-fluid {
-    width: 100%;
-    padding: 0;
   }
   
   .card {
     border: none;
-    box-shadow: none !important;
+    box-shadow: none;
   }
   
-  .card-header {
-    background-color: #f8f9fa !important;
-    color: #212529 !important;
-    border-bottom: 2px solid #dee2e6;
+  .card-body {
+    padding: 0;
   }
   
-  .table {
-    width: 100%;
-    border-collapse: collapse;
+  .table-custom th, .table-custom td {
+    border: 1px solid #000 !important;
+    font-size: 0.8rem; /* Smaller font for print */
   }
   
-  .table th, .table td {
-    border: 1px solid #dee2e6 !important;
-  }
-  
-  /* Assicura che i colori di sfondo vengano stampati */
-  tr.zadankai td {
-    background-color: #fff3cd !important;
+  /* Force background colors */
+  .col-zona { background-color: #90EE90 !important; -webkit-print-color-adjust: exact; }
+  .header-main th { background-color: #FFD700 !important; -webkit-print-color-adjust: exact; }
+  .riga-settore td { background-color: #FFFACD !important; -webkit-print-color-adjust: exact; }
+  .riga-capitolo td { background-color: #98FB98 !important; -webkit-print-color-adjust: exact; }
+  .riga-centro td { background-color: #87CEEB !important; -webkit-print-color-adjust: exact; }
+  .table-zadankai thead .header-sub th:nth-child(5),
+  .table-zadankai thead .header-sub th:nth-child(10),
+  .table-zadankai thead .header-sub th:nth-child(15),
+  .table-zadankai td:nth-child(6),
+  .table-zadankai td:nth-child(11),
+  .table-zadankai td:nth-child(16),
+  .table-praticanti thead .header-sub th:nth-child(5),
+  .table-praticanti thead .header-sub th:nth-child(10),
+  .table-praticanti td:nth-child(6),
+  .table-praticanti td:nth-child(11) {
     -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  tr.praticanti td {
-    background-color: #d1ecf1 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .table-warning {
-    background-color: #fff3cd !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .table-info {
-    background-color: #d1ecf1 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  /* Bordi più spessi per la stampa */
-  .gruppo-border {
-    border-top: 3px solid #495057 !important;
-  }
-  
-  .bg-primary, .bg-secondary {
-    background: #007bff !important;
-    color: white !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .bg-warning {
-    background: #ffc107 !important;
-    color: #212529 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Regole ultra-specifiche per forzare i colori */
-  .table.table-striped tbody tr.table-warning td {
-    background-color: #fff3cd !important;
-  }
-  
-  .table.table-striped tbody tr.table-info td {
-    background-color: #d1ecf1 !important;
   }
 }
