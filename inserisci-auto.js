@@ -77,6 +77,19 @@ function inizializzaApp(gruppoUtente) {
     // Event listeners
     document.getElementById('dati-form').addEventListener('submit', salvasuFirebase);
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    const tipoInputs = document.querySelectorAll('input[name="tipo-dati"]');
+    if (tipoInputs.length) {
+        tipoInputs.forEach(inp => inp.addEventListener('change', () => {
+            const isStudio = getTipoDati() === 'STUDIO_GOSHO';
+            const sezPraticanti = document.getElementById('praticanti-section');
+            if (sezPraticanti) sezPraticanti.style.display = isStudio ? 'none' : '';
+            const headerEl = document.querySelector('.zadankai-header');
+            if (headerEl) headerEl.innerHTML = '<i class="fas fa-comments me-2"></i>' + (isStudio ? 'STUDIO GOSHO' : 'ZADANKAI');
+            setTimeout(caricaDatiEsistenti, 100);
+        }));
+    }
+    const headerElInit = document.querySelector('.zadankai-header');
+    if (headerElInit) headerElInit.innerHTML = '<i class="fas fa-comments me-2"></i>' + (getTipoDati() === 'STUDIO_GOSHO' ? 'STUDIO GOSHO' : 'ZADANKAI');
     
     // Event listeners per il caricamento dati esistenti con piccolo ritardo
     document.getElementById('anno').addEventListener('change', () => {
@@ -148,23 +161,36 @@ function salvasuFirebase(e) {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     const key = `${data.anno}-${data.mese}-${data.gruppo}`;
+    const tipoDati = getTipoDati();
+    const basePath = tipoDati === 'STUDIO_GOSHO' ? 'studio_gosho' : 'zadankai';
 
     // Calcola i totali per il popup
     const totaleZadankai = parseInt(data.zadankai_totale_generale) || 0;
     const totalePraticanti = parseInt(data.praticanti_totale_generale) || 0;
 
     // Popup di conferma con totali
-    const conferma = confirm(
-        `Confermi il salvataggio dei dati per:\n\n` +
-        `📅 Anno: ${data.anno}\n` +
-        `📆 Mese: ${data.mese}\n` +
-        `👥 Gruppo: ${data.gruppo}\n\n` +
-        `📊 RIEPILOGO TOTALI:\n` +
-        `🗣️ Totale Zadankai: ${totaleZadankai}\n` +
-        `🙏 Totale Praticanti: ${totalePraticanti}\n\n` +
-        `⚠️ I dati esistenti verranno sovrascritti se presenti.\n\n` +
-        `Vuoi procedere con il salvataggio?`
-    );
+    const conferma = tipoDati === 'STUDIO_GOSHO'
+        ? confirm(
+            `Confermi il salvataggio dei dati per:\n\n` +
+            `📅 Anno: ${data.anno}\n` +
+            `📆 Mese: ${data.mese}\n` +
+            `👥 Gruppo: ${data.gruppo}\n\n` +
+            `📊 RIEPILOGO STUDIO GOSHO:\n` +
+            `📘 Totale Studio Gosho: ${totaleZadankai}\n\n` +
+            `⚠️ I dati esistenti verranno sovrascritti se presenti.\n\n` +
+            `Vuoi procedere con il salvataggio?`
+          )
+        : confirm(
+            `Confermi il salvataggio dei dati per:\n\n` +
+            `📅 Anno: ${data.anno}\n` +
+            `📆 Mese: ${data.mese}\n` +
+            `👥 Gruppo: ${data.gruppo}\n\n` +
+            `📊 RIEPILOGO TOTALI:\n` +
+            `🗣️ Totale Zadankai: ${totaleZadankai}\n` +
+            `🙏 Totale Praticanti: ${totalePraticanti}\n\n` +
+            `⚠️ I dati esistenti verranno sovrascritti se presenti.\n\n` +
+            `Vuoi procedere con il salvataggio?`
+          );
     
     // Se l'utente annulla, interrompi il salvataggio
     if (!conferma) {
@@ -197,8 +223,10 @@ function salvasuFirebase(e) {
             GU: parseInt(data.zadankai_o_gu) || 0,
             GD: parseInt(data.zadankai_o_gd) || 0
           }
-        },
-        praticanti: {
+        }
+    };
+    if (tipoDati !== 'STUDIO_GOSHO') {
+        payload.praticanti = {
           membri: {
             U: parseInt(data.praticanti_m_u) || 0,
             D: parseInt(data.praticanti_m_d) || 0,
@@ -211,8 +239,8 @@ function salvasuFirebase(e) {
             GU: parseInt(data.praticanti_s_gu) || 0,
             GD: parseInt(data.praticanti_s_gd) || 0
           }
-        }
-    };
+        };
+    }
 
     // Mostra un indicatore di caricamento
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -220,14 +248,18 @@ function salvasuFirebase(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvataggio in corso...';
     submitBtn.disabled = true;
 
-    set(ref(database, `zadankai/${key}`), payload)
+    set(ref(database, `${basePath}/${key}`), payload)
         .then(() => {
             console.log('Dati salvati con successo');
             
             // INVIO EMAIL DI BACKUP DOPO IL SALVATAGGIO RIUSCITO
             inviaEmailNotifica(data, totaleZadankai, totalePraticanti);
             
-            alert(`✅ Dati salvati con successo!\n\n📊 Zadankai: ${totaleZadankai}\n🙏 Praticanti: ${totalePraticanti}`);
+            if (tipoDati === 'STUDIO_GOSHO') {
+                alert(`✅ Dati salvati con successo!\n\n📘 Studio Gosho: ${totaleZadankai}`);
+            } else {
+                alert(`✅ Dati salvati con successo!\n\n📊 Zadankai: ${totaleZadankai}\n🙏 Praticanti: ${totalePraticanti}`);
+            }
             
             // Reset del form
             //e.target.reset();
@@ -263,7 +295,9 @@ function caricaDatiEsistenti() {
 
     const key = `${anno}-${mese}-${gruppo}`;
     console.log('Chiave di ricerca:', key); // Debug
-    const dbRef = ref(database, `zadankai/${key}`);
+    const tipoDati = getTipoDati();
+    const basePath = tipoDati === 'STUDIO_GOSHO' ? 'studio_gosho' : 'zadankai';
+    const dbRef = ref(database, `${basePath}/${key}`);
     
     get(dbRef)
         .then((snapshot) => {
@@ -302,8 +336,7 @@ function caricaDatiEsistenti() {
                     }
                 }
                 
-                // Popola i campi PRATICANTI
-                if (data.praticanti) {
+                if (tipoDati !== 'STUDIO_GOSHO' && data.praticanti) {
                     // Membri
                     if (data.praticanti.membri) {
                         document.querySelector('input[name="praticanti_m_u"]').value = data.praticanti.membri.U || 0;
@@ -323,7 +356,7 @@ function caricaDatiEsistenti() {
                 
                 // Ricalcola i totali
                 calcolaTotaliZadankai();
-                calcolaTotaliPraticanti();
+                if (tipoDati !== 'STUDIO_GOSHO') calcolaTotaliPraticanti();
                 
                 // Mostra un messaggio di conferma
                 alert('Dati esistenti caricati per la modifica!');
@@ -380,17 +413,16 @@ function resetTabellaZadankai() {
 
 // FUNZIONE PER INVIARE EMAIL DI BACKUP
 function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
-    // Parametri per il template email
-    const templateParams = {
-        to_email: 'servizipliplo@gmail.com', // Email del destinatario per il backup
-        from_name: auth.currentUser.email, // Email dell'utente autenticato
+    const tipo = getTipoDati();
+    const baseParams = {
+        to_email: 'servizipliplo@gmail.com',
+        from_name: auth.currentUser.email,
         anno: data.anno,
         mese: data.mese,
         gruppo: data.gruppo,
-        totale_zadankai: totaleZadankai,
-        totale_praticanti: totalePraticanti,
         data_invio: new Date().toLocaleString('it-IT'),
-        // Dettagli Zadankai
+        tipo_dati: tipo,
+        totale_zadankai: totaleZadankai,
         zadankai_membri_u: data.zadankai_m_u || 0,
         zadankai_membri_d: data.zadankai_m_d || 0,
         zadankai_membri_gu: data.zadankai_m_gu || 0,
@@ -406,8 +438,10 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
         zadankai_ospiti_u: data.zadankai_o_u || 0,
         zadankai_ospiti_d: data.zadankai_o_d || 0,
         zadankai_ospiti_gu: data.zadankai_o_gu || 0,
-        zadankai_ospiti_gd: data.zadankai_o_gd || 0,
-        // Dettagli Praticanti
+        zadankai_ospiti_gd: data.zadankai_o_gd || 0
+    };
+    const praticantiParams = tipo === 'STUDIO_GOSHO' ? {} : {
+        totale_praticanti: totalePraticanti,
         praticanti_membri_u: data.praticanti_m_u || 0,
         praticanti_membri_d: data.praticanti_m_d || 0,
         praticanti_membri_gu: data.praticanti_m_gu || 0,
@@ -417,9 +451,43 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
         praticanti_simpatizzanti_gu: data.praticanti_s_gu || 0,
         praticanti_simpatizzanti_gd: data.praticanti_s_gd || 0
     };
+    const isStudio = tipo === 'STUDIO_GOSHO';
+    const subject = (isStudio
+        ? `Backup Studio Gosho – ${data.gruppo} ${data.mese} ${data.anno}`
+        : `Backup Zadankai – ${data.gruppo} ${data.mese} ${data.anno}`);
+    const message = (isStudio
+        ? [
+            `RIEPILOGO STUDIO GOSHO`,
+            `Gruppo: ${data.gruppo}`,
+            `Periodo: ${data.mese} ${data.anno}`,
+            ``,
+            `Totale Studio Gosho: ${baseParams.totale_zadankai}`,
+            ``,
+            `Dettagli Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, GU=${baseParams.zadankai_membri_gu}, GD=${baseParams.zadankai_membri_gd}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
+            `Dettagli Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, GU=${baseParams.zadankai_simpatizzanti_gu}, GD=${baseParams.zadankai_simpatizzanti_gd}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
+            `Dettagli Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, GU=${baseParams.zadankai_ospiti_gu}, GD=${baseParams.zadankai_ospiti_gd}`
+          ].join('\n')
+        : [
+            `RIEPILOGO ZADANKAI`,
+            `Gruppo: ${data.gruppo}`,
+            `Periodo: ${data.mese} ${data.anno}`,
+            ``,
+            `Totale Zadankai: ${baseParams.totale_zadankai}`,
+            `Totale Praticanti: ${praticantiParams.totale_praticanti}`,
+            ``,
+            `Dettagli Zadankai Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, GU=${baseParams.zadankai_membri_gu}, GD=${baseParams.zadankai_membri_gd}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
+            `Dettagli Zadankai Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, GU=${baseParams.zadankai_simpatizzanti_gu}, GD=${baseParams.zadankai_simpatizzanti_gd}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
+            `Dettagli Zadankai Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, GU=${baseParams.zadankai_ospiti_gu}, GD=${baseParams.zadankai_ospiti_gd}`,
+            ``,
+            `Dettagli Praticanti Membri: U=${praticantiParams.praticanti_membri_u}, D=${praticantiParams.praticanti_membri_d}, GU=${praticantiParams.praticanti_membri_gu}, GD=${praticantiParams.praticanti_membri_gd}`,
+            `Dettagli Praticanti Simpatizzanti: U=${praticantiParams.praticanti_simpatizzanti_u}, D=${praticantiParams.praticanti_simpatizzanti_d}, GU=${praticantiParams.praticanti_simpatizzanti_gu}, GD=${praticantiParams.praticanti_simpatizzanti_gd}`
+          ].join('\n'));
+    const templateParams = { ...baseParams, ...praticantiParams, subject, message, is_studio_gosho: isStudio };
 
     // Invia l'email
-    emailjs.send('service_0ldevwc', 'template_vzuiz3q', templateParams)
+    const serviceId = 'service_0ldevwc';
+    const templateId = isStudio ? 'template_vzuiz3q_gosho' : 'template_vzuiz3q';
+    emailjs.send(serviceId, templateId, templateParams)
         .then((response) => {
             console.log('Email di backup inviata con successo:', response.status, response.text);
         })
@@ -427,4 +495,9 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
             console.error('Errore nell\'invio dell\'email di backup:', error);
             // Non mostrare errore all'utente per non interrompere il flusso
         });
+}
+
+function getTipoDati(){
+    const checked = document.querySelector('input[name="tipo-dati"]:checked');
+    return checked ? checked.value : 'ZADANKAI';
 }

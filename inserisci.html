@@ -65,6 +65,20 @@
                         <select name="mese" id="mese" class="form-select" required></select>
                     </div>
                 </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-label">Tipo dati:</div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tipo-dati" id="tipo-zadankai" value="ZADANKAI" checked>
+                            <label class="form-check-label" for="tipo-zadankai">Zadankai</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tipo-dati" id="tipo-studiogosho" value="STUDIO_GOSHO">
+                            <label class="form-check-label" for="tipo-studiogosho">Studio Gosho</label>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="row">
                     <div class="col-12">
@@ -124,7 +138,7 @@
                     </div>
                 </div>
 
-                <div class="row mt-4">
+                <div class="row mt-4" id="praticanti-section">
                     <div class="col-12">
                         <h2 class="praticanti-header"><i class="fas fa-users me-2"></i>PRATICANTI</h2>
                         <div class="table-responsive">

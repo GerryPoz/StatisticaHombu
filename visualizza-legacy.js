@@ -36,6 +36,11 @@ var righe = [];
 var gruppoToCapitolo = {};
 var gruppiData;
 
+function getFiltroTipoVal() {
+  var radio = document.querySelector('input[name="filtro-tipo"]:checked');
+  return radio ? radio.value : "ZADANKAI";
+}
+
 // 🔹 Funzione per calcolare il mese precedente
 function mesePrecedente(mese, anno) {
   var indiceMese = mesiOrdine.indexOf(mese);
@@ -91,7 +96,7 @@ function caricaDati() {
 function caricaDatiFirebase() {
   console.log("🔥 Caricamento dati da Firebase...");
   
-  database.ref('zadankai').once('value')
+  database.ref(getFiltroTipoVal() === 'STUDIO_GOSHO' ? 'studio_gosho' : 'zadankai').once('value')
     .then(function(snapshot) {
       if (!snapshot.exists()) {
         console.log("⚠️ Nessun dato trovato in Firebase");
@@ -165,6 +170,9 @@ function caricaDatiFirebase() {
 
 // 🔹 Inizializza i filtri
 function inizializzaFiltri() {
+  // Pulisce filtri per evitare duplicazioni
+  if (filtroAnno) filtroAnno.innerHTML = "";
+  if (filtroMese) filtroMese.innerHTML = "";
   var anni = [];
   var mesi = [];
   
@@ -210,6 +218,19 @@ function inizializzaFiltri() {
   filtroAnno.addEventListener("change", aggiornaTabella);
   filtroMese.addEventListener("change", aggiornaTabella);
   filtroCapitolo.addEventListener("change", aggiornaTabella);
+  // Evita di aggiungere più volte i listener sui radio
+  if (!window.__tipoListenerInitVL__) {
+    window.__tipoListenerInitVL__ = true;
+    var radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
+    radiosTipo.forEach(function(radio) {
+      radio.addEventListener("change", function() {
+        if (filtroAnno) filtroAnno.innerHTML = "";
+        if (filtroMese) filtroMese.innerHTML = "";
+        righe = [];
+        caricaDatiFirebase();
+      });
+    });
+  }
   
   if (btnExportExcel) btnExportExcel.addEventListener("click", esportaExcel);
   if (btnExportPdf) btnExportPdf.addEventListener("click", esportaPdf);
@@ -314,19 +335,20 @@ function aggiornaTabella() {
   tbodyZ.appendChild(creaRigaZadankaiLegacy(("- " + capitolo).toUpperCase(), totCapitoloZ, "riga-capitolo"));
   tableZ.appendChild(tbodyZ); containerTabelle.appendChild(tableZ);
   
-  // Genera Tabella Praticanti
-  var tableP = document.createElement("table"); tableP.className = "table-custom table-praticanti mb-5"; tableP.innerHTML = getHeaderPraticantiLegacy();
-  var tbodyP = document.createElement("tbody");
-  for (var s2=0; s2<datiGerarchici.length; s2++){
-    var settore2 = datiGerarchici[s2];
-    for (var g2=0; g2<settore2.gruppi.length; g2++){
-      var gruppo2 = settore2.gruppi[g2];
-      tbodyP.appendChild(creaRigaPraticantiLegacy(gruppo2.nome, gruppo2.praticanti));
+  if (getFiltroTipoVal() !== "STUDIO_GOSHO") {
+    var tableP = document.createElement("table"); tableP.className = "table-custom table-praticanti mb-5"; tableP.innerHTML = getHeaderPraticantiLegacy();
+    var tbodyP = document.createElement("tbody");
+    for (var s2=0; s2<datiGerarchici.length; s2++){
+      var settore2 = datiGerarchici[s2];
+      for (var g2=0; g2<settore2.gruppi.length; g2++){
+        var gruppo2 = settore2.gruppi[g2];
+        tbodyP.appendChild(creaRigaPraticantiLegacy(gruppo2.nome, gruppo2.praticanti));
+      }
+      tbodyP.appendChild(creaRigaPraticantiLegacy("- " + settore2.nome.toUpperCase(), settore2.totP, "riga-settore"));
     }
-    tbodyP.appendChild(creaRigaPraticantiLegacy("- " + settore2.nome.toUpperCase(), settore2.totP, "riga-settore"));
+    tbodyP.appendChild(creaRigaPraticantiLegacy(("- " + capitolo).toUpperCase(), totCapitoloP, "riga-capitolo"));
+    tableP.appendChild(tbodyP); containerTabelle.appendChild(tableP);
   }
-  tbodyP.appendChild(creaRigaPraticantiLegacy(("- " + capitolo).toUpperCase(), totCapitoloP, "riga-capitolo"));
-  tableP.appendChild(tbodyP); containerTabelle.appendChild(tableP);
   
   // Aggiorna altre sezioni
   mostraGruppiMancanti(datiAnnoMese, anno, mese, capitolo);
@@ -344,10 +366,11 @@ function trovaDatiSezione(righe, sezione){
   return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
 }
 function getHeaderZadankaiLegacy(){
+  var headerTitle = (getFiltroTipoVal() === "STUDIO_GOSHO" ? "REPORT STUDIO GOSHO" : "REPORT ZADANKAI");
   return [
     '<thead>',
     '<tr class="header-main">',
-    '<th rowspan="2" class="col-zona">REPORT ZADANKAI<br>ZONA</th>',
+    '<th rowspan="2" class="col-zona">' + headerTitle + '<br>ZONA</th>',
     '<th colspan="5" class="col-membri">MEMBRI</th>',
     '<th colspan="5" class="col-simp">SIMPATIZZANTI</th>',
     '<th colspan="5" class="col-nuove">OSPITI</th>',

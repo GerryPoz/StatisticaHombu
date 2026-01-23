@@ -31,6 +31,11 @@ var gruppoToCapitolo = {};
 var mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
+function getTipoDati() {
+  var radio = document.querySelector('input[name="filtro-tipo"]:checked');
+  return radio ? radio.value : "ZADANKAI";
+}
+
 // Autenticazione
 auth.onAuthStateChanged(function(user) {
     if (user) {
@@ -39,6 +44,20 @@ auth.onAuthStateChanged(function(user) {
     } else {
         window.location.href = 'index.html';
     }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  var radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
+  for (var i = 0; i < radiosTipo.length; i++) {
+    radiosTipo[i].addEventListener('change', function() {
+      righe = [];
+      var filtroAnno = document.getElementById('filtro-anno');
+      var filtroMese = document.getElementById('filtro-mese');
+      if (filtroAnno) filtroAnno.innerHTML = '';
+      if (filtroMese) filtroMese.innerHTML = '';
+      caricaDati();
+    });
+  }
 });
 
 // Funzione per ottenere il mese precedente
@@ -74,8 +93,9 @@ function caricaDati() {
                 }
             }
             
-            // Carica dati zadankai da Firebase
-            return database.ref('zadankai').once('value');
+            var tipoDati = getTipoDati();
+            var basePath = tipoDati === "STUDIO_GOSHO" ? "studio_gosho" : "zadankai";
+            return database.ref(basePath).once('value');
         })
         .then(function(snapshot) {
             if (snapshot.exists()) {
@@ -90,7 +110,7 @@ function caricaDati() {
                     var gruppo = parts[2];
                     var sezioni = dati[key];
                     
-                    // Zadankai
+                if (sezioni.zadankai) {
                     for (var categoria in sezioni.zadankai) {
                         var r = sezioni.zadankai[categoria];
                         righe.push({ 
@@ -99,8 +119,9 @@ function caricaDati() {
                             FUT: r.FUT || 0, STU: r.STU || 0 
                         });
                     }
-                    
-                    // Praticanti
+                }
+                
+                if (sezioni.praticanti) {
                     for (var categoria in sezioni.praticanti) {
                         var r = sezioni.praticanti[categoria];
                         righe.push({ 
@@ -109,6 +130,7 @@ function caricaDati() {
                             FUT: r.FUT || 0, STU: r.STU || 0 
                         });
                     }
+                }
                 }
                 
                 console.log('Righe elaborate:', righe.length);
@@ -139,6 +161,8 @@ function caricaDati() {
 function inizializzaFiltri() {
     var filtroAnno = document.getElementById('filtro-anno');
     var filtroMese = document.getElementById('filtro-mese');
+    if (filtroAnno) filtroAnno.innerHTML = '';
+    if (filtroMese) filtroMese.innerHTML = '';
     
     // Popola anni
     var anni = [];

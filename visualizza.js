@@ -12,6 +12,7 @@ const db = getDatabase(app);
 const filtroAnno = document.getElementById("filtro-anno");
 const filtroMese = document.getElementById("filtro-mese");
 const filtroCapitolo = document.getElementById("filtro-capitolo");
+const filtroTipo = document.getElementById("filtro-tipo");
 const containerTabelle = document.getElementById("container-tabelle");
 const btnExportExcel = document.getElementById("btn-export-excel");
 const btnExportPdf = document.getElementById("btn-export-pdf");
@@ -40,9 +41,12 @@ function mesePrecedente(mese, anno) {
 // 🔹 Carica dati da gruppi.json e Firebase
 async function caricaDati() {
   try {
+    righe = [];
+    filtroAnno.innerHTML = "";
+    filtroMese.innerHTML = "";
     const [dataResponse, snapshot] = await Promise.all([
       fetch("gruppi.json").then(res => res.json()),
-      get(child(ref(db), "zadankai"))
+      get(child(ref(db), (filtroTipo && filtroTipo.value === "STUDIO_GOSHO") ? "studio_gosho" : "zadankai"))
     ]);
     
     gruppiData = dataResponse;
@@ -102,6 +106,7 @@ async function caricaDati() {
     // Aggiungi event listeners
     [filtroAnno, filtroMese, filtroCapitolo].forEach(f => 
       f.addEventListener("change", aggiornaTabella));
+    if (filtroTipo) filtroTipo.addEventListener("change", () => { caricaDati(); });
     btnExportExcel.addEventListener("click", esportaExcel);
     btnExportPdf.addEventListener("click", esportaPdf);
     btnPrint.addEventListener("click", stampa);
@@ -263,22 +268,21 @@ function aggiornaTabella() {
   tableZ.appendChild(tbodyZ);
   containerTabelle.appendChild(tableZ);
 
-  // Genera Tabella Praticanti
-  const tableP = document.createElement("table");
-  tableP.className = "table-custom table-praticanti mb-5";
-  tableP.innerHTML = getHeaderPraticanti();
-
-  const tbodyP = document.createElement("tbody");
-  datiGerarchici.forEach(settore => {
-    settore.gruppi.forEach(gruppo => {
-      tbodyP.appendChild(creaRigaPraticanti(gruppo.nome, gruppo.praticanti));
+  if (!filtroTipo || filtroTipo.value !== "STUDIO_GOSHO") {
+    const tableP = document.createElement("table");
+    tableP.className = "table-custom table-praticanti mb-5";
+    tableP.innerHTML = getHeaderPraticanti();
+    const tbodyP = document.createElement("tbody");
+    datiGerarchici.forEach(settore => {
+      settore.gruppi.forEach(gruppo => {
+        tbodyP.appendChild(creaRigaPraticanti(gruppo.nome, gruppo.praticanti));
+      });
+      tbodyP.appendChild(creaRigaPraticanti(`SETTORE ${settore.nome.toUpperCase()}`, settore.totPraticanti, "riga-settore"));
     });
-    tbodyP.appendChild(creaRigaPraticanti(`SETTORE ${settore.nome.toUpperCase()}`, settore.totPraticanti, "riga-settore"));
-  });
-  tbodyP.appendChild(creaRigaPraticanti(`CAPITOLO ${capitolo.toUpperCase()}`, totCapitoloPraticanti, "riga-capitolo"));
-
-  tableP.appendChild(tbodyP);
-  containerTabelle.appendChild(tableP);
+    tbodyP.appendChild(creaRigaPraticanti(`CAPITOLO ${capitolo.toUpperCase()}`, totCapitoloPraticanti, "riga-capitolo"));
+    tableP.appendChild(tbodyP);
+    containerTabelle.appendChild(tableP);
+  }
 
   // Aggiorna Grafici (manteniamo la logica esistente se compatibile o la adattiamo)
   aggiornaGrafici(righe.filter(r => r.anno === anno && r.mese === mese && gruppoToCapitolo[r.gruppo] === capitolo), anno, mese, capitolo, annoPrec, mesePrec);

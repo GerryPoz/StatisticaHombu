@@ -33,6 +33,7 @@ const auth = getAuth(app);
 let righe = [];
 let gruppiData;
 let gruppoToCapitolo = {};
+let __tipoListenerInitR__ = false;
 
 const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                     "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
@@ -46,6 +47,11 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = 'index.html';
     }
 });
+
+function getTipoDati() {
+    const radio = document.querySelector('input[name="filtro-tipo"]:checked');
+    return radio ? radio.value : 'ZADANKAI';
+}
 
 // Funzione per ottenere il mese precedente
 function mesePrecedente(mese, anno) {
@@ -73,9 +79,10 @@ async function caricaDati() {
             }
         }
         
-        // Carica dati zadankai da Firebase
-        const zadankaiRef = ref(database, 'zadankai');
-        const snapshot = await get(zadankaiRef);
+        const tipoDati = getTipoDati();
+        const basePath = tipoDati === 'STUDIO_GOSHO' ? 'studio_gosho' : 'zadankai';
+        const datiRef = ref(database, basePath);
+        const snapshot = await get(datiRef);
         
         if (snapshot.exists()) {
             const dati = snapshot.val();
@@ -86,24 +93,26 @@ async function caricaDati() {
                 const [anno, mese, gruppo] = key.split('-');
                 const sezioni = dati[key];
                 
-                // Zadankai
-                for (const categoria in sezioni.zadankai) {
-                    const r = sezioni.zadankai[categoria];
-                    righe.push({ 
-                        anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
-                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
-                    });
+                if (sezioni.zadankai) {
+                    for (const categoria in sezioni.zadankai) {
+                        const r = sezioni.zadankai[categoria];
+                        righe.push({ 
+                            anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
+                            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                            FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                        });
+                    }
                 }
                 
-                // Praticanti
-                for (const categoria in sezioni.praticanti) {
-                    const r = sezioni.praticanti[categoria];
-                    righe.push({ 
-                        anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-                        U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
-                        FUT: r.FUT ?? 0, STU: r.STU ?? 0 
-                    });
+                if (sezioni.praticanti) {
+                    for (const categoria in sezioni.praticanti) {
+                        const r = sezioni.praticanti[categoria];
+                        righe.push({ 
+                            anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
+                            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                            FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                        });
+                    }
                 }
             }
             
@@ -116,22 +125,29 @@ async function caricaDati() {
         console.error('Errore nel caricamento dei dati:', error);
     }
 
-    // Aggiungi event listener per il pulsante di stampa SEMPRE, indipendentemente dai dati
     const btnPrint = document.getElementById('btn-print');
     if (btnPrint) {
         btnPrint.addEventListener('click', stampa);
-        console.log('Event listener per stampa aggiunto');
-    } else {
-        console.log('Pulsante stampa non trovato');
     }
 
-    // Event listener per il pulsante esporta PDF
     const btnExportPdf = document.getElementById('btn-export-pdf');
     if (btnExportPdf) {
         btnExportPdf.addEventListener('click', esportaPdf);
-        console.log('Event listener per esporta PDF aggiunto');
-    } else {
-        console.log('Pulsante esporta PDF non trovato');
+    }
+
+    if (!__tipoListenerInitR__) {
+        __tipoListenerInitR__ = true;
+        const radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
+        radiosTipo.forEach(radio => {
+            radio.addEventListener('change', () => {
+                righe = [];
+                const filtroAnno = document.getElementById('filtro-anno');
+                const filtroMese = document.getElementById('filtro-mese');
+                if (filtroAnno) filtroAnno.innerHTML = '';
+                if (filtroMese) filtroMese.innerHTML = '';
+                caricaDati();
+            });
+        });
     }
 }
 
@@ -139,6 +155,8 @@ async function caricaDati() {
 function inizializzaFiltri() {
     const filtroAnno = document.getElementById('filtro-anno');
     const filtroMese = document.getElementById('filtro-mese');
+    if (filtroAnno) filtroAnno.innerHTML = '';
+    if (filtroMese) filtroMese.innerHTML = '';
     
     // Popola anni
     const anni = [...new Set(righe.map(r => r.anno))].sort();
@@ -186,11 +204,15 @@ function aggiornaRiepiloghi() {
     container.innerHTML = '';
     const righeFiltrate = righe.filter(r => r.anno === annoSelezionato && r.mese === meseSelezionato);
     const { mese: mesePrec, anno: annoPrec } = mesePrecedente(meseSelezionato, annoSelezionato);
+    const tipoSelezionato = getTipoDati();
     const strutturaHombu = gruppiData["HOMBU 9"];
     const tableZ = document.createElement('table'); tableZ.className = 'table-custom table-zadankai mb-5'; tableZ.innerHTML = getHeaderZadankai();
     const tbodyZ = document.createElement('tbody');
-    const tableP = document.createElement('table'); tableP.className = 'table-custom table-praticanti mb-5'; tableP.innerHTML = getHeaderPraticanti();
-    const tbodyP = document.createElement('tbody');
+    let tableP = null, tbodyP = null;
+    if (tipoSelezionato !== 'STUDIO_GOSHO') {
+        tableP = document.createElement('table'); tableP.className = 'table-custom table-praticanti mb-5'; tableP.innerHTML = getHeaderPraticanti();
+        tbodyP = document.createElement('tbody');
+    }
   const totH9Z = { membri: initTot(), simp: initTot(), ospiti: initTot(), totG: 0, var: 0, fut: 0, stu: 0 };
   const totH9P = { membri: initTot(), simp: initTot(), totG: 0, var: 0 };
     Object.entries(strutturaHombu).forEach(([capitolo, settori]) => {
@@ -224,14 +246,14 @@ function aggiornaRiepiloghi() {
           datiSettore.totP.totG += pTotG; datiSettore.totP.var += pVar;
         });
         tbodyZ.appendChild(creaRigaZadankai(`- ${settore.toUpperCase()}`, datiSettore.totZ, 'riga-settore'));
-        tbodyP.appendChild(creaRigaPraticanti(`- ${settore.toUpperCase()}`, datiSettore.totP, 'riga-settore'));
+        if (tbodyP) tbodyP.appendChild(creaRigaPraticanti(`- ${settore.toUpperCase()}`, datiSettore.totP, 'riga-settore'));
         sommaTotali(totCapZ.membri, datiSettore.totZ.membri); sommaTotali(totCapZ.simp, datiSettore.totZ.simp); sommaTotali(totCapZ.ospiti, datiSettore.totZ.ospiti);
         totCapZ.totG += datiSettore.totZ.totG; totCapZ.var += datiSettore.totZ.var; totCapZ.fut += datiSettore.totZ.fut; totCapZ.stu += datiSettore.totZ.stu;
         sommaTotali(totCapP.membri, datiSettore.totP.membri); sommaTotali(totCapP.simp, datiSettore.totP.simp);
         totCapP.totG += datiSettore.totP.totG; totCapP.var += datiSettore.totP.var;
       });
       tbodyZ.appendChild(creaRigaZadankai(`- ${capitolo.toUpperCase()}`, totCapZ, 'riga-capitolo'));
-      tbodyP.appendChild(creaRigaPraticanti(`- ${capitolo.toUpperCase()}`, totCapP, 'riga-capitolo'));
+      if (tbodyP) tbodyP.appendChild(creaRigaPraticanti(`- ${capitolo.toUpperCase()}`, totCapP, 'riga-capitolo'));
       // Accumula HOMBU 9
       sommaTotali(totH9Z.membri, totCapZ.membri); sommaTotali(totH9Z.simp, totCapZ.simp); sommaTotali(totH9Z.ospiti, totCapZ.ospiti);
       totH9Z.totG += totCapZ.totG; totH9Z.var += totCapZ.var; totH9Z.fut += totCapZ.fut; totH9Z.stu += totCapZ.stu;
@@ -240,9 +262,9 @@ function aggiornaRiepiloghi() {
     });
   // Riga finale HOMBU 9
   tbodyZ.appendChild(creaRigaZadankai('CENTRO HOMBU 9', totH9Z, 'riga-centro'));
-  tbodyP.appendChild(creaRigaPraticanti('CENTRO HOMBU 9', totH9P, 'riga-centro'));
+  if (tbodyP) tbodyP.appendChild(creaRigaPraticanti('CENTRO HOMBU 9', totH9P, 'riga-centro'));
     tableZ.appendChild(tbodyZ); container.appendChild(tableZ);
-    tableP.appendChild(tbodyP); container.appendChild(tableP);
+    if (tableP && tbodyP) { tableP.appendChild(tbodyP); container.appendChild(tableP); }
 }
 
 function initTot(){ return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 }; }
@@ -253,10 +275,11 @@ function trovaDatiSezione(righeSez, sezione){
   return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
 }
 function getHeaderZadankai(){
+  const title = getTipoDati() === 'STUDIO_GOSHO' ? 'REPORT STUDIO GOSHO' : 'REPORT ZADANKAI';
   return `
     <thead>
       <tr class="header-main">
-        <th rowspan="2" class="col-zona"> REPORT ZADANKAI<br>ZONA</th>
+        <th rowspan="2" class="col-zona"> ${title}<br>ZONA</th>
         <th colspan="5" class="col-membri">MEMBRI</th>
         <th colspan="5" class="col-simp">SIMPATIZZANTI</th>
         <th colspan="5" class="col-nuove">OSPITI</th>
