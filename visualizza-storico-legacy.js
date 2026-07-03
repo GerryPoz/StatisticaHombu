@@ -31,15 +31,12 @@ function calcolaTotaleCategoria(categoria) {
         return 0;
     }
     
-    var totale = 0;
-    ['U', 'D', 'GU', 'GD'].forEach(function(sottoCat) {
-        if (categoria[sottoCat] !== undefined) {
-            var valore = parseInt(categoria[sottoCat]) || 0;
-            totale += valore;
-            console.log('🔍 DEBUG calcolaTotaleCategoria:', sottoCat, '=', valore);
-        }
-    });
-    
+    var u = parseInt(categoria.U) || 0;
+    var d = parseInt(categoria.D) || 0;
+    var g = (categoria.G !== undefined)
+        ? (parseInt(categoria.G) || 0)
+        : ((parseInt(categoria.GU) || 0) + (parseInt(categoria.GD) || 0));
+    var totale = u + d + g;
     console.log('🔍 DEBUG calcolaTotaleCategoria: totale calcolato =', totale, 'da:', categoria);
     return totale;
 }

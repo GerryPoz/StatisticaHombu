@@ -128,8 +128,9 @@ function caricaDatiFirebase() {
               sezione: categoria,
               U: r.U || 0,
               D: r.D || 0,
-              GU: r.GU || 0,
-              GD: r.GD || 0,
+              G: (r.G != null ? r.G : ((r.GU || 0) + (r.GD || 0))) || 0,
+              GU: (r.G != null ? (r.G || 0) : (r.GU || 0)) || 0,
+              GD: (r.G != null ? 0 : (r.GD || 0)) || 0,
               FUT: r.FUT || 0,
               STU: r.STU || 0
             });
@@ -148,8 +149,9 @@ function caricaDatiFirebase() {
               sezione: categoria,
               U: r.U || 0,
               D: r.D || 0,
-              GU: r.GU || 0,
-              GD: r.GD || 0,
+              G: (r.G != null ? r.G : ((r.GU || 0) + (r.GD || 0))) || 0,
+              GU: (r.G != null ? (r.G || 0) : (r.GU || 0)) || 0,
+              GD: (r.G != null ? 0 : (r.GD || 0)) || 0,
               FUT: 0,
               STU: 0
             });
@@ -213,6 +215,44 @@ function inizializzaFiltri() {
       filtroMese.appendChild(option);
     }
   });
+
+  var prevFiltri = window.__prevFiltriVisualizzaLegacy__;
+  if (prevFiltri) {
+    if (prevFiltri.anno && filtroAnno && Array.from(filtroAnno.options).some(function(o) { return o.value === prevFiltri.anno; })) {
+      filtroAnno.value = prevFiltri.anno;
+    }
+    if (prevFiltri.mese && filtroMese && Array.from(filtroMese.options).some(function(o) { return o.value === prevFiltri.mese; })) {
+      filtroMese.value = prevFiltri.mese;
+    }
+    if (prevFiltri.capitolo && filtroCapitolo && Array.from(filtroCapitolo.options).some(function(o) { return o.value === prevFiltri.capitolo; })) {
+      filtroCapitolo.value = prevFiltri.capitolo;
+    }
+  } else {
+    if (anni.length > 0 && filtroAnno) {
+      var anniOrdinati = anni.slice().sort(function(a, b) { return parseInt(a, 10) - parseInt(b, 10); });
+      var annoRecente = anniOrdinati[anniOrdinati.length - 1];
+      if (Array.from(filtroAnno.options).some(function(o) { return o.value === annoRecente; })) {
+        filtroAnno.value = annoRecente;
+      }
+      if (filtroMese) {
+        var mesiAnno = [];
+        for (var j = 0; j < righe.length; j++) {
+          if (String(righe[j].anno) === String(annoRecente) && righe[j].mese && mesiAnno.indexOf(righe[j].mese) === -1) {
+            mesiAnno.push(righe[j].mese);
+          }
+        }
+        var meseRecente = null;
+        for (var k = 0; k < mesiAnno.length; k++) {
+          if (meseRecente === null || mesiOrdine.indexOf(mesiAnno[k]) > mesiOrdine.indexOf(meseRecente)) {
+            meseRecente = mesiAnno[k];
+          }
+        }
+        if (meseRecente && Array.from(filtroMese.options).some(function(o) { return o.value === meseRecente; })) {
+          filtroMese.value = meseRecente;
+        }
+      }
+    }
+  }
   
   // Aggiungi event listeners
   filtroAnno.addEventListener("change", aggiornaTabella);
@@ -224,6 +264,11 @@ function inizializzaFiltri() {
     var radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
     radiosTipo.forEach(function(radio) {
       radio.addEventListener("change", function() {
+        window.__prevFiltriVisualizzaLegacy__ = {
+          anno: filtroAnno ? filtroAnno.value : "",
+          mese: filtroMese ? filtroMese.value : "",
+          capitolo: filtroCapitolo ? filtroCapitolo.value : ""
+        };
         if (filtroAnno) filtroAnno.innerHTML = "";
         if (filtroMese) filtroMese.innerHTML = "";
         righe = [];
@@ -283,9 +328,9 @@ function aggiornaTabella() {
       var zS = trovaDatiSezione(rz, "simpatizzanti");
       var zO = trovaDatiSezione(rz, "ospiti");
       var zTotG = zM.Tot + zS.Tot + zO.Tot;
-      var zFut = (zM.FUT||0) + (zS.FUT||0) + (zO.FUT||0);
-      var zStu = (zM.STU||0) + (zS.STU||0) + (zO.STU||0);
-      var zTotPrec = 0; for (var a=0;a<rzPrec.length;a++){ var rr=rzPrec[a]; zTotPrec += rr.U+rr.D+rr.GU+rr.GD; }
+      var zFut = (zM.FUT||0) + (zS.FUT||0);
+      var zStu = (zM.STU||0) + (zS.STU||0);
+      var zTotPrec = 0; for (var a=0;a<rzPrec.length;a++){ var rr=rzPrec[a]; var gPrec = (rr.G != null ? rr.G : ((rr.GU||0) + (rr.GD||0))); zTotPrec += (rr.U||0) + (rr.D||0) + (gPrec||0); }
       var zVar = zTotG - zTotPrec;
       var datiGruppoZ = { membri: zM, simp: zS, ospiti: zO, totG: zTotG, var: zVar, fut: zFut, stu: zStu };
       sommaTotali(datiSettore.totZ.membri, zM);
@@ -299,7 +344,7 @@ function aggiornaTabella() {
       var pM = trovaDatiSezione(rp, "membri");
       var pS = trovaDatiSezione(rp, "simpatizzanti");
       var pTotG = pM.Tot + pS.Tot;
-      var pTotPrec = 0; for (var b=0;b<rpPrec.length;b++){ var rrp=rpPrec[b]; pTotPrec += rrp.U+rrp.D+rrp.GU+rrp.GD; }
+      var pTotPrec = 0; for (var b=0;b<rpPrec.length;b++){ var rrp=rpPrec[b]; var gPrecP = (rrp.G != null ? rrp.G : ((rrp.GU||0) + (rrp.GD||0))); pTotPrec += (rrp.U||0) + (rrp.D||0) + (gPrecP||0); }
       var pVar = pTotG - pTotPrec;
       var datiGruppoP = { membri: pM, simp: pS, totG: pTotG, var: pVar };
       sommaTotali(datiSettore.totP.membri, pM);
@@ -354,16 +399,17 @@ function aggiornaTabella() {
   mostraGruppiMancanti(datiAnnoMese, anno, mese, capitolo);
 }
  
-function initTot(){ return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 }; }
-function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.GU+=src.GU; dest.GD+=src.GD; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
+function initTot(){ return { U:0, D:0, G:0, Tot:0, FUT:0, STU:0 }; }
+function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.G+=src.G; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
 function trovaDatiSezione(righe, sezione){
   for (var i=0; i<righe.length; i++){
     if (righe[i].sezione === sezione){
       var r = righe[i];
-      return { U:r.U, D:r.D, GU:r.GU, GD:r.GD, Tot:(r.U+r.D+r.GU+r.GD), FUT:r.FUT, STU:r.STU };
+      var g = (r.G != null ? r.G : ((r.GU || 0) + (r.GD || 0))) || 0;
+      return { U:r.U, D:r.D, G:g, Tot:(r.U+r.D+g), FUT:r.FUT, STU:r.STU };
     }
   }
-  return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
+  return { U:0, D:0, G:0, Tot:0, FUT:0, STU:0 };
 }
 function getHeaderZadankaiLegacy(){
   var headerTitle = (getFiltroTipoVal() === "STUDIO_GOSHO" ? "REPORT STUDIO GOSHO" : "REPORT ZADANKAI");
@@ -371,15 +417,15 @@ function getHeaderZadankaiLegacy(){
     '<thead>',
     '<tr class="header-main">',
     '<th rowspan="2" class="col-zona">' + headerTitle + '<br>ZONA</th>',
-    '<th colspan="5" class="col-membri">MEMBRI</th>',
-    '<th colspan="5" class="col-simp">SIMPATIZZANTI</th>',
-    '<th colspan="5" class="col-nuove">OSPITI</th>',
+    '<th colspan="6" class="col-membri">MEMBRI</th>',
+    '<th colspan="6" class="col-simp">SIMPATIZZANTI</th>',
+    '<th colspan="4" class="col-nuove">OSPITI</th>',
     '<th colspan="4" class="col-totali">TOTALI</th>',
     '</tr>',
     '<tr class="header-sub">',
-    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
-    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
-    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>',
+    '<th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>',
+    '<th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>',
+    '<th>U</th><th>D</th><th>G</th><th>TOT</th>',
     '<th>TOT G.</th><th>VAR</th><th>FUT</th><th>STU</th>',
     '</tr>',
     '</thead>'
@@ -390,14 +436,14 @@ function getHeaderPraticantiLegacy(){
     '<thead>',
     '<tr class="header-main">',
     '<th rowspan="2" class="col-zona">Report Praticanti<br>Zona</th>',
-    '<th colspan="5" class="col-praticanti-membri">Praticanti Membri</th>',
-    '<th colspan="5" class="col-praticanti-simp">Praticanti Simpatizzanti</th>',
+    '<th colspan="4" class="col-praticanti-membri">Praticanti Membri</th>',
+    '<th colspan="4" class="col-praticanti-simp">Praticanti Simpatizzanti</th>',
     '<th rowspan="2" class="col-totg">TOT G.</th>',
     '<th rowspan="2" class="col-var">Var</th>',
     '</tr>',
     '<tr class="header-sub">',
-    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>',
-    '<th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>',
+    '<th>U</th><th>D</th><th>G</th><th>Tot</th>',
+    '<th>U</th><th>D</th><th>G</th><th>Tot</th>',
     '</tr>',
     '</thead>'
   ].join('');
@@ -407,16 +453,16 @@ function creaRigaZadankaiLegacy(nome, dati, classe){
   if (classe) tr.className = classe;
   var celle = [
     nome,
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
-    dati.ospiti.U, dati.ospiti.D, dati.ospiti.GU, dati.ospiti.GD, dati.ospiti.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot, dati.membri.FUT, dati.membri.STU,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot, dati.simp.FUT, dati.simp.STU,
+    dati.ospiti.U, dati.ospiti.D, dati.ospiti.G, dati.ospiti.Tot,
     dati.totG, dati.var, dati.fut, dati.stu
   ];
   for (var i=0;i<celle.length;i++){
     var td = document.createElement("td");
-    td.textContent = (i === 17 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
+    td.textContent = (i === 18 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
     if (i===0) td.className = "text-start fw-bold cella-nome";
-    if (i===5 || i===10 || i===15 || i===16 || i===17) td.classList.add('fw-bold');
+    if (i===4 || i===10 || i===16 || i===17 || i===18) td.classList.add('fw-bold');
     tr.appendChild(td);
   }
   return tr;
@@ -426,15 +472,15 @@ function creaRigaPraticantiLegacy(nome, dati, classe){
   if (classe) tr.className = classe;
   var celle = [
     nome,
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot,
     dati.totG, dati.var
   ];
   for (var i=0;i<celle.length;i++){
     var td = document.createElement("td");
-    td.textContent = (i === 12 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
+    td.textContent = (i === 10 && typeof celle[i] === 'number' && celle[i] > 0) ? ('+' + celle[i]) : celle[i];
     if (i===0) td.className = "text-start fw-bold cella-nome";
-    if (i===5 || i===10 || i===11 || i===12) td.classList.add('fw-bold');
+    if (i===4 || i===8 || i===9 || i===10) td.classList.add('fw-bold');
     tr.appendChild(td);
   }
   return tr;
@@ -535,7 +581,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
     tabella.className = "table table-striped table-bordered";
     
     var thead = document.createElement("thead");
-    thead.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th></tr>';
+    thead.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>G</th><th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th></tr>';
     tabella.appendChild(thead);
     
     var tbody = document.createElement("tbody");
@@ -570,12 +616,12 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       
       var sumTot = righeTotali.reduce(function(acc, r) {
         return {
-          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+          U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+          FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
         };
-      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
       
-      var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+      var totaleMese = sumTot.U + sumTot.D + sumTot.G;
       
       var righePrecTot = righe.filter(function(r) {
         return r.anno === annoPrec && r.mese === mesePrec &&
@@ -585,7 +631,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       });
       
       var totalePrec = righePrecTot.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
+        return acc + r.U + r.D + r.G;
       }, 0);
       
       var delta = totaleMese - totalePrec;
@@ -596,12 +642,12 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         
         var sum = righeSezione.reduce(function(acc, r) {
           return {
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+            FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
           };
-        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+        }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
         
-        var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+        var sommaTot = sum.U + sum.D + sum.G;
         
         var righePrec = righe.filter(function(r) {
           return r.anno === annoPrec && r.mese === mesePrec &&
@@ -610,7 +656,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         });
         
         var sommaPrec = righePrec.reduce(function(acc, r) {
-          return acc + r.U + r.D + r.GU + r.GD;
+          return acc + r.U + r.D + r.G;
         }, 0);
         
         var tr = document.createElement("tr");
@@ -624,7 +670,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           tr.appendChild(tdTipo);
         }
         
-        var celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+        var celle = [sezione, sum.U, sum.D, sum.G, sommaTot, sommaPrec];
         
         for (var k = 0; k < celle.length; k++) {
           var val = celle[k];
@@ -634,7 +680,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
           // Applica bordi blu per le colonne specifiche
           if (k === 1) { // U (dopo Sezione)
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-          } else if (k === 5) { // Somma (dopo GD)
+          } else if (k === 4) { // Somma (dopo G)
             td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
             td.style.fontWeight = "bold";
           }
@@ -688,7 +734,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
   tabellaCap.className = "table table-striped table-bordered";
   
   var theadCap = document.createElement("thead");
-  theadCap.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th><th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th></tr>';
+  theadCap.innerHTML = '<tr><th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>G</th><th>Somma</th><th>Prec.</th><th>Totale Gruppi</th><th>Futuro</th><th>Studenti</th></tr>';
   tabellaCap.appendChild(theadCap);
   
   var tbodyCap = document.createElement("tbody");
@@ -722,12 +768,12 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
     
     var sumTot = righeTotali.reduce(function(acc, r) {
       return {
-        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+        U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+        FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
       };
-    }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+    }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
     
-    var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+    var totaleMese = sumTot.U + sumTot.D + sumTot.G;
     
     var righePrecTot = righe.filter(function(r) {
       return r.anno === annoPrec && r.mese === mesePrec &&
@@ -737,7 +783,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
     });
     
     var totalePrec = righePrecTot.reduce(function(acc, r) {
-      return acc + r.U + r.D + r.GU + r.GD;
+      return acc + r.U + r.D + r.G;
     }, 0);
     
     var delta = totaleMese - totalePrec;
@@ -748,12 +794,12 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       
       var sum = righeSezione.reduce(function(acc, r) {
         return {
-          U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-          GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+          U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+          FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
         };
-      }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+      }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
       
-      var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+      var sommaTot = sum.U + sum.D + sum.G;
       
       var righePrec = righe.filter(function(r) {
         return r.anno === annoPrec && r.mese === mesePrec &&
@@ -762,7 +808,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
       });
       
       var sommaPrec = righePrec.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
+        return acc + r.U + r.D + r.G;
       }, 0);
       
       var tr = document.createElement("tr");
@@ -776,7 +822,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         tr.appendChild(tdTipo);
       }
       
-      var celle = [sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec];
+      var celle = [sezione, sum.U, sum.D, sum.G, sommaTot, sommaPrec];
       
       for (var k = 0; k < celle.length; k++) {
         var val = celle[k];
@@ -786,7 +832,7 @@ function generaRiepiloghiCapitoloESettori(righeFiltrate, mese, anno, mesePrec, a
         // Applica bordi blu per le colonne specifiche
         if (k === 1) { // U (dopo Sezione)
           td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-        } else if (k === 5) { // Somma (dopo GD)
+        } else if (k === 4) { // Somma (dopo G)
           td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
           td.style.fontWeight = "bold";
         }

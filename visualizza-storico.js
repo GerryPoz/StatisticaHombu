@@ -26,14 +26,12 @@ function calcolaTotaleCategoria(categoria) {
         return 0;
     }
     
-    let totale = 0;
-    ['U', 'D', 'GU', 'GD'].forEach(sottoCat => {
-        if (categoria[sottoCat] !== undefined) {
-            totale += parseInt(categoria[sottoCat]) || 0;
-        }
-    });
-    
-    return totale;
+    const u = parseInt(categoria.U) || 0;
+    const d = parseInt(categoria.D) || 0;
+    const g = (categoria.G !== undefined)
+        ? (parseInt(categoria.G) || 0)
+        : ((parseInt(categoria.GU) || 0) + (parseInt(categoria.GD) || 0));
+    return u + d + g;
 }
 
 // Inizializzazione

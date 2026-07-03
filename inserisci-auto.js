@@ -119,9 +119,8 @@ function calcolaTotaliZadankai() {
     sezioni.forEach(sezione => {
         const u = +document.querySelector(`[name="zadankai_${sezione}_u"]`).value || 0;
         const d = +document.querySelector(`[name="zadankai_${sezione}_d"]`).value || 0;
-        const gu = +document.querySelector(`[name="zadankai_${sezione}_gu"]`).value || 0;
-        const gd = +document.querySelector(`[name="zadankai_${sezione}_gd"]`).value || 0;
-        const somma = u + d + gu + gd;
+        const g = +document.querySelector(`[name="zadankai_${sezione}_g"]`).value || 0;
+        const somma = u + d + g;
         document.querySelector(`[name="zadankai_${sezione}_tot"]`).value = somma;
         totaleGenerale += somma;
     });
@@ -137,9 +136,8 @@ function calcolaTotaliPraticanti() {
     sezioni.forEach(sezione => {
         const u = +document.querySelector(`[name="praticanti_${sezione}_u"]`).value || 0;
         const d = +document.querySelector(`[name="praticanti_${sezione}_d"]`).value || 0;
-        const gu = +document.querySelector(`[name="praticanti_${sezione}_gu"]`).value || 0;
-        const gd = +document.querySelector(`[name="praticanti_${sezione}_gd"]`).value || 0;
-        const somma = u + d + gu + gd;
+        const g = +document.querySelector(`[name="praticanti_${sezione}_g"]`).value || 0;
+        const somma = u + d + g;
         document.querySelector(`[name="praticanti_${sezione}_tot"]`).value = somma;
         totaleGenerale += somma;
     });
@@ -204,24 +202,21 @@ function salvasuFirebase(e) {
           membri: {
             U: parseInt(data.zadankai_m_u) || 0,
             D: parseInt(data.zadankai_m_d) || 0,
-            GU: parseInt(data.zadankai_m_gu) || 0,
-            GD: parseInt(data.zadankai_m_gd) || 0,
+            G: parseInt(data.zadankai_m_g) || 0,
             FUT: parseInt(data.zadankai_m_fut) || 0,
             STU: parseInt(data.zadankai_m_stu) || 0
           },
           simpatizzanti: {
             U: parseInt(data.zadankai_s_u) || 0,
             D: parseInt(data.zadankai_s_d) || 0,
-            GU: parseInt(data.zadankai_s_gu) || 0,
-            GD: parseInt(data.zadankai_s_gd) || 0,
+            G: parseInt(data.zadankai_s_g) || 0,
             FUT: parseInt(data.zadankai_s_fut) || 0,
             STU: parseInt(data.zadankai_s_stu) || 0
           },
           ospiti: {
             U: parseInt(data.zadankai_o_u) || 0,
             D: parseInt(data.zadankai_o_d) || 0,
-            GU: parseInt(data.zadankai_o_gu) || 0,
-            GD: parseInt(data.zadankai_o_gd) || 0
+            G: parseInt(data.zadankai_o_g) || 0
           }
         }
     };
@@ -230,14 +225,12 @@ function salvasuFirebase(e) {
           membri: {
             U: parseInt(data.praticanti_m_u) || 0,
             D: parseInt(data.praticanti_m_d) || 0,
-            GU: parseInt(data.praticanti_m_gu) || 0,
-            GD: parseInt(data.praticanti_m_gd) || 0
+            G: parseInt(data.praticanti_m_g) || 0
           },
           simpatizzanti: {
             U: parseInt(data.praticanti_s_u) || 0,
             D: parseInt(data.praticanti_s_d) || 0,
-            GU: parseInt(data.praticanti_s_gu) || 0,
-            GD: parseInt(data.praticanti_s_gd) || 0
+            G: parseInt(data.praticanti_s_g) || 0
           }
         };
     }
@@ -311,8 +304,7 @@ function caricaDatiEsistenti() {
                     if (data.zadankai.membri) {
                         document.querySelector('input[name="zadankai_m_u"]').value = data.zadankai.membri.U || 0;
                         document.querySelector('input[name="zadankai_m_d"]').value = data.zadankai.membri.D || 0;
-                        document.querySelector('input[name="zadankai_m_gu"]').value = data.zadankai.membri.GU || 0;
-                        document.querySelector('input[name="zadankai_m_gd"]').value = data.zadankai.membri.GD || 0;
+                        document.querySelector('input[name="zadankai_m_g"]').value = (data.zadankai.membri.G ?? ((data.zadankai.membri.GU || 0) + (data.zadankai.membri.GD || 0))) || 0;
                         document.querySelector('input[name="zadankai_m_fut"]').value = data.zadankai.membri.FUT || 0;
                         document.querySelector('input[name="zadankai_m_stu"]').value = data.zadankai.membri.STU || 0;
                     }
@@ -321,8 +313,7 @@ function caricaDatiEsistenti() {
                     if (data.zadankai.simpatizzanti) {
                         document.querySelector('input[name="zadankai_s_u"]').value = data.zadankai.simpatizzanti.U || 0;
                         document.querySelector('input[name="zadankai_s_d"]').value = data.zadankai.simpatizzanti.D || 0;
-                        document.querySelector('input[name="zadankai_s_gu"]').value = data.zadankai.simpatizzanti.GU || 0;
-                        document.querySelector('input[name="zadankai_s_gd"]').value = data.zadankai.simpatizzanti.GD || 0;
+                        document.querySelector('input[name="zadankai_s_g"]').value = (data.zadankai.simpatizzanti.G ?? ((data.zadankai.simpatizzanti.GU || 0) + (data.zadankai.simpatizzanti.GD || 0))) || 0;
                         document.querySelector('input[name="zadankai_s_fut"]').value = data.zadankai.simpatizzanti.FUT || 0;
                         document.querySelector('input[name="zadankai_s_stu"]').value = data.zadankai.simpatizzanti.STU || 0;
                     }
@@ -331,8 +322,7 @@ function caricaDatiEsistenti() {
                     if (data.zadankai.ospiti) {
                         document.querySelector('input[name="zadankai_o_u"]').value = data.zadankai.ospiti.U || 0;
                         document.querySelector('input[name="zadankai_o_d"]').value = data.zadankai.ospiti.D || 0;
-                        document.querySelector('input[name="zadankai_o_gu"]').value = data.zadankai.ospiti.GU || 0;
-                        document.querySelector('input[name="zadankai_o_gd"]').value = data.zadankai.ospiti.GD || 0;
+                        document.querySelector('input[name="zadankai_o_g"]').value = (data.zadankai.ospiti.G ?? ((data.zadankai.ospiti.GU || 0) + (data.zadankai.ospiti.GD || 0))) || 0;
                     }
                 }
                 
@@ -341,16 +331,14 @@ function caricaDatiEsistenti() {
                     if (data.praticanti.membri) {
                         document.querySelector('input[name="praticanti_m_u"]').value = data.praticanti.membri.U || 0;
                         document.querySelector('input[name="praticanti_m_d"]').value = data.praticanti.membri.D || 0;
-                        document.querySelector('input[name="praticanti_m_gu"]').value = data.praticanti.membri.GU || 0;
-                        document.querySelector('input[name="praticanti_m_gd"]').value = data.praticanti.membri.GD || 0;
+                        document.querySelector('input[name="praticanti_m_g"]').value = (data.praticanti.membri.G ?? ((data.praticanti.membri.GU || 0) + (data.praticanti.membri.GD || 0))) || 0;
                     }
                     
                     // Simpatizzanti
                     if (data.praticanti.simpatizzanti) {
                         document.querySelector('input[name="praticanti_s_u"]').value = data.praticanti.simpatizzanti.U || 0;
                         document.querySelector('input[name="praticanti_s_d"]').value = data.praticanti.simpatizzanti.D || 0;
-                        document.querySelector('input[name="praticanti_s_gu"]').value = data.praticanti.simpatizzanti.GU || 0;
-                        document.querySelector('input[name="praticanti_s_gd"]').value = data.praticanti.simpatizzanti.GD || 0;
+                        document.querySelector('input[name="praticanti_s_g"]').value = (data.praticanti.simpatizzanti.G ?? ((data.praticanti.simpatizzanti.GU || 0) + (data.praticanti.simpatizzanti.GD || 0))) || 0;
                     }
                 }
                 
@@ -385,24 +373,21 @@ function resetTabellaZadankai() {
     // Reset campi ZADANKAI - Membri
     document.querySelector('input[name="zadankai_m_u"]').value = '';
     document.querySelector('input[name="zadankai_m_d"]').value = '';
-    document.querySelector('input[name="zadankai_m_gu"]').value = '';
-    document.querySelector('input[name="zadankai_m_gd"]').value = '';
+    document.querySelector('input[name="zadankai_m_g"]').value = '';
     document.querySelector('input[name="zadankai_m_fut"]').value = '';
     document.querySelector('input[name="zadankai_m_stu"]').value = '';
     
     // Reset campi ZADANKAI - Simpatizzanti
     document.querySelector('input[name="zadankai_s_u"]').value = '';
     document.querySelector('input[name="zadankai_s_d"]').value = '';
-    document.querySelector('input[name="zadankai_s_gu"]').value = '';
-    document.querySelector('input[name="zadankai_s_gd"]').value = '';
+    document.querySelector('input[name="zadankai_s_g"]').value = '';
     document.querySelector('input[name="zadankai_s_fut"]').value = '';
     document.querySelector('input[name="zadankai_s_stu"]').value = '';
     
     // Reset campi ZADANKAI - Ospiti
     document.querySelector('input[name="zadankai_o_u"]').value = '';
     document.querySelector('input[name="zadankai_o_d"]').value = '';
-    document.querySelector('input[name="zadankai_o_gu"]').value = '';
-    document.querySelector('input[name="zadankai_o_gd"]').value = '';
+    document.querySelector('input[name="zadankai_o_g"]').value = '';
     
     // Reset totali ZADANKAI
     document.querySelector('input[name="zadankai_m_tot"]').value = '';
@@ -425,31 +410,26 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
         totale_zadankai: totaleZadankai,
         zadankai_membri_u: data.zadankai_m_u || 0,
         zadankai_membri_d: data.zadankai_m_d || 0,
-        zadankai_membri_gu: data.zadankai_m_gu || 0,
-        zadankai_membri_gd: data.zadankai_m_gd || 0,
+        zadankai_membri_g: data.zadankai_m_g || 0,
         zadankai_membri_fut: data.zadankai_m_fut || 0,
         zadankai_membri_stu: data.zadankai_m_stu || 0,
         zadankai_simpatizzanti_u: data.zadankai_s_u || 0,
         zadankai_simpatizzanti_d: data.zadankai_s_d || 0,
-        zadankai_simpatizzanti_gu: data.zadankai_s_gu || 0,
-        zadankai_simpatizzanti_gd: data.zadankai_s_gd || 0,
+        zadankai_simpatizzanti_g: data.zadankai_s_g || 0,
         zadankai_simpatizzanti_fut: data.zadankai_s_fut || 0,
         zadankai_simpatizzanti_stu: data.zadankai_s_stu || 0,
         zadankai_ospiti_u: data.zadankai_o_u || 0,
         zadankai_ospiti_d: data.zadankai_o_d || 0,
-        zadankai_ospiti_gu: data.zadankai_o_gu || 0,
-        zadankai_ospiti_gd: data.zadankai_o_gd || 0
+        zadankai_ospiti_g: data.zadankai_o_g || 0
     };
     const praticantiParams = tipo === 'STUDIO_GOSHO' ? {} : {
         totale_praticanti: totalePraticanti,
         praticanti_membri_u: data.praticanti_m_u || 0,
         praticanti_membri_d: data.praticanti_m_d || 0,
-        praticanti_membri_gu: data.praticanti_m_gu || 0,
-        praticanti_membri_gd: data.praticanti_m_gd || 0,
+        praticanti_membri_g: data.praticanti_m_g || 0,
         praticanti_simpatizzanti_u: data.praticanti_s_u || 0,
         praticanti_simpatizzanti_d: data.praticanti_s_d || 0,
-        praticanti_simpatizzanti_gu: data.praticanti_s_gu || 0,
-        praticanti_simpatizzanti_gd: data.praticanti_s_gd || 0
+        praticanti_simpatizzanti_g: data.praticanti_s_g || 0
     };
     const isStudio = tipo === 'STUDIO_GOSHO';
     const subject = (isStudio
@@ -463,9 +443,9 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
             ``,
             `Totale Studio Gosho: ${baseParams.totale_zadankai}`,
             ``,
-            `Dettagli Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, GU=${baseParams.zadankai_membri_gu}, GD=${baseParams.zadankai_membri_gd}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
-            `Dettagli Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, GU=${baseParams.zadankai_simpatizzanti_gu}, GD=${baseParams.zadankai_simpatizzanti_gd}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
-            `Dettagli Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, GU=${baseParams.zadankai_ospiti_gu}, GD=${baseParams.zadankai_ospiti_gd}`
+            `Dettagli Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, G=${baseParams.zadankai_membri_g}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
+            `Dettagli Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, G=${baseParams.zadankai_simpatizzanti_g}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
+            `Dettagli Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, G=${baseParams.zadankai_ospiti_g}`
           ].join('\n')
         : [
             `RIEPILOGO ZADANKAI`,
@@ -475,12 +455,12 @@ function inviaEmailNotifica(data, totaleZadankai, totalePraticanti) {
             `Totale Zadankai: ${baseParams.totale_zadankai}`,
             `Totale Praticanti: ${praticantiParams.totale_praticanti}`,
             ``,
-            `Dettagli Zadankai Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, GU=${baseParams.zadankai_membri_gu}, GD=${baseParams.zadankai_membri_gd}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
-            `Dettagli Zadankai Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, GU=${baseParams.zadankai_simpatizzanti_gu}, GD=${baseParams.zadankai_simpatizzanti_gd}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
-            `Dettagli Zadankai Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, GU=${baseParams.zadankai_ospiti_gu}, GD=${baseParams.zadankai_ospiti_gd}`,
+            `Dettagli Zadankai Membri: U=${baseParams.zadankai_membri_u}, D=${baseParams.zadankai_membri_d}, G=${baseParams.zadankai_membri_g}, FUT=${baseParams.zadankai_membri_fut}, STU=${baseParams.zadankai_membri_stu}`,
+            `Dettagli Zadankai Simpatizzanti: U=${baseParams.zadankai_simpatizzanti_u}, D=${baseParams.zadankai_simpatizzanti_d}, G=${baseParams.zadankai_simpatizzanti_g}, FUT=${baseParams.zadankai_simpatizzanti_fut}, STU=${baseParams.zadankai_simpatizzanti_stu}`,
+            `Dettagli Zadankai Ospiti: U=${baseParams.zadankai_ospiti_u}, D=${baseParams.zadankai_ospiti_d}, G=${baseParams.zadankai_ospiti_g}`,
             ``,
-            `Dettagli Praticanti Membri: U=${praticantiParams.praticanti_membri_u}, D=${praticantiParams.praticanti_membri_d}, GU=${praticantiParams.praticanti_membri_gu}, GD=${praticantiParams.praticanti_membri_gd}`,
-            `Dettagli Praticanti Simpatizzanti: U=${praticantiParams.praticanti_simpatizzanti_u}, D=${praticantiParams.praticanti_simpatizzanti_d}, GU=${praticantiParams.praticanti_simpatizzanti_gu}, GD=${praticantiParams.praticanti_simpatizzanti_gd}`
+            `Dettagli Praticanti Membri: U=${praticantiParams.praticanti_membri_u}, D=${praticantiParams.praticanti_membri_d}, G=${praticantiParams.praticanti_membri_g}`,
+            `Dettagli Praticanti Simpatizzanti: U=${praticantiParams.praticanti_simpatizzanti_u}, D=${praticantiParams.praticanti_simpatizzanti_d}, G=${praticantiParams.praticanti_simpatizzanti_g}`
           ].join('\n'));
     const templateParams = { ...baseParams, ...praticantiParams, subject, message, is_studio_gosho: isStudio };
 

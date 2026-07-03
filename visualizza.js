@@ -29,6 +29,7 @@ let gruppoToCapitolo = {};
 let gruppiData;
 let graficoCategorieInstance = null;
 let graficoConfrontoInstance = null;
+let __lastFiltriVisualizza__ = { anno: null, mese: null, capitolo: null };
 
 // Funzione per ottenere il mese precedente
 function mesePrecedente(mese, anno) {
@@ -41,6 +42,11 @@ function mesePrecedente(mese, anno) {
 // 🔹 Carica dati da gruppi.json e Firebase
 async function caricaDati() {
   try {
+    __lastFiltriVisualizza__ = {
+      anno: filtroAnno ? filtroAnno.value : null,
+      mese: filtroMese ? filtroMese.value : null,
+      capitolo: filtroCapitolo ? filtroCapitolo.value : null
+    };
     righe = [];
     filtroAnno.innerHTML = "";
     filtroMese.innerHTML = "";
@@ -74,7 +80,7 @@ async function caricaDati() {
         const r = sezioni.zadankai[categoria];
         righe.push({ 
           anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+          U: r.U ?? 0, D: r.D ?? 0, G: (r.G ?? ((r.GU ?? 0) + (r.GD ?? 0))) ?? 0, FUT: r.FUT ?? 0, STU: r.STU ?? 0 
         });
       }
 
@@ -83,7 +89,7 @@ async function caricaDati() {
         const r = sezioni.praticanti[categoria];
         righe.push({ 
           anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-          U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, FUT: 0, STU: 0 
+          U: r.U ?? 0, D: r.D ?? 0, G: (r.G ?? ((r.GU ?? 0) + (r.GD ?? 0))) ?? 0, FUT: 0, STU: 0 
         });
       }
     }
@@ -102,6 +108,16 @@ async function caricaDati() {
         filtroMese.appendChild(option);
       }
     });
+
+    if (__lastFiltriVisualizza__.anno && Array.from(filtroAnno.options).some(o => o.value === __lastFiltriVisualizza__.anno)) {
+      filtroAnno.value = __lastFiltriVisualizza__.anno;
+    }
+    if (__lastFiltriVisualizza__.mese && Array.from(filtroMese.options).some(o => o.value === __lastFiltriVisualizza__.mese)) {
+      filtroMese.value = __lastFiltriVisualizza__.mese;
+    }
+    if (__lastFiltriVisualizza__.capitolo && Array.from(filtroCapitolo.options).some(o => o.value === __lastFiltriVisualizza__.capitolo)) {
+      filtroCapitolo.value = __lastFiltriVisualizza__.capitolo;
+    }
 
     // Aggiungi event listeners
     [filtroAnno, filtroMese, filtroCapitolo].forEach(f => 
@@ -125,10 +141,10 @@ caricaDati();
 // Funzione helper per calcolare i totali di una riga
 function calcolaTotaliRiga(righe, tipo) {
   return righe.reduce((acc, r) => {
-    acc.U += r.U; acc.D += r.D; acc.GU += r.GU; acc.GD += r.GD;
+    acc.U += r.U; acc.D += r.D; acc.G += r.G;
     acc.FUT += r.FUT || 0; acc.STU += r.STU || 0;
     return acc;
-  }, { U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0 });
+  }, { U: 0, D: 0, G: 0, FUT: 0, STU: 0 });
 }
 
 // Funzione helper per trovare i dati di una sezione specifica
@@ -136,12 +152,12 @@ function trovaDatiSezione(righe, sezione) {
   const riga = righe.find(r => r.sezione === sezione);
   if (riga) {
     return { 
-      U: riga.U, D: riga.D, GU: riga.GU, GD: riga.GD, 
-      Tot: riga.U + riga.D + riga.GU + riga.GD,
+      U: riga.U, D: riga.D, G: riga.G, 
+      Tot: riga.U + riga.D + riga.G,
       FUT: riga.FUT, STU: riga.STU 
     };
   }
-  return { U: 0, D: 0, GU: 0, GD: 0, Tot: 0, FUT: 0, STU: 0 };
+  return { U: 0, D: 0, G: 0, Tot: 0, FUT: 0, STU: 0 };
 }
 
 // Funzione principale per aggiornare la visualizzazione
@@ -185,10 +201,10 @@ function aggiornaTabella() {
       const zOspiti = trovaDatiSezione(righeZadankai, "ospiti"); // Persone Nuove
       
       const totG = zMembri.Tot + zSimp.Tot + zOspiti.Tot;
-      const totFut = zMembri.FUT + zSimp.FUT + zOspiti.FUT;
-      const totStu = zMembri.STU + zSimp.STU + zOspiti.STU;
+      const totFut = zMembri.FUT + zSimp.FUT;
+      const totStu = zMembri.STU + zSimp.STU;
 
-      const totGPrec = righeZadankaiPrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const totGPrec = righeZadankaiPrec.reduce((acc, r) => acc + r.U + r.D + r.G, 0);
       const variazione = totG - totGPrec;
 
       const datiGruppoZadankai = {
@@ -213,7 +229,7 @@ function aggiornaTabella() {
       const pSimp = trovaDatiSezione(righePraticanti, "simpatizzanti");
       
       const pTotG = pMembri.Tot + pSimp.Tot;
-      const pTotGPrec = righePraticantiPrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+      const pTotGPrec = righePraticantiPrec.reduce((acc, r) => acc + r.U + r.D + r.G, 0);
       const pVariazione = pTotG - pTotGPrec;
 
       const datiGruppoPraticanti = {
@@ -290,11 +306,11 @@ function aggiornaTabella() {
 }
 
 // Helper init
-function initTot() { return { U: 0, D: 0, GU: 0, GD: 0, Tot: 0, FUT: 0, STU: 0 }; }
+function initTot() { return { U: 0, D: 0, G: 0, Tot: 0, FUT: 0, STU: 0 }; }
 
 // Helper somma
 function sommaTotali(dest, source) {
-  dest.U += source.U; dest.D += source.D; dest.GU += source.GU; dest.GD += source.GD;
+  dest.U += source.U; dest.D += source.D; dest.G += source.G;
   dest.Tot += source.Tot; dest.FUT += source.FUT || 0; dest.STU += source.STU || 0;
 }
 
@@ -304,15 +320,15 @@ function getHeaderZadankai() {
     <thead>
       <tr class="header-main">
         <th rowspan="2" class="col-zona">ZADANKAI<br>ZONA</th>
-        <th colspan="5" class="col-membri">MEMBRI</th>
-        <th colspan="5" class="col-simp">SIMPATIZZANTI</th>
-        <th colspan="5" class="col-nuove">OSPITI</th>
+        <th colspan="6" class="col-membri">MEMBRI</th>
+        <th colspan="6" class="col-simp">SIMPATIZZANTI</th>
+        <th colspan="4" class="col-nuove">OSPITI</th>
         <th colspan="4" class="col-totali">TOTALI</th>
       </tr>
       <tr class="header-sub">
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+        <th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>
+        <th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>
+        <th>U</th><th>D</th><th>G</th><th>Tot</th>
         <th>TOT G.</th><th>VAR</th><th>FUT</th><th>STU</th>
       </tr>
     </thead>
@@ -324,16 +340,16 @@ function getHeaderPraticanti() {
     <thead>
       <tr class="header-main">
         <th rowspan="2" class="col-zona">Report Praticanti<br>Zona</th>
-        <th colspan="5" class="col-praticanti-membri">Praticanti Membri</th>
-        <th colspan="5" class="col-praticanti-simp">Praticanti Simpatizzanti</th>
+        <th colspan="4" class="col-praticanti-membri">Praticanti Membri</th>
+        <th colspan="4" class="col-praticanti-simp">Praticanti Simpatizzanti</th>
         <th rowspan="2" class="col-totg">TOT G.</th>
         <th rowspan="2" class="col-var">Var</th>
       </tr>
       <tr class="header-sub">
         <!-- P. Membri -->
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+        <th>U</th><th>D</th><th>G</th><th>Tot</th>
         <!-- P. Simp -->
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+        <th>U</th><th>D</th><th>G</th><th>Tot</th>
       </tr>
     </thead>
   `;
@@ -347,18 +363,18 @@ function creaRigaZadankai(nome, dati, classeExtra = "") {
   const celle = [
     nome,
     // Membri
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot, dati.membri.FUT, dati.membri.STU,
     // Simp
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot, dati.simp.FUT, dati.simp.STU,
     // Ospiti
-    dati.ospiti.U, dati.ospiti.D, dati.ospiti.GU, dati.ospiti.GD, dati.ospiti.Tot,
+    dati.ospiti.U, dati.ospiti.D, dati.ospiti.G, dati.ospiti.Tot,
     // Totali
     dati.totG, dati.var, dati.fut, dati.stu
   ];
 
   celle.forEach((val, i) => {
     const td = document.createElement("td");
-    td.textContent = (i === 17 && typeof val === "number" && val > 0) ? `+${val}` : val;
+    td.textContent = (i === 18 && typeof val === "number" && val > 0) ? `+${val}` : val;
     
     // Gestione colori celle specifiche
     if (i === 0) td.className = "text-start fw-bold cella-nome";
@@ -375,16 +391,16 @@ function creaRigaPraticanti(nome, dati, classeExtra = "") {
   const celle = [
     nome,
     // P. Membri
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot,
     // P. Simp
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot,
     // Totali
     dati.totG, dati.var
   ];
 
   celle.forEach((val, i) => {
     const td = document.createElement("td");
-    td.textContent = (i === 12 && typeof val === "number" && val > 0) ? `+${val}` : val;
+    td.textContent = (i === 10 && typeof val === "number" && val > 0) ? `+${val}` : val;
     if (i === 0) td.className = "text-start fw-bold cella-nome";
     tr.appendChild(td);
   });

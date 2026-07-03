@@ -27,6 +27,7 @@ var BORDER_CONFIG = {
 var righe = [];
 var gruppiData;
 var gruppoToCapitolo = {};
+var __lastFiltriRL__ = { anno: null, mese: null };
 
 var mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
@@ -50,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
   for (var i = 0; i < radiosTipo.length; i++) {
     radiosTipo[i].addEventListener('change', function() {
+      __lastFiltriRL__ = {
+        anno: (document.getElementById('filtro-anno') && document.getElementById('filtro-anno').value) ? document.getElementById('filtro-anno').value : null,
+        mese: (document.getElementById('filtro-mese') && document.getElementById('filtro-mese').value) ? document.getElementById('filtro-mese').value : null
+      };
       righe = [];
       var filtroAnno = document.getElementById('filtro-anno');
       var filtroMese = document.getElementById('filtro-mese');
@@ -199,9 +204,13 @@ function inizializzaFiltri() {
         filtroMese.appendChild(option);
     }
     
-    // Seleziona valori più recenti
-    if (anni.length > 0) filtroAnno.value = anni[anni.length - 1];
-    if (mesiOrdinati.length > 0) filtroMese.value = mesiOrdinati[mesiOrdinati.length - 1];
+    var prevAnno = __lastFiltriRL__ && __lastFiltriRL__.anno ? String(__lastFiltriRL__.anno) : null;
+    var prevMese = __lastFiltriRL__ && __lastFiltriRL__.mese ? String(__lastFiltriRL__.mese) : null;
+    var annoDaSelezionare = (prevAnno && anni.map(String).indexOf(prevAnno) !== -1) ? prevAnno : (anni.length > 0 ? anni[anni.length - 1] : "");
+    var meseDaSelezionare = (prevMese && mesiOrdinati.map(String).indexOf(prevMese) !== -1) ? prevMese : (mesiOrdinati.length > 0 ? mesiOrdinati[mesiOrdinati.length - 1] : "");
+    if (annoDaSelezionare) filtroAnno.value = annoDaSelezionare;
+    if (meseDaSelezionare) filtroMese.value = meseDaSelezionare;
+    __lastFiltriRL__ = { anno: filtroAnno.value || null, mese: filtroMese.value || null };
     
     // Aggiungi event listeners
     filtroAnno.addEventListener('change', aggiornaRiepiloghi);

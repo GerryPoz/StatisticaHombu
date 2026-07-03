@@ -34,6 +34,7 @@ let righe = [];
 let gruppiData;
 let gruppoToCapitolo = {};
 let __tipoListenerInitR__ = false;
+let __lastFiltriR__ = { anno: null, mese: null };
 
 const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
                     "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
@@ -98,7 +99,7 @@ async function caricaDati() {
                         const r = sezioni.zadankai[categoria];
                         righe.push({ 
                             anno, mese, gruppo, tipo: "ZADANKAI", sezione: categoria,
-                            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
+                            U: r.U ?? 0, D: r.D ?? 0, G: (r.G ?? ((r.GU ?? 0) + (r.GD ?? 0))) ?? 0,
                             FUT: r.FUT ?? 0, STU: r.STU ?? 0 
                         });
                     }
@@ -109,8 +110,8 @@ async function caricaDati() {
                         const r = sezioni.praticanti[categoria];
                         righe.push({ 
                             anno, mese, gruppo, tipo: "PRATICANTI", sezione: categoria,
-                            U: r.U ?? 0, D: r.D ?? 0, GU: r.GU ?? 0, GD: r.GD ?? 0, 
-                            FUT: r.FUT ?? 0, STU: r.STU ?? 0 
+                            U: r.U ?? 0, D: r.D ?? 0, G: (r.G ?? ((r.GU ?? 0) + (r.GD ?? 0))) ?? 0,
+                            FUT: 0, STU: 0 
                         });
                     }
                 }
@@ -140,6 +141,10 @@ async function caricaDati() {
         const radiosTipo = document.querySelectorAll('input[name="filtro-tipo"]');
         radiosTipo.forEach(radio => {
             radio.addEventListener('change', () => {
+                __lastFiltriR__ = {
+                    anno: document.getElementById('filtro-anno')?.value ?? null,
+                    mese: document.getElementById('filtro-mese')?.value ?? null
+                };
                 righe = [];
                 const filtroAnno = document.getElementById('filtro-anno');
                 const filtroMese = document.getElementById('filtro-mese');
@@ -177,9 +182,19 @@ function inizializzaFiltri() {
         filtroMese.appendChild(option);
     });
     
-    // Seleziona valori più recenti
-    if (anni.length > 0) filtroAnno.value = anni[anni.length - 1];
-    if (mesiOrdinati.length > 0) filtroMese.value = mesiOrdinati[mesiOrdinati.length - 1];
+    const prevAnno = __lastFiltriR__?.anno ? String(__lastFiltriR__.anno) : null;
+    const prevMese = __lastFiltriR__?.mese ? String(__lastFiltriR__.mese) : null;
+    const anniNumerici = anni.map(a => Number(a)).filter(n => !Number.isNaN(n)).sort((a, b) => a - b);
+    const annoRecente = anniNumerici.length ? String(anniNumerici[anniNumerici.length - 1]) : (anni.length ? String(anni[anni.length - 1]) : "");
+    const mesiAnnoRecente = [...new Set(righe.filter(r => String(r.anno) === String(annoRecente)).map(r => r.mese))].sort((a, b) => mesiOrdine.indexOf(a) - mesiOrdine.indexOf(b));
+    const meseRecente = mesiAnnoRecente.length ? mesiAnnoRecente[mesiAnnoRecente.length - 1] : (mesiOrdinati.length ? mesiOrdinati[mesiOrdinati.length - 1] : "");
+    const annoDaSelezionare = prevAnno && anni.map(String).includes(prevAnno) ? prevAnno : annoRecente;
+    const mesiAnnoSelezionato = [...new Set(righe.filter(r => String(r.anno) === String(annoDaSelezionare)).map(r => r.mese))].sort((a, b) => mesiOrdine.indexOf(a) - mesiOrdine.indexOf(b));
+    const meseFallbackAnno = mesiAnnoSelezionato.length ? mesiAnnoSelezionato[mesiAnnoSelezionato.length - 1] : meseRecente;
+    const meseDaSelezionare = prevMese && mesiOrdinati.map(String).includes(prevMese) ? prevMese : meseFallbackAnno;
+    if (annoDaSelezionare) filtroAnno.value = annoDaSelezionare;
+    if (meseDaSelezionare) filtroMese.value = meseDaSelezionare;
+    __lastFiltriR__ = { anno: filtroAnno.value || null, mese: filtroMese.value || null };
     
     // Aggiungi event listeners
     filtroAnno.addEventListener('change', aggiornaRiepiloghi);
@@ -230,9 +245,9 @@ function aggiornaRiepiloghi() {
           const zS = trovaDatiSezione(rz, 'simpatizzanti');
           const zO = trovaDatiSezione(rz, 'ospiti');
           const zTotG = zM.Tot + zS.Tot + zO.Tot;
-          const zFut = (zM.FUT||0) + (zS.FUT||0) + (zO.FUT||0);
-          const zStu = (zM.STU||0) + (zS.STU||0) + (zO.STU||0);
-          let zTotPrec = 0; rzPrec.forEach(rr => { zTotPrec += rr.U + rr.D + rr.GU + rr.GD; });
+          const zFut = (zM.FUT||0) + (zS.FUT||0);
+          const zStu = (zM.STU||0) + (zS.STU||0);
+          let zTotPrec = 0; rzPrec.forEach(rr => { const gPrec = (rr.G != null ? rr.G : ((rr.GU||0) + (rr.GD||0))); zTotPrec += (rr.U||0) + (rr.D||0) + (gPrec||0); });
           const zVar = zTotG - zTotPrec;
           sommaTotali(datiSettore.totZ.membri, zM); sommaTotali(datiSettore.totZ.simp, zS); sommaTotali(datiSettore.totZ.ospiti, zO);
           datiSettore.totZ.totG += zTotG; datiSettore.totZ.var += zVar; datiSettore.totZ.fut += zFut; datiSettore.totZ.stu += zStu;
@@ -240,7 +255,7 @@ function aggiornaRiepiloghi() {
           const rp = righeFiltrate.filter(r => r.gruppo === gruppo && r.tipo === 'PRATICANTI');
           const rpPrec = righe.filter(r => r.anno === annoPrec && r.mese === mesePrec && r.gruppo === gruppo && r.tipo === 'PRATICANTI');
           const pM = trovaDatiSezione(rp, 'membri'); const pS = trovaDatiSezione(rp, 'simpatizzanti');
-          const pTotG = pM.Tot + pS.Tot; let pTotPrec = 0; rpPrec.forEach(rr => { pTotPrec += rr.U + rr.D + rr.GU + rr.GD; });
+          const pTotG = pM.Tot + pS.Tot; let pTotPrec = 0; rpPrec.forEach(rr => { const gPrecP = (rr.G != null ? rr.G : ((rr.GU||0) + (rr.GD||0))); pTotPrec += (rr.U||0) + (rr.D||0) + (gPrecP||0); });
           const pVar = pTotG - pTotPrec;
           sommaTotali(datiSettore.totP.membri, pM); sommaTotali(datiSettore.totP.simp, pS);
           datiSettore.totP.totG += pTotG; datiSettore.totP.var += pVar;
@@ -267,12 +282,15 @@ function aggiornaRiepiloghi() {
     if (tableP && tbodyP) { tableP.appendChild(tbodyP); container.appendChild(tableP); }
 }
 
-function initTot(){ return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 }; }
-function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.GU+=src.GU; dest.GD+=src.GD; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
+function initTot(){ return { U:0, D:0, G:0, Tot:0, FUT:0, STU:0 }; }
+function sommaTotali(dest, src){ dest.U+=src.U; dest.D+=src.D; dest.G+=src.G; dest.Tot+=src.Tot; dest.FUT+=(src.FUT||0); dest.STU+=(src.STU||0); }
 function trovaDatiSezione(righeSez, sezione){
   const r = righeSez.find(x => x.sezione === sezione);
-  if (r) return { U:r.U, D:r.D, GU:r.GU, GD:r.GD, Tot:(r.U+r.D+r.GU+r.GD), FUT:r.FUT, STU:r.STU };
-  return { U:0, D:0, GU:0, GD:0, Tot:0, FUT:0, STU:0 };
+  if (r) {
+    const g = (r.G ?? ((r.GU ?? 0) + (r.GD ?? 0))) ?? 0;
+    return { U:r.U, D:r.D, G:g, Tot:(r.U+r.D+g), FUT:r.FUT, STU:r.STU };
+  }
+  return { U:0, D:0, G:0, Tot:0, FUT:0, STU:0 };
 }
 function getHeaderZadankai(){
   const title = getTipoDati() === 'STUDIO_GOSHO' ? 'REPORT STUDIO GOSHO' : 'REPORT ZADANKAI';
@@ -280,15 +298,15 @@ function getHeaderZadankai(){
     <thead>
       <tr class="header-main">
         <th rowspan="2" class="col-zona"> ${title}<br>ZONA</th>
-        <th colspan="5" class="col-membri">MEMBRI</th>
-        <th colspan="5" class="col-simp">SIMPATIZZANTI</th>
-        <th colspan="5" class="col-nuove">OSPITI</th>
+        <th colspan="6" class="col-membri">MEMBRI</th>
+        <th colspan="6" class="col-simp">SIMPATIZZANTI</th>
+        <th colspan="4" class="col-nuove">OSPITI</th>
         <th colspan="4" class="col-totali">TOTALI</th>
       </tr>
       <tr class="header-sub">
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>TOT</th>
+        <th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>
+        <th>U</th><th>D</th><th>G</th><th>TOT</th><th>FUT</th><th>STU</th>
+        <th>U</th><th>D</th><th>G</th><th>TOT</th>
         <th>TOT G.</th><th>VAR</th><th>FUT</th><th>STU</th>
       </tr>
     </thead>
@@ -299,14 +317,14 @@ function getHeaderPraticanti(){
     <thead>
       <tr class="header-main">
         <th rowspan="2" class="col-zona">Report Praticanti<br>Zona</th>
-        <th colspan="5" class="col-praticanti-membri">Praticanti Membri</th>
-        <th colspan="5" class="col-praticanti-simp">Praticanti Simpatizzanti</th>
+        <th colspan="4" class="col-praticanti-membri">Praticanti Membri</th>
+        <th colspan="4" class="col-praticanti-simp">Praticanti Simpatizzanti</th>
         <th rowspan="2" class="col-totg">TOT G.</th>
         <th rowspan="2" class="col-var">Var</th>
       </tr>
       <tr class="header-sub">
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
-        <th>U</th><th>D</th><th>GU</th><th>GD</th><th>Tot</th>
+        <th>U</th><th>D</th><th>G</th><th>Tot</th>
+        <th>U</th><th>D</th><th>G</th><th>Tot</th>
       </tr>
     </thead>
   `;
@@ -315,16 +333,16 @@ function creaRigaZadankai(nome, dati, classe){
   const tr = document.createElement('tr'); if (classe) tr.className = classe;
   const celle = [
     nome,
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
-    dati.ospiti.U, dati.ospiti.D, dati.ospiti.GU, dati.ospiti.GD, dati.ospiti.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot, dati.membri.FUT, dati.membri.STU,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot, dati.simp.FUT, dati.simp.STU,
+    dati.ospiti.U, dati.ospiti.D, dati.ospiti.G, dati.ospiti.Tot,
     dati.totG, dati.var, dati.fut, dati.stu
   ];
   celle.forEach((val, i) => {
     const td = document.createElement('td');
-    td.textContent = (i === 17 && typeof val === 'number' && val > 0) ? `+${val}` : val;
+    td.textContent = (i === 18 && typeof val === 'number' && val > 0) ? `+${val}` : val;
     if (i===0) td.className='text-start fw-bold cella-nome';
-    if (i===5 || i===10 || i===15 || i===16 || i===17) td.classList.add('fw-bold');
+    if (i===4 || i===10 || i===16 || i===17 || i===18) td.classList.add('fw-bold');
     tr.appendChild(td);
   });
   return tr;
@@ -333,15 +351,15 @@ function creaRigaPraticanti(nome, dati, classe){
   const tr = document.createElement('tr'); if (classe) tr.className = classe;
   const celle = [
     nome,
-    dati.membri.U, dati.membri.D, dati.membri.GU, dati.membri.GD, dati.membri.Tot,
-    dati.simp.U, dati.simp.D, dati.simp.GU, dati.simp.GD, dati.simp.Tot,
+    dati.membri.U, dati.membri.D, dati.membri.G, dati.membri.Tot,
+    dati.simp.U, dati.simp.D, dati.simp.G, dati.simp.Tot,
     dati.totG, dati.var
   ];
   celle.forEach((val, i) => {
     const td = document.createElement('td');
-    td.textContent = (i === 12 && typeof val === 'number' && val > 0) ? `+${val}` : val;
+    td.textContent = (i === 10 && typeof val === 'number' && val > 0) ? `+${val}` : val;
     if (i===0) td.className='text-start fw-bold cella-nome';
-    if (i===5 || i===10 || i===11 || i===12) td.classList.add('fw-bold');
+    if (i===4 || i===8 || i===9 || i===10) td.classList.add('fw-bold');
     tr.appendChild(td);
   });
   return tr;
@@ -365,7 +383,7 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
     
     const thead = document.createElement('thead');
     thead.innerHTML = `<tr>
-      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>G</th>
       <th>Somma</th><th>Prec.</th><th>Totale Settore</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabella.appendChild(thead);
@@ -389,10 +407,11 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
         
         const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
         const sumTot = righeTotali.reduce((acc, r) => ({
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+            FUT: acc.FUT + (r.sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+            STU: acc.STU + (r.sezione === 'ospiti' ? 0 : (r.STU || 0))
+        }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.G;
         
         const righePrecTot = righe.filter(r =>
             r.anno === annoPrec && r.mese === mesePrec &&
@@ -400,16 +419,17 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
             sezioniRilevanti.includes(r.sezione) &&
             gruppiSettore.includes(r.gruppo)
         );
-        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
         const delta = totaleMese - totalePrec;
         
         sezioni.forEach((sezione, index) => {
             const righeSezione = righeTipo.filter(r => r.sezione === sezione);
             const sum = righeSezione.reduce((acc, r) => ({
-                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                FUT: acc.FUT + (sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                STU: acc.STU + (sezione === 'ospiti' ? 0 : (r.STU || 0))
+            }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.G;
             
             const righePrec = righe.filter(r =>
                 r.anno === annoPrec && r.mese === mesePrec &&
@@ -417,7 +437,7 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
                 gruppiSettore.includes(r.gruppo)
             );
             const sommaPrec = righePrec.reduce((acc, r) =>
-                acc + r.U + r.D + r.GU + r.GD, 0);
+                acc + r.U + r.D + (r.G ?? 0), 0);
             
             const tr = document.createElement('tr');
             tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
@@ -431,7 +451,7 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
             }
             
             const celle = [
-                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sezione, sum.U, sum.D, sum.G,
                 sommaTot, sommaPrec
             ];
             celle.forEach((val, i) => {
@@ -439,7 +459,7 @@ function generaRiepilogoSettore(righeSettore, settore, mese, anno, mesePrec, ann
                 td.textContent = val;
                 if (i === 1) { // U
                     td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-                } else if (i === 5) { // Somma
+                } else if (i === 4) { // Somma
                     td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
                     td.style.fontWeight = "bold";
                 }
@@ -496,7 +516,7 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
     
     const thead = document.createElement('thead');
     thead.innerHTML = `<tr>
-      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>GU</th><th>GD</th>
+      <th>Categoria</th><th>Sezione</th><th>U</th><th>D</th><th>G</th>
       <th>Somma</th><th>Prec.</th><th>Totale Capitolo</th><th>Futuro</th><th>Studenti</th>
     </tr>`;
     tabella.appendChild(thead);
@@ -520,10 +540,11 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
         
         const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
         const sumTot = righeTotali.reduce((acc, r) => ({
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+            FUT: acc.FUT + (r.sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+            STU: acc.STU + (r.sezione === 'ospiti' ? 0 : (r.STU || 0))
+        }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.G;
         
         const righePrecTot = righe.filter(r =>
             r.anno === annoPrec && r.mese === mesePrec &&
@@ -531,16 +552,17 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
             sezioniRilevanti.includes(r.sezione) &&
             gruppoToCapitolo[r.gruppo] === capitolo
         );
-        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
         const delta = totaleMese - totalePrec;
         
         sezioni.forEach((sezione, index) => {
             const righeSezione = righeTipo.filter(r => r.sezione === sezione);
             const sum = righeSezione.reduce((acc, r) => ({
-                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                FUT: acc.FUT + (sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                STU: acc.STU + (sezione === 'ospiti' ? 0 : (r.STU || 0))
+            }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.G;
             
             const righePrec = righe.filter(r =>
                 r.anno === annoPrec && r.mese === mesePrec &&
@@ -548,7 +570,7 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
                 gruppoToCapitolo[r.gruppo] === capitolo
             );
             const sommaPrec = righePrec.reduce((acc, r) =>
-                acc + r.U + r.D + r.GU + r.GD, 0);
+                acc + r.U + r.D + (r.G ?? 0), 0);
             
             const tr = document.createElement('tr');
             tr.className = tipo === "ZADANKAI" ? "table-warning" : "table-info";
@@ -562,7 +584,7 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
             }
             
             const celle = [
-                sezione, sum.U, sum.D, sum.GU, sum.GD,
+                sezione, sum.U, sum.D, sum.G,
                 sommaTot, sommaPrec
             ];
             celle.forEach((val, i) => {
@@ -570,7 +592,7 @@ function generaRiepilogoCapitolo(righeFiltrateCap, capitolo, mese, anno, mesePre
                 td.textContent = val;
                 if (i === 1) { // U
                     td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
-                } else if (i === 5) { // Somma
+                } else if (i === 4) { // Somma
                     td.style.borderLeft = BORDER_CONFIG.getVerticalBorder();
                     td.style.fontWeight = "bold";
                 }
@@ -647,7 +669,7 @@ function esportaPdf() {
     yPosition += 10;
     
     // Prepara tabella dettagliata Hombu
-    const intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
+    const intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
     const righeHombuDettagliate = [];
     
     ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
@@ -667,36 +689,38 @@ function esportaPdf() {
         
         const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
         const sumTot = righeTotali.reduce((acc, r) => ({
-            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-        }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-        const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+            FUT: acc.FUT + (r.sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+            STU: acc.STU + (r.sezione === 'ospiti' ? 0 : (r.STU || 0))
+        }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+        const totaleMese = sumTot.U + sumTot.D + sumTot.G;
         
         const righePrecTot = righe.filter(r =>
             r.anno === annoPrec && r.mese === mesePrec &&
             r.tipo === tipo && sezioniRilevanti.includes(r.sezione)
         );
-        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+        const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
         const delta = totaleMese - totalePrec;
         
         sezioni.forEach((sezione, index) => {
             const righeSezione = righeTipo.filter(r => r.sezione === sezione);
             const sum = righeSezione.reduce((acc, r) => ({
-                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                FUT: acc.FUT + (sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                STU: acc.STU + (sezione === 'ospiti' ? 0 : (r.STU || 0))
+            }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+            const sommaTot = sum.U + sum.D + sum.G;
             
             const righePrec = righe.filter(r =>
                 r.anno === annoPrec && r.mese === mesePrec &&
                 r.tipo === tipo && r.sezione === sezione
             );
-            const sommaPrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+            const sommaPrec = righePrec.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
             
             const riga = [
                 index === 0 ? tipo : '',
                 sezione,
-                sum.U, sum.D, sum.GU, sum.GD,
+                sum.U, sum.D, sum.G,
                 sommaTot,
                 sommaPrec,
                 index === 0 ? `${totaleMese} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : '',
@@ -715,8 +739,8 @@ function esportaPdf() {
         styles: { fontSize: 8 },
         headStyles: { fillColor: [41, 128, 185] },
         columnStyles: {
-            6: { fontStyle: 'bold' }, // Somma
-            8: { fontStyle: 'bold' }  // Totale Hombu
+            5: { fontStyle: 'bold' }, // Somma
+            7: { fontStyle: 'bold' }  // Totale Hombu
         }
     });
     
@@ -765,7 +789,7 @@ function esportaPdf() {
             const gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
             
             // Prepara dati per tabella settore DETTAGLIATA
-            const intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
+            const intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
             const righeTabSettore = [];
             
             ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
@@ -784,10 +808,11 @@ function esportaPdf() {
                 
                 const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
                 const sumTot = righeTotali.reduce((acc, r) => ({
-                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-                }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                    U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                    FUT: acc.FUT + (r.sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                    STU: acc.STU + (r.sezione === 'ospiti' ? 0 : (r.STU || 0))
+                }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                const totaleMese = sumTot.U + sumTot.D + sumTot.G;
                 
                 const righePrecTot = righe.filter(r =>
                     r.anno === annoPrec && r.mese === mesePrec &&
@@ -795,16 +820,17 @@ function esportaPdf() {
                     sezioniRilevanti.includes(r.sezione) &&
                     gruppiSettore.includes(r.gruppo)
                 );
-                const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+                const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
                 const delta = totaleMese - totalePrec;
                 
                 sezioni.forEach((sezione, index) => {
                     const righeSezione = righeTipo.filter(r => r.sezione === sezione);
                     const sum = righeSezione.reduce((acc, r) => ({
-                        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-                    }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                    const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                        U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                        FUT: acc.FUT + (sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                        STU: acc.STU + (sezione === 'ospiti' ? 0 : (r.STU || 0))
+                    }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                    const sommaTot = sum.U + sum.D + sum.G;
                     
                     const righePrec = righe.filter(r =>
                         r.anno === annoPrec && r.mese === mesePrec &&
@@ -812,12 +838,12 @@ function esportaPdf() {
                         gruppiSettore.includes(r.gruppo)
                     );
                     const sommaPrec = righePrec.reduce((acc, r) =>
-                        acc + r.U + r.D + r.GU + r.GD, 0);
+                        acc + r.U + r.D + (r.G ?? 0), 0);
                     
                     const riga = [
                         index === 0 ? tipo : '',
                         sezione,
-                        sum.U, sum.D, sum.GU, sum.GD,
+                        sum.U, sum.D, sum.G,
                         sommaTot,
                         sommaPrec,
                         index === 0 ? `${totaleMese} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : '',
@@ -836,8 +862,8 @@ function esportaPdf() {
                 styles: { fontSize: 8 },
                 headStyles: { fillColor: [255, 193, 7] },
                 columnStyles: {
-                    6: { fontStyle: 'bold' }, // Somma
-                    8: { fontStyle: 'bold' }  // Totale Settore
+                    5: { fontStyle: 'bold' }, // Somma
+                    7: { fontStyle: 'bold' }  // Totale Settore
                 }
             });
             
@@ -854,7 +880,7 @@ function esportaPdf() {
         yPosition += 8;
         
         // Prepara tabella dettagliata capitolo
-        const intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
+        const intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
         const righeCapitoloDettagliate = [];
         
         ["ZADANKAI", "PRATICANTI"].forEach(tipo => {
@@ -873,38 +899,40 @@ function esportaPdf() {
             
             const righeTotali = righeTipo.filter(r => sezioniRilevanti.includes(r.sezione));
             const sumTot = righeTotali.reduce((acc, r) => ({
-                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-            }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            const totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                FUT: acc.FUT + (r.sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                STU: acc.STU + (r.sezione === 'ospiti' ? 0 : (r.STU || 0))
+            }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+            const totaleMese = sumTot.U + sumTot.D + sumTot.G;
             
             const righePrecTot = righe.filter(r =>
                 r.anno === annoPrec && r.mese === mesePrec &&
                 r.tipo === tipo && sezioniRilevanti.includes(r.sezione) &&
                 gruppoToCapitolo[r.gruppo] === capitolo
             );
-            const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+            const totalePrec = righePrecTot.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
             const delta = totaleMese - totalePrec;
             
             sezioni.forEach((sezione, index) => {
                 const righeSezione = righeTipo.filter(r => r.sezione === sezione);
                 const sum = righeSezione.reduce((acc, r) => ({
-                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
-                }), {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                const sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                    U: acc.U + r.U, D: acc.D + r.D, G: acc.G + r.G,
+                    FUT: acc.FUT + (sezione === 'ospiti' ? 0 : (r.FUT || 0)),
+                    STU: acc.STU + (sezione === 'ospiti' ? 0 : (r.STU || 0))
+                }), {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                const sommaTot = sum.U + sum.D + sum.G;
                 
                 const righePrec = righe.filter(r =>
                     r.anno === annoPrec && r.mese === mesePrec &&
                     r.tipo === tipo && r.sezione === sezione &&
                     gruppoToCapitolo[r.gruppo] === capitolo
                 );
-                const sommaPrec = righePrec.reduce((acc, r) => acc + r.U + r.D + r.GU + r.GD, 0);
+                const sommaPrec = righePrec.reduce((acc, r) => acc + r.U + r.D + (r.G ?? 0), 0);
                 
                 const riga = [
                     index === 0 ? tipo : '',
                     sezione,
-                    sum.U, sum.D, sum.GU, sum.GD,
+                    sum.U, sum.D, sum.G,
                     sommaTot,
                     sommaPrec,
                     index === 0 ? `${totaleMese} (Prec: ${totalePrec}, Δ: ${delta >= 0 ? "+" : ""}${delta})` : '',
@@ -923,8 +951,8 @@ function esportaPdf() {
             styles: { fontSize: 8 },
             headStyles: { fillColor: [40, 167, 69] },
             columnStyles: {
-                6: { fontStyle: 'bold' }, // Somma
-                8: { fontStyle: 'bold' }  // Totale Capitolo
+                5: { fontStyle: 'bold' }, // Somma
+                7: { fontStyle: 'bold' }  // Totale Capitolo
             }
         });
     });
