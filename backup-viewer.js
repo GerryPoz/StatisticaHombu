@@ -14,6 +14,9 @@ const detailModalEl = document.getElementById('detailModal');
 const detailTitleEl = document.getElementById('detailTitle');
 const detailPreEl = document.getElementById('detailPre');
 const copyBtn = document.getElementById('copyBtn');
+const detailTableWrap = document.getElementById('detailTableWrap');
+const viewTableBtn = document.getElementById('viewTableBtn');
+const viewJsonBtn = document.getElementById('viewJsonBtn');
 const detailModal = new bootstrap.Modal(detailModalEl);
 
 const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
@@ -22,6 +25,142 @@ const mesiOrdine = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno"
 let currentUser = null;
 let backupPayload = null;
 let flatIndex = [];
+
+function escapeHtml(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getGVal(obj) {
+  if (!obj || typeof obj !== 'object') return 0;
+  if (obj.G != null) return Number(obj.G) || 0;
+  return (Number(obj.GU) || 0) + (Number(obj.GD) || 0);
+}
+
+function normSection(obj, includeFutStu) {
+  const U = Number(obj?.U) || 0;
+  const D = Number(obj?.D) || 0;
+  const G = getGVal(obj);
+  const Tot = U + D + G;
+  const FUT = includeFutStu ? (Number(obj?.FUT) || 0) : 0;
+  const STU = includeFutStu ? (Number(obj?.STU) || 0) : 0;
+  return { U, D, G, Tot, FUT, STU };
+}
+
+function renderTable(title, columns, rows) {
+  const header = `
+    <tr>
+      ${columns.map(c => `<th class="${c.thClass || ''}">${escapeHtml(c.label)}</th>`).join('')}
+    </tr>
+  `;
+  const body = rows.map(r => `
+    <tr class="${r.trClass || ''}">
+      ${r.cells.map((cell, idx) => {
+        const col = columns[idx];
+        return `<td class="${col.tdClass || ''}">${cell}</td>`;
+      }).join('')}
+    </tr>
+  `).join('');
+
+  return `
+    <div class="mb-4">
+      <div class="fw-semibold mb-2">${escapeHtml(title)}</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle mb-0">
+          <thead class="table-light">${header}</thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderRecordAsTables(root, value) {
+  const mainLabel = (root === 'studio_gosho') ? 'Studio Gosho' : 'Zadankai';
+  const parts = [];
+
+  const zad = value?.zadankai;
+  if (zad && typeof zad === 'object') {
+    const membri = normSection(zad.membri, true);
+    const simp = normSection(zad.simpatizzanti, true);
+    const ospiti = normSection(zad.ospiti, false);
+    const tot = {
+      U: membri.U + simp.U + ospiti.U,
+      D: membri.D + simp.D + ospiti.D,
+      G: membri.G + simp.G + ospiti.G,
+      Tot: membri.Tot + simp.Tot + ospiti.Tot,
+      FUT: membri.FUT + simp.FUT,
+      STU: membri.STU + simp.STU
+    };
+
+    const columns = [
+      { label: 'Sezione', thClass: '', tdClass: 'fw-semibold' },
+      { label: 'U', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'D', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'G', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'TOT', thClass: 'text-end', tdClass: 'text-end fw-semibold' },
+      { label: 'FUT', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'STU', thClass: 'text-end', tdClass: 'text-end' }
+    ];
+
+    const rows = [
+      { cells: ['Membri', membri.U, membri.D, membri.G, membri.Tot, membri.FUT, membri.STU].map(escapeHtml) },
+      { cells: ['Simpatizzanti', simp.U, simp.D, simp.G, simp.Tot, simp.FUT, simp.STU].map(escapeHtml) },
+      { cells: ['Ospiti', ospiti.U, ospiti.D, ospiti.G, ospiti.Tot, '–', '–'].map(escapeHtml) },
+      { trClass: 'table-secondary fw-bold', cells: ['Totale', tot.U, tot.D, tot.G, tot.Tot, tot.FUT, tot.STU].map(escapeHtml) }
+    ];
+
+    parts.push(renderTable(mainLabel, columns, rows));
+  }
+
+  const pra = value?.praticanti;
+  if (pra && typeof pra === 'object') {
+    const membri = normSection(pra.membri, false);
+    const simp = normSection(pra.simpatizzanti, false);
+    const tot = {
+      U: membri.U + simp.U,
+      D: membri.D + simp.D,
+      G: membri.G + simp.G,
+      Tot: membri.Tot + simp.Tot
+    };
+
+    const columns = [
+      { label: 'Sezione', thClass: '', tdClass: 'fw-semibold' },
+      { label: 'U', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'D', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'G', thClass: 'text-end', tdClass: 'text-end' },
+      { label: 'TOT', thClass: 'text-end', tdClass: 'text-end fw-semibold' }
+    ];
+
+    const rows = [
+      { cells: ['Membri', membri.U, membri.D, membri.G, membri.Tot].map(escapeHtml) },
+      { cells: ['Simpatizzanti', simp.U, simp.D, simp.G, simp.Tot].map(escapeHtml) },
+      { trClass: 'table-secondary fw-bold', cells: ['Totale', tot.U, tot.D, tot.G, tot.Tot].map(escapeHtml) }
+    ];
+
+    parts.push(renderTable('Praticanti', columns, rows));
+  }
+
+  if (!parts.length) {
+    return `<div class="text-muted">Nessuna sezione riconosciuta nel record (attese: "zadankai" e/o "praticanti").</div>`;
+  }
+
+  return parts.join('');
+}
+
+function setDetailView(view) {
+  const isTable = view === 'table';
+  detailTableWrap.classList.toggle('d-none', !isTable);
+  detailPreEl.classList.toggle('d-none', isTable);
+  viewTableBtn.classList.toggle('btn-primary', isTable);
+  viewTableBtn.classList.toggle('btn-outline-primary', !isTable);
+  viewJsonBtn.classList.toggle('btn-primary', !isTable);
+  viewJsonBtn.classList.toggle('btn-outline-primary', isTable);
+}
 
 function setStatus(text, isError = false) {
   statusEl.textContent = text;
@@ -137,6 +276,8 @@ function showDetail(root, key) {
   if (!record) return;
   detailTitleEl.textContent = `${root.toUpperCase()} – ${record.anno} ${record.mese} – ${record.gruppo}`;
   detailPreEl.textContent = JSON.stringify(record.value ?? {}, null, 2);
+  detailTableWrap.innerHTML = renderRecordAsTables(root, record.value ?? {});
+  setDetailView('table');
   detailModal.show();
 }
 
@@ -210,6 +351,9 @@ copyBtn.addEventListener('click', async () => {
     }, 900);
   }
 });
+
+viewTableBtn.addEventListener('click', () => setDetailView('table'));
+viewJsonBtn.addEventListener('click', () => setDetailView('json'));
 
 logoutBtn.addEventListener('click', async () => {
   window.location.href = 'index.html';
