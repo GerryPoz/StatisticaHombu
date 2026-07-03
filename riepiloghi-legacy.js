@@ -688,6 +688,12 @@ function esportaPdf() {
     var annoPrec = mesePrecObj.anno;
     
     try {
+        var getGVal = function(r) {
+            if (!r) return 0;
+            if (r.G != null) return r.G || 0;
+            return (r.GU || 0) + (r.GD || 0);
+        };
+
         // Crea il documento PDF - Correzione per la versione legacy
         var doc = new window.jspdf.jsPDF('landscape');
         
@@ -703,7 +709,7 @@ function esportaPdf() {
         yPosition += 4; // Spazio dopo titolo Hombu
         
         // Prepara tabella dettagliata Hombu
-        var intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
+        var intestazioniHombu = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Hombu', 'Futuro', 'Studenti']];
         var righeHombuDettagliate = [];
         
         ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
@@ -725,42 +731,42 @@ function esportaPdf() {
             var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
             var sumTot = righeTotali.reduce(function(acc, r) {
                 return {
-                    U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                    GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                    U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                    FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                 };
-            }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-            var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+            }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+            var totaleMese = sumTot.U + sumTot.D + sumTot.G;
             
             var righePrecTot = righe.filter(function(r) {
                 return r.anno === annoPrec && r.mese === mesePrec &&
                        r.tipo === tipo &&
                        sezioniRilevanti.indexOf(r.sezione) !== -1;
             });
-            var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+            var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + getGVal(r); }, 0);
             var delta = totaleMese - totalePrec;
             
             sezioni.forEach(function(sezione, index) {
                 var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
                 var sum = righeSezione.reduce(function(acc, r) {
                     return {
-                        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                        U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                        FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                     };
-                }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                var sommaTot = sum.U + sum.D + sum.G;
                 
                 var righePrec = righe.filter(function(r) {
                     return r.anno === annoPrec && r.mese === mesePrec &&
                            r.tipo === tipo && r.sezione === sezione;
                 });
                 var sommaPrec = righePrec.reduce(function(acc, r) {
-                    return acc + r.U + r.D + r.GU + r.GD;
+                    return acc + r.U + r.D + getGVal(r);
                 }, 0);
                 
                 var riga = [
                     index === 0 ? tipo : '',
                     sezione,
-                    sum.U, sum.D, sum.GU, sum.GD,
+                    sum.U, sum.D, sum.G,
                     sommaTot,
                     sommaPrec,
                     index === 0 ? totaleMese + ' (Prec: ' + totalePrec + ', Δ: ' + (delta >= 0 ? "+" : "") + delta + ')' : '',
@@ -779,8 +785,8 @@ function esportaPdf() {
             styles: { fontSize: 8 },
             headStyles: { fillColor: [41, 128, 185] },
             columnStyles: {
-                6: { fontStyle: 'bold' }, // Somma
-                8: { fontStyle: 'bold' }  // Totale Hombu
+                5: { fontStyle: 'bold' }, // Somma
+                7: { fontStyle: 'bold' }  // Totale Hombu
             }
         });
         
@@ -808,7 +814,7 @@ function esportaPdf() {
             yPosition += 4; // Spazio dopo titolo riepilogo capitolo
             
             // Prepara tabella dettagliata capitolo
-            var intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
+            var intestazioniCapitolo = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Capitolo', 'Futuro', 'Studenti']];
             var righeCapitoloDettagliate = [];
             
             ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
@@ -829,11 +835,11 @@ function esportaPdf() {
                 var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
                 var sumTot = righeTotali.reduce(function(acc, r) {
                     return {
-                        U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                        GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                        U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                        FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                     };
-                }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                var totaleMese = sumTot.U + sumTot.D + sumTot.G;
                 
                 var righePrecTot = righe.filter(function(r) {
                     return r.anno === annoPrec && r.mese === mesePrec &&
@@ -841,18 +847,18 @@ function esportaPdf() {
                            sezioniRilevanti.indexOf(r.sezione) !== -1 &&
                            gruppoToCapitolo[r.gruppo] === capitolo;
                 });
-                var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+                var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + getGVal(r); }, 0);
                 var delta = totaleMese - totalePrec;
                 
                 sezioni.forEach(function(sezione, index) {
                     var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
                     var sum = righeSezione.reduce(function(acc, r) {
                         return {
-                            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                            FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                         };
-                    }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                    var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                    }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                    var sommaTot = sum.U + sum.D + sum.G;
                     
                     var righePrec = righe.filter(function(r) {
                         return r.anno === annoPrec && r.mese === mesePrec &&
@@ -860,13 +866,13 @@ function esportaPdf() {
                                gruppoToCapitolo[r.gruppo] === capitolo;
                     });
                     var sommaPrec = righePrec.reduce(function(acc, r) {
-                        return acc + r.U + r.D + r.GU + r.GD;
+                        return acc + r.U + r.D + getGVal(r);
                     }, 0);
                     
                     var riga = [
                         index === 0 ? tipo : '',
                         sezione,
-                        sum.U, sum.D, sum.GU, sum.GD,
+                        sum.U, sum.D, sum.G,
                         sommaTot,
                         sommaPrec,
                         index === 0 ? totaleMese + ' (Prec: ' + totalePrec + ', Δ: ' + (delta >= 0 ? "+" : "") + delta + ')' : '',
@@ -885,8 +891,8 @@ function esportaPdf() {
                 styles: { fontSize: 8 },
                 headStyles: { fillColor: [40, 167, 69] },
                 columnStyles: {
-                    6: { fontStyle: 'bold' }, // Somma
-                    8: { fontStyle: 'bold' }  // Totale Capitolo
+                    5: { fontStyle: 'bold' }, // Somma
+                    7: { fontStyle: 'bold' }  // Totale Capitolo
                 }
             });
             
@@ -922,7 +928,7 @@ function esportaPdf() {
                 var gruppiSettore = gruppiData["HOMBU 9"][capitolo][settore] || [];
                 
                 // Prepara dati per tabella settore DETTAGLIATA
-                var intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'GU', 'GD', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
+                var intestazioniSettore = [['Categoria', 'Sezione', 'U', 'D', 'G', 'Somma', 'Prec.', 'Totale Settore', 'Futuro', 'Studenti']];
                 var righeTabSettore = [];
                 
                 ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
@@ -943,11 +949,11 @@ function esportaPdf() {
                     var righeTotali = righeTipo.filter(function(r) { return sezioniRilevanti.indexOf(r.sezione) !== -1; });
                     var sumTot = righeTotali.reduce(function(acc, r) {
                         return {
-                            U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                            GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                            U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                            FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                         };
-                    }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                    var totaleMese = sumTot.U + sumTot.D + sumTot.GU + sumTot.GD;
+                    }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                    var totaleMese = sumTot.U + sumTot.D + sumTot.G;
                     
                     var righePrecTot = righe.filter(function(r) {
                         return r.anno === annoPrec && r.mese === mesePrec &&
@@ -955,18 +961,18 @@ function esportaPdf() {
                                sezioniRilevanti.indexOf(r.sezione) !== -1 &&
                                gruppiSettore.indexOf(r.gruppo) !== -1;
                     });
-                    var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + r.GU + r.GD; }, 0);
+                    var totalePrec = righePrecTot.reduce(function(acc, r) { return acc + r.U + r.D + getGVal(r); }, 0);
                     var delta = totaleMese - totalePrec;
                     
                     sezioni.forEach(function(sezione, index) {
                         var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
                         var sum = righeSezione.reduce(function(acc, r) {
                             return {
-                                U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-                                GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+                                U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+                                FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
                             };
-                        }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
-                        var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+                        }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
+                        var sommaTot = sum.U + sum.D + sum.G;
                         
                         var righePrec = righe.filter(function(r) {
                             return r.anno === annoPrec && r.mese === mesePrec &&
@@ -974,13 +980,13 @@ function esportaPdf() {
                                    gruppiSettore.indexOf(r.gruppo) !== -1;
                         });
                         var sommaPrec = righePrec.reduce(function(acc, r) {
-                            return acc + r.U + r.D + r.GU + r.GD;
+                            return acc + r.U + r.D + getGVal(r);
                         }, 0);
                         
                         var riga = [
                             index === 0 ? tipo : '',
                             sezione,
-                            sum.U, sum.D, sum.GU, sum.GD,
+                            sum.U, sum.D, sum.G,
                             sommaTot,
                             sommaPrec,
                             index === 0 ? totaleMese + ' (Prec: ' + totalePrec + ', Δ: ' + (delta >= 0 ? "+" : "") + delta + ')' : '',
@@ -999,8 +1005,8 @@ function esportaPdf() {
                     styles: { fontSize: 8 },
                     headStyles: { fillColor: [255, 193, 7] },
                     columnStyles: {
-                        6: { fontStyle: 'bold' }, // Somma
-                        8: { fontStyle: 'bold' }  // Totale Settore
+                        5: { fontStyle: 'bold' }, // Somma
+                        7: { fontStyle: 'bold' }  // Totale Settore
                     }
                 });
                 

@@ -875,139 +875,94 @@ function esportaExcel() {
   var anno = filtroAnno.value;
   var mese = filtroMese.value;
   var capitolo = filtroCapitolo.value;
-  var mesePrec = mesePrecedente(mese, anno);
-  var annoPrec = mesePrec.anno;
-  mesePrec = mesePrec.mese;
 
-  var righeFiltrate = righe.filter(function(r) {
-    return r.anno === anno &&
-           r.mese === mese &&
-           gruppoToCapitolo[r.gruppo] === capitolo;
-  });
-
-  if (righeFiltrate.length === 0) {
+  var tables = Array.prototype.slice.call(containerTabelle.querySelectorAll("table"));
+  if (tables.length === 0) {
     alert("Nessun dato da esportare");
     return;
   }
 
-  // Crea i dati per Excel
-  var datiExcel = [];
-  
-  // Intestazioni
-  datiExcel.push(["Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"]);
-  
-  // Raggruppa per gruppo
-  var gruppiPresenti = [];
-  righeFiltrate.forEach(function(r) {
-    if (gruppiPresenti.indexOf(r.gruppo) === -1) {
-      gruppiPresenti.push(r.gruppo);
-    }
-  });
-  gruppiPresenti.sort();
-  
-  // Righe dati
-  gruppiPresenti.forEach(function(gruppo) {
-    var righeGruppo = righeFiltrate.filter(function(r) {
-      return r.gruppo === gruppo;
-    });
-    
-    ["ZADANKAI", "PRATICANTI"].forEach(function(tipo) {
-      var righeCategoria = righeGruppo.filter(function(r) {
-        return r.tipo === tipo;
-      });
-      
-      if (righeCategoria.length === 0) return;
-      
-      // Ordina sezioni ZADANKAI nell'ordine: Membri, Simpatizzanti, Ospiti
-      if (tipo === "ZADANKAI") {
-        var sezioniOrdinate = ["membri", "simpatizzanti", "ospiti"];
-        righeCategoria.sort(function(a, b) {
-          return sezioniOrdinate.indexOf(a.sezione) - sezioniOrdinate.indexOf(b.sezione);
-        });
-      }
-      
-      // Calcola totali categoria
-      var totaleCategoria = righeCategoria.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
-      }, 0);
-      
-      var righePrec = righe.filter(function(r) {
-        return r.anno === annoPrec &&
-               r.mese === mesePrec &&
-               r.gruppo === gruppo &&
-               r.tipo === tipo;
-      });
-      
-      var totalePrec = righePrec.reduce(function(acc, r) {
-        return acc + r.U + r.D + r.GU + r.GD;
-      }, 0);
-      var delta = totaleCategoria - totalePrec;
-      
-      righeCategoria.forEach(function(r, index) {
-        var somma = r.U + r.D + r.GU + r.GD;
-        var righePrecSezione = righePrec.filter(function(x) {
-          return x.sezione === r.sezione;
-        });
-        var sommaPrec = righePrecSezione.reduce(function(acc, x) {
-          return acc + x.U + x.D + x.GU + x.GD;
-        }, 0);
-        
-        // Totale gruppo solo per la prima riga della categoria
-        var totaleGruppo = index === 0 ? totaleCategoria + " (Prec: " + totalePrec + ", Δ: " + (delta >= 0 ? "+" : "") + delta + ")" : "";
-        
-        datiExcel.push([
-          gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
-          somma, sommaPrec, totaleGruppo, r.FUT, r.STU
-        ]);
-      });
-    });
-  });
+  function sanitizeSheetName(name) {
+    var n = String(name || "Dati");
+    n = n.replace(/[:\\/?*\[\]]/g, " ").replace(/\s+/g, " ").trim();
+    if (!n) n = "Dati";
+    if (n.length > 31) n = n.slice(0, 31);
+    return n;
+  }
 
-  // Crea il workbook
-  var ws = XLSX.utils.aoa_to_sheet(datiExcel);
+  function autosizeColumns(ws) {
+    var range = XLSX.utils.decode_range(ws["!ref"] || "A1:A1");
+    var colWidths = [];
+    for (var c = range.s.c; c <= range.e.c; c++) colWidths[c] = 0;
+    for (var r = range.s.r; r <= range.e.r; r++) {
+      for (var c2 = range.s.c; c2 <= range.e.c; c2++) {
+        var addr = XLSX.utils.encode_cell({ r: r, c: c2 });
+        var cell = ws[addr];
+        if (!cell || cell.v == null) continue;
+        var v = String(cell.v);
+        if (v.length > colWidths[c2]) colWidths[c2] = v.length;
+      }
+    }
+    ws["!cols"] = colWidths.map(function(w) { return { wch: Math.min(Math.max(w + 2, 6), 40) }; });
+  }
+
   var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Dati");
-  
-  // Scarica il file
+
+  for (var i = 0; i < tables.length; i++) {
+    var table = tables[i];
+    var sheetBase = "Dati " + (i + 1);
+    if (table.classList && table.classList.contains("table-zadankai")) {
+      sheetBase = (getFiltroTipoVal() === "STUDIO_GOSHO") ? "Studio Gosho" : "Zadankai";
+    } else if (table.classList && table.classList.contains("table-praticanti")) {
+      sheetBase = "Praticanti";
+    }
+
+    var ws = XLSX.utils.table_to_sheet(table);
+    autosizeColumns(ws);
+    XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(sheetBase));
+  }
+
   XLSX.writeFile(wb, "dati_" + capitolo + "_" + mese + "_" + anno + ".xlsx");
 }
 
 function esportaPdf() {
-  // Ottieni i valori dei filtri
   var anno = filtroAnno.value;
   var mese = filtroMese.value;
   var capitolo = filtroCapitolo.value;
-  var mesePrec = mesePrecedente(mese, anno);
-  var annoPrec = mesePrec.anno;
-  mesePrec = mesePrec.mese;
-
-  // Filtra i dati per anno, mese e capitolo
-  var righeFiltrate = righe.filter(function(r) {
-    return r.anno === anno &&
-           r.mese === mese &&
-           gruppoToCapitolo[r.gruppo] === capitolo;
-  });
-
-  if (righeFiltrate.length === 0) {
+  var tables = Array.prototype.slice.call(containerTabelle.querySelectorAll("table"));
+  if (tables.length === 0) {
     alert("Nessun dato da esportare");
     return;
   }
 
-  // Inizializza il documento PDF
   var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF('landscape');
-  
-  // ===== SEZIONE 1: DETTAGLIO GRUPPI PER SETTORE =====
-  generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
-  
-  // ===== SEZIONE 2: RIEPILOGHI SETTORI =====
-  generaRiepiloghiSettori(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
-  
-  // ===== SEZIONE 3: RIEPILOGO CAPITOLO =====
-  generaRiepilogoCapitolo(doc, righeFiltrate, anno, mese, capitolo, annoPrec, mesePrec);
-  
-  // Salva il file PDF
-  doc.save('statistica_completa_' + capitolo + '_' + mese + '_' + anno + '.pdf');
+  var doc = new jsPDF('l', 'pt', 'a4');
+  var tipoLabel = (getFiltroTipoVal() === "STUDIO_GOSHO") ? "Studio Gosho" : "Zadankai";
+
+  doc.setFontSize(12);
+  doc.text("Statistica " + tipoLabel + " " + capitolo + " - " + mese + " " + anno, 40, 30);
+
+  var y = 40;
+  for (var i = 0; i < tables.length; i++) {
+    var table = tables[i];
+    var fontSize = (table.classList && table.classList.contains("table-zadankai")) ? 6 : 7;
+
+    doc.autoTable({
+      html: table,
+      startY: y,
+      theme: "grid",
+      styles: { fontSize: fontSize, cellPadding: 2 },
+      headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontStyle: "bold" }
+    });
+
+    y = doc.lastAutoTable.finalY + 20;
+    if (y > 520 && i < tables.length - 1) {
+      doc.addPage();
+      y = 40;
+    }
+  }
+
+  doc.save("statistica_" + tipoLabel.replace(/\s+/g, "_") + "_" + capitolo + "_" + mese + "_" + anno + ".pdf");
 }
 
 // Funzione per generare il dettaglio gruppi per settore
@@ -1032,7 +987,7 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
   
   // Prepara intestazioni tabella
   var intestazioni = [[
-    "Gruppo", "Categoria", "Sezione", "U", "D", "GU", "GD", 
+    "Gruppo", "Categoria", "Sezione", "U", "D", "G",
     "Somma", "Prec.", "Totale Gruppo", "Futuro", "Studenti"
   ]];
   
@@ -1090,8 +1045,8 @@ function generaDettaglioGruppiPerSettore(doc, righeFiltrate, anno, mese, capitol
         fontStyle: 'bold'
       },
       columnStyles: {
-        7: { fontStyle: 'bold' }, // Somma
-        9: { fontStyle: 'bold' }  // Totale Gruppo
+        6: { fontStyle: 'bold' }, // Somma
+        8: { fontStyle: 'bold' }  // Totale Gruppo
       },
       //alternateRowStyles: {
       //  fillColor: false // Disabilita l'alternanza automatica
@@ -1141,7 +1096,7 @@ function generaRiepiloghiSettori(doc, righeFiltrate, anno, mese, capitolo, annoP
     var righeSettoreTabella = generaRiepilogoPerTipo(righeSettore, annoPrec, mesePrec, gruppiSettore, "settore");
     
     var intestazioniSettore = [[
-      "Categoria", "Sezione", "U", "D", "GU", "GD", 
+      "Categoria", "Sezione", "U", "D", "G",
       "Somma", "Prec.", "Totale Settore", "Futuro", "Studenti"
     ]];
     
@@ -1159,8 +1114,8 @@ function generaRiepiloghiSettori(doc, righeFiltrate, anno, mese, capitolo, annoP
         fontStyle: 'bold'
       },
       columnStyles: {
-        6: { fontStyle: 'bold' }, // Somma
-        8: { fontStyle: 'bold' }  // Totale Settore
+        5: { fontStyle: 'bold' }, // Somma
+        7: { fontStyle: 'bold' }  // Totale Settore
       }
     });
   }
@@ -1181,7 +1136,7 @@ function generaRiepilogoCapitolo(doc, righeFiltrate, anno, mese, capitolo, annoP
   var righeCapitoloTabella = generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, null, "capitolo");
   
   var intestazioniCapitolo = [[
-    "Categoria", "Sezione", "U", "D", "GU", "GD", 
+    "Categoria", "Sezione", "U", "D", "G",
     "Somma", "Prec.", "Totale Capitolo", "Futuro", "Studenti"
   ]];
   
@@ -1199,8 +1154,8 @@ function generaRiepilogoCapitolo(doc, righeFiltrate, anno, mese, capitolo, annoP
       fontStyle: 'bold'
     },
     columnStyles: {
-      6: { fontStyle: 'bold' }, // Somma
-      8: { fontStyle: 'bold' }  // Totale Capitolo
+      5: { fontStyle: 'bold' }, // Somma
+      7: { fontStyle: 'bold' }  // Totale Capitolo
     }
   });
 }
@@ -1217,12 +1172,23 @@ function ottieniGruppiPresentiPerSettore(righeFiltrate, gruppiSettore) {
   return gruppiPresenti.sort();
 }
 
+function getGVal(r) {
+  if (!r) return 0;
+  if (r.G != null) return r.G || 0;
+  return (r.GU || 0) + (r.GD || 0);
+}
+
+function getTipoLabel(tipo) {
+  if (getFiltroTipoVal() === "STUDIO_GOSHO" && tipo === "ZADANKAI") return "STUDIO GOSHO";
+  return tipo;
+}
+
 function creaRigaSeparatore() {
-  return ["", "", "", "", "", "", "", "", "", "", "", ""];
+  return ["", "", "", "", "", "", "", "", "", "", ""];
 }
 
 function creaIntestazioneSettore(settore) {
-  return ["SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", "", ""];
+  return ["SETTORE: " + settore.toUpperCase(), "", "", "", "", "", "", "", "", "", ""];
 }
 
 function generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec) {
@@ -1253,7 +1219,8 @@ function generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec) {
     // Aggiungi le righe per ogni sezione
     for (var rc = 0; rc < righeCategoria.length; rc++) {
       var r = righeCategoria[rc];
-      var somma = r.U + r.D + r.GU + r.GD;
+      var g = getGVal(r);
+      var somma = r.U + r.D + g;
       
       var sommaPrec = calcolaSommaPrecedenteSezione(gruppo, tipo, r.sezione, annoPrec, mesePrec);
       
@@ -1264,7 +1231,7 @@ function generaRighePerGruppo(righeGruppo, gruppo, annoPrec, mesePrec) {
       }
       
       righeTabella.push([
-        gruppo, tipo, r.sezione, r.U, r.D, r.GU, r.GD, 
+        gruppo, getTipoLabel(tipo), r.sezione, r.U, r.D, g,
         somma, sommaPrec, totaleGruppo, r.FUT, r.STU
       ]);
     }
@@ -1300,7 +1267,7 @@ function generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, gruppiSettore
       var righeSezione = righeTipo.filter(function(r) { return r.sezione === sezione; });
       
       var sum = calcolaRiepilogoSezione(righeSezione);
-      var sommaTot = sum.U + sum.D + sum.GU + sum.GD;
+      var sommaTot = sum.U + sum.D + sum.G;
       
       var sommaPrec = calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo);
       
@@ -1312,8 +1279,8 @@ function generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, gruppiSettore
       }
       
       var riga = j === 0 ? 
-        [tipo, sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, totaleColonna, sum.FUT, sum.STU] :
-        ["", sezione, sum.U, sum.D, sum.GU, sum.GD, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
+        [getTipoLabel(tipo), sezione, sum.U, sum.D, sum.G, sommaTot, sommaPrec, totaleColonna, sum.FUT, sum.STU] :
+        ["", sezione, sum.U, sum.D, sum.G, sommaTot, sommaPrec, "", sum.FUT, sum.STU];
       
       righeTabella.push(riga);
     }
@@ -1325,7 +1292,7 @@ function generaRiepilogoPerTipo(righeFiltrate, annoPrec, mesePrec, gruppiSettore
 // Funzioni di calcolo
 function calcolaTotaleCategoria(righeCategoria) {
   return righeCategoria.reduce(function(acc, r) {
-    return acc + r.U + r.D + r.GU + r.GD;
+    return acc + r.U + r.D + getGVal(r);
   }, 0);
 }
 
@@ -1336,7 +1303,7 @@ function calcolaTotalePrecedente(gruppo, tipo, annoPrec, mesePrec) {
   });
   
   return righePrecedenti.reduce(function(acc, r) {
-    return acc + r.U + r.D + r.GU + r.GD;
+    return acc + r.U + r.D + getGVal(r);
   }, 0);
 }
 
@@ -1347,7 +1314,7 @@ function calcolaSommaPrecedenteSezione(gruppo, tipo, sezione, annoPrec, mesePrec
   });
   
   return righePrecedenti.reduce(function(acc, r) {
-    return acc + r.U + r.D + r.GU + r.GD;
+    return acc + r.U + r.D + getGVal(r);
   }, 0);
 }
 
@@ -1371,7 +1338,7 @@ function ottieniSezioniUniche(righeTipo, tipo) {
 
 function calcolaTotaleRighe(righe) {
   return righe.reduce(function(acc, r) {
-    return acc + r.U + r.D + r.GU + r.GD;
+    return acc + r.U + r.D + getGVal(r);
   }, 0);
 }
 
@@ -1396,10 +1363,10 @@ function calcolaTotalePrecedentePerTipo(tipo, sezioniRilevanti, annoPrec, mesePr
 function calcolaRiepilogoSezione(righeSezione) {
   return righeSezione.reduce(function(acc, r) {
     return {
-      U: acc.U + r.U, D: acc.D + r.D, GU: acc.GU + r.GU,
-      GD: acc.GD + r.GD, FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
+      U: acc.U + r.U, D: acc.D + r.D, G: acc.G + getGVal(r),
+      FUT: acc.FUT + r.FUT, STU: acc.STU + r.STU
     };
-  }, {U: 0, D: 0, GU: 0, GD: 0, FUT: 0, STU: 0});
+  }, {U: 0, D: 0, G: 0, FUT: 0, STU: 0});
 }
 
 function calcolaSommaPrecedenteRiepilogo(tipo, sezione, annoPrec, mesePrec, gruppiSettore, tipoRiepilogo) {

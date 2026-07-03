@@ -425,23 +425,26 @@ function mostraGruppiMancanti(righeFiltrate, anno, mese, capitolo) {
 
 // Funzioni export/print (placeholder - riutilizzare logica esistente se necessario)
 function esportaExcel() {
+  const tipoLabel = (filtroTipo && filtroTipo.value === "STUDIO_GOSHO") ? "Studio Gosho" : "Zadankai";
   const wb = XLSX.utils.book_new();
   const tables = containerTabelle.querySelectorAll("table");
   tables.forEach((table, i) => {
     const ws = XLSX.utils.table_to_sheet(table);
-    XLSX.utils.book_append_sheet(wb, ws, i === 0 ? "Zadankai" : "Praticanti");
+    const sheetName = (i === 0) ? tipoLabel : "Praticanti";
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
-  XLSX.writeFile(wb, `Statistica_${filtroCapitolo.value}_${filtroMese.value}_${filtroAnno.value}.xlsx`);
+  XLSX.writeFile(wb, `Statistica_${tipoLabel}_${filtroCapitolo.value}_${filtroMese.value}_${filtroAnno.value}.xlsx`);
 }
 
 function esportaPdf() {
+  const tipoLabel = (filtroTipo && filtroTipo.value === "STUDIO_GOSHO") ? "Studio Gosho" : "Zadankai";
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('l', 'pt', 'a4'); // landscape
   
   const tables = containerTabelle.querySelectorAll("table");
   let y = 40;
   
-  doc.text(`Statistica ${filtroCapitolo.value} - ${filtroMese.value} ${filtroAnno.value}`, 40, 30);
+  doc.text(`Statistica ${tipoLabel} ${filtroCapitolo.value} - ${filtroMese.value} ${filtroAnno.value}`, 40, 30);
 
   tables.forEach((table) => {
     doc.autoTable({
@@ -455,7 +458,7 @@ function esportaPdf() {
     if (y > 500) { doc.addPage(); y = 40; }
   });
   
-  doc.save(`Statistica_${filtroCapitolo.value}.pdf`);
+  doc.save(`Statistica_${tipoLabel}_${filtroCapitolo.value}_${filtroMese.value}_${filtroAnno.value}.pdf`);
 }
 
 function stampa() {
